@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>项目筛选</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f6f7f9; color: #202226; font: 14px/1.5 system-ui, -apple-system, sans-serif; }
+    .shell { min-height: 100vh; padding: 36px; }
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+    .toolbar h1 { margin: 0 auto 0 0; font-size: 22px; }
+    .count { color: #616772; }
+    .filter { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 12px; padding: 16px; background: #fff; border: 1px solid #dfe2e7; border-radius: 7px; }
+    .field { display: grid; gap: 6px; }
+    .field span { color: #686e78; font-size: 12px; font-weight: 600; }
+    .field input, .field select { height: 40px; padding: 0 11px; border: 1px solid #c9ced7; border-radius: 5px; background: white; font: inherit; }
+    .apply { align-self: end; height: 40px; padding: 0 18px; border: 0; border-radius: 5px; background: #246bfd; color: #fff; font-weight: 650; cursor: pointer; }
+    .chips { display: flex; gap: 8px; min-height: 32px; margin: 14px 0; flex-wrap: wrap; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; background: #eaf0ff; border: 1px solid #bdceff; border-radius: 16px; color: #184dab; }
+    .chip button { border: 0; background: transparent; color: inherit; cursor: pointer; }
+    .results { display: grid; gap: 9px; }
+    .row { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 15px 16px; background: #fff; border: 1px solid #e0e3e8; border-radius: 6px; }
+    .row strong { display: block; }
+    .row small { color: #737983; }
+    .status { color: #198754; font-weight: 600; }
+    @media (max-width: 700px) { .shell { padding: 18px; } .filter { grid-template-columns: 1fr; } .toolbar { align-items: flex-start; } .toolbar h1 { font-size: 19px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="toolbar"><h1>项目筛选</h1><span class="count" id="count">3 个结果</span></div>
+    <section class="filter">
+      <label class="field"><span>关键词</span><input id="query" placeholder="名称或负责人"></label>
+      <label class="field"><span>状态</span><select id="status"><option value="">全部状态</option><option>进行中</option><option>待评审</option><option>已完成</option></select></label>
+      <label class="field"><span>负责人</span><select id="owner"><option value="">全部成员</option><option>林然</option><option>周宁</option><option>顾言</option></select></label>
+      <button class="apply" id="apply">应用筛选</button>
+    </section>
+    <div class="chips" id="chips"></div>
+    <section class="results" id="results"></section>
+  </main>
+  <script>
+    const data = [["结算流程优化", "林然", "进行中"], ["会员权益改版", "周宁", "待评审"], ["消息中心重构", "顾言", "已完成"]];
+    const query = document.querySelector("#query");
+    const status = document.querySelector("#status");
+    const owner = document.querySelector("#owner");
+    const results = document.querySelector("#results");
+    const chips = document.querySelector("#chips");
+    const count = document.querySelector("#count");
+
+    function draw() {
+      const rows = data.filter((entry) => (!query.value || entry[0].includes(query.value) || entry[1].includes(query.value)) && (!status.value || entry[2] === status.value) && (!owner.value || entry[1] === owner.value));
+      results.innerHTML = rows.map((entry) => `<article class="row"><div><strong>${entry[0]}</strong><small>负责人 · ${entry[1]}</small></div><span class="status">${entry[2]}</span></article>`).join("") || '<article class="row"><strong>暂无匹配结果</strong></article>';
+      count.textContent = `${rows.length} 个结果`;
+      const active = [query.value && ["关键词", query.value, () => query.value = ""], status.value && ["状态", status.value, () => status.value = ""], owner.value && ["负责人", owner.value, () => owner.value = ""]].filter(Boolean);
+      chips.innerHTML = active.map((entry, index) => `<span class="chip">${entry[0]}：${entry[1]} <button data-index="${index}">×</button></span>`).join("");
+      chips.querySelectorAll("button").forEach((button) => button.onclick = () => { active[Number(button.dataset.index)][2](); draw(); });
+    }
+
+    document.querySelector("#apply").onclick = draw;
+    draw();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>发布确认</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #edf0f4; color: #202226; font: 14px/1.5 system-ui, -apple-system, sans-serif; }
+    .page { min-height: 100vh; padding: 30px; }
+    .page h1 { margin: 0 0 6px; font-size: 22px; }
+    .page p { margin: 0; color: #707680; }
+    .list { display: grid; gap: 10px; margin-top: 24px; }
+    .item { height: 72px; background: white; border: 1px solid #dfe2e7; border-radius: 6px; }
+    .open { margin-top: 20px; height: 40px; padding: 0 16px; border: 0; border-radius: 5px; background: #246bfd; color: #fff; font-weight: 650; cursor: pointer; }
+    .backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(20, 24, 32, .48); }
+    .dialog { width: min(440px, 100%); background: #fff; border-radius: 7px; box-shadow: 0 20px 60px rgba(0, 0, 0, .25); }
+    .head, .body, .actions { padding: 18px 20px; }
+    .head { display: flex; align-items: center; border-bottom: 1px solid #e2e5e9; }
+    .head h2 { margin: 0; font-size: 18px; }
+    .close { margin-left: auto; border: 0; background: transparent; font-size: 22px; cursor: pointer; }
+    .body { display: grid; gap: 14px; }
+    .summary { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 12px; background: #f5f7fa; border: 1px solid #e0e3e8; border-radius: 5px; }
+    .summary span { color: #707680; }
+    .check { display: flex; gap: 9px; align-items: flex-start; }
+    .actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #e2e5e9; }
+    .actions button { height: 38px; padding: 0 15px; border-radius: 5px; border: 1px solid #cbd0d8; background: white; cursor: pointer; }
+    .actions .primary { border-color: #246bfd; background: #246bfd; color: white; font-weight: 650; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>发布设置</h1><p>配置完成后提交发布。</p>
+    <div class="list"><div class="item"></div><div class="item"></div></div>
+    <button class="open" id="open">提交发布</button>
+  </main>
+  <div class="backdrop" id="modal">
+    <section class="dialog" role="dialog" aria-modal="true">
+      <header class="head"><h2>确认发布</h2><button class="close" id="close" aria-label="关闭">×</button></header>
+      <div class="body">
+        <div class="summary"><span>目标环境</span><strong>正式环境</strong><span>影响用户</span><strong>12,480</strong></div>
+        <label class="check"><input type="checkbox" id="confirm"><span>我已检查配置和影响范围</span></label>
+      </div>
+      <footer class="actions"><button id="cancel">取消</button><button class="primary" id="publish" disabled>确认发布</button></footer>
+    </section>
+  </div>
+  <script>
+    const modal = document.querySelector("#modal");
+    const confirmation = document.querySelector("#confirm");
+    const publish = document.querySelector("#publish");
+    document.querySelector("#open").onclick = () => modal.classList.remove("hidden");
+    document.querySelector("#close").onclick = document.querySelector("#cancel").onclick = () => modal.classList.add("hidden");
+    confirmation.onchange = () => publish.disabled = !confirmation.checked;
+    publish.onclick = () => {
+      publish.textContent = "发布中…";
+      setTimeout(() => {
+        publish.textContent = "发布成功";
+        publish.style.background = "#198754";
+        publish.style.borderColor = "#198754";
+      }, 800);
+    };
+  </script>
+</body>
+</html>

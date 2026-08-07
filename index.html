@@ -26,6 +26,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     html,
     body {
@@ -454,6 +455,93 @@
       border-color: #b8ccff;
     }
 
+    .dialog-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 4px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .dialog-tabs button {
+      flex: 1 1 0;
+      height: 34px;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .dialog-tabs button[aria-selected="true"] {
+      color: var(--text);
+      background: var(--panel);
+      border-color: var(--border);
+      font-weight: 600;
+    }
+
+    .dialog-panel[hidden] { display: none; }
+
+    .library-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 30px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .library-head .icon-button { width: 30px; height: 30px; }
+
+    .library-list {
+      display: grid;
+      gap: 1px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--border);
+    }
+
+    .library-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 12px;
+      min-height: 70px;
+      padding: 10px 12px;
+      background: var(--panel);
+    }
+
+    .library-copy { min-width: 0; }
+
+    .library-copy strong,
+    .library-copy span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .library-copy strong { font-size: 14px; }
+    .library-copy span { margin-top: 3px; color: var(--muted); font-size: 12px; }
+
+    .library-device {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .library-empty {
+      min-height: 150px;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: var(--muted);
+      background: var(--panel);
+      text-align: center;
+      font-size: 13px;
+    }
+
     #toast {
       position: absolute;
       left: 50%;
@@ -532,7 +620,7 @@
         <button class="icon-button" type="button" data-tool-button="select" aria-pressed="true" title="选择"><i data-lucide="mouse-pointer-2"></i></button>
         <button class="icon-button" type="button" data-tool-button="pan" aria-pressed="false" title="拖动画布"><i data-lucide="hand"></i></button>
         <span class="divider" aria-hidden="true"></span>
-        <button class="command-button" type="button" id="add-component" title="添加 HTML 组件"><i data-lucide="panel-top-open"></i><span>组件</span></button>
+        <button class="command-button" type="button" id="add-component" title="打开组件库"><i data-lucide="panel-top-open"></i><span>组件</span></button>
         <button class="icon-button" type="button" data-tool-button="text" aria-pressed="false" title="添加文本"><i data-lucide="type"></i></button>
         <button class="icon-button" type="button" data-tool-button="note" aria-pressed="false" title="添加批注"><i data-lucide="sticky-note"></i></button>
         <button class="icon-button" type="button" data-tool-button="arrow" aria-pressed="false" title="添加箭头"><i data-lucide="move-up-right"></i></button>
@@ -564,34 +652,47 @@
   <dialog id="component-dialog">
     <form method="dialog" id="component-form">
       <div class="dialog-head">
-        <h2>添加 HTML 组件</h2>
+        <h2>添加组件</h2>
         <button class="icon-button" type="button" id="close-dialog" title="关闭"><i data-lucide="x"></i></button>
       </div>
       <div class="dialog-body">
-        <div class="field-row">
-          <label>名称
-            <input id="component-name" name="name" value="筛选面板" required>
-          </label>
-          <label>画框
-            <select id="component-device" name="device">
-              <option value="desktop">桌面 1200 × 760</option>
-              <option value="tablet">平板 768 × 720</option>
-              <option value="mobile">手机 390 × 844</option>
-            </select>
-          </label>
+        <div class="dialog-tabs" role="tablist" aria-label="组件来源">
+          <button type="button" role="tab" id="library-tab" aria-selected="true" aria-controls="library-panel">组件库</button>
+          <button type="button" role="tab" id="html-tab" aria-selected="false" aria-controls="html-panel">粘贴 HTML</button>
         </div>
-        <div class="template-switcher" aria-label="模板">
-          <button type="button" data-template="filter" aria-pressed="true">筛选面板</button>
-          <button type="button" data-template="review" aria-pressed="false">确认弹窗</button>
-          <button type="button" data-template="blank" aria-pressed="false">空白组件</button>
-        </div>
-        <label>HTML
-          <textarea id="component-html" name="html" spellcheck="false" required></textarea>
-        </label>
+        <section class="dialog-panel" id="library-panel" role="tabpanel" aria-labelledby="library-tab">
+          <div class="library-head">
+            <span id="library-summary">正在读取组件库…</span>
+            <button class="icon-button" type="button" id="reload-library" title="刷新组件库"><i data-lucide="refresh-cw"></i></button>
+          </div>
+          <div class="library-list" id="component-library-list"><div class="library-empty">正在读取组件库…</div></div>
+        </section>
+        <section class="dialog-panel" id="html-panel" role="tabpanel" aria-labelledby="html-tab" hidden>
+          <div class="field-row">
+            <label>名称
+              <input id="component-name" name="name" value="筛选面板">
+            </label>
+            <label>画框
+              <select id="component-device" name="device">
+                <option value="desktop">桌面 1200 × 760</option>
+                <option value="tablet">平板 768 × 720</option>
+                <option value="mobile">手机 390 × 844</option>
+              </select>
+            </label>
+          </div>
+          <div class="template-switcher" aria-label="模板">
+            <button type="button" data-template="filter" aria-pressed="true">筛选面板</button>
+            <button type="button" data-template="review" aria-pressed="false">确认弹窗</button>
+            <button type="button" data-template="blank" aria-pressed="false">空白组件</button>
+          </div>
+          <label>HTML
+            <textarea id="component-html" name="html" spellcheck="false"></textarea>
+          </label>
+        </section>
       </div>
       <div class="dialog-actions">
         <button class="command-button" type="button" id="cancel-dialog">取消</button>
-        <button class="command-button primary" type="submit">添加到画板</button>
+        <button class="command-button primary" type="submit" id="add-html-component" hidden>添加到画板</button>
       </div>
     </form>
   </dialog>
@@ -633,6 +734,13 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       const htmlInput = document.getElementById("component-html");
       const nameInput = document.getElementById("component-name");
       const deviceInput = document.getElementById("component-device");
+      const libraryList = document.getElementById("component-library-list");
+      const librarySummary = document.getElementById("library-summary");
+      const libraryPanel = document.getElementById("library-panel");
+      const htmlPanel = document.getElementById("html-panel");
+      const libraryTab = document.getElementById("library-tab");
+      const htmlTab = document.getElementById("html-tab");
+      const addHtmlComponentButton = document.getElementById("add-html-component");
 
       let state = loadState();
       let tool = "select";
@@ -640,6 +748,8 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       let pointerAction = null;
       let saveTimer = null;
       let toastTimer = null;
+      let componentCatalog = [];
+      let libraryRevision = "";
 
       function uid(prefix) {
         return prefix + "-" + Math.random().toString(36).slice(2, 9);
@@ -650,8 +760,8 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           version: 1,
           camera: { x: 110, y: 80, zoom: 0.68 },
           items: [
-            { id: uid("frame"), type: "frame", title: "项目筛选 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, html: filterTemplate },
-            { id: uid("frame"), type: "frame", title: "发布确认 · 手机", device: "mobile", x: 1270, y: 0, width: 390, height: 884, html: reviewTemplate },
+            { id: uid("frame"), type: "frame", title: "项目筛选 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, componentId: "filter-panel", componentPath: "./components/filter-panel/index.html" },
+            { id: uid("frame"), type: "frame", title: "发布确认 · 手机", device: "mobile", x: 1270, y: 0, width: 390, height: 884, componentId: "release-confirm", componentPath: "./components/release-confirm/index.html" },
             { id: uid("note"), type: "note", x: 1270, y: 940, width: 230, height: 160, text: "确认按钮需要在勾选后启用。" },
             { id: uid("arrow"), type: "arrow", x: 1180, y: 840, x2: 1330, y2: 940 }
           ]
@@ -754,6 +864,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
               <option value="tablet">平板</option>
               <option value="mobile">手机</option>
             </select>
+            <button class="icon-button" type="button" data-reload title="重新加载组件"><i data-lucide="refresh-cw"></i></button>
             <button class="icon-button" type="button" data-duplicate title="复制画框"><i data-lucide="copy"></i></button>
             <button class="icon-button" type="button" data-delete title="删除画框"><i data-lucide="trash-2"></i></button>
           </header>
@@ -770,7 +881,22 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           renderItems();
           queueSave();
         });
-        element.querySelector("iframe").srcdoc = item.html;
+        const iframe = element.querySelector("iframe");
+        if (item.componentPath) {
+          iframe.src = componentUrl(item.componentPath);
+        } else {
+          iframe.srcdoc = item.html || blankTemplate;
+        }
+        element.querySelector("[data-reload]").addEventListener("click", event => {
+          event.stopPropagation();
+          if (item.componentPath) {
+            const url = new URL(componentUrl(item.componentPath));
+            url.searchParams.set("_reload", Date.now().toString());
+            iframe.src = url.href;
+          } else {
+            iframe.srcdoc = item.html || blankTemplate;
+          }
+        });
         element.querySelector("[data-duplicate]").addEventListener("click", event => {
           event.stopPropagation();
           const copy = { ...item, id: uid("frame"), x: item.x + 48, y: item.y + 48, title: item.title + " 副本" };
@@ -985,6 +1111,107 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         return String(value).replace(/[&<>\"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char]));
       }
 
+      function componentUrl(componentPath) {
+        const url = new URL(componentPath, location.href);
+        if (libraryRevision) url.searchParams.set("_build", libraryRevision);
+        return url.href;
+      }
+
+      function setDialogTab(tab) {
+        const showingLibrary = tab === "library";
+        libraryTab.setAttribute("aria-selected", String(showingLibrary));
+        htmlTab.setAttribute("aria-selected", String(!showingLibrary));
+        libraryPanel.hidden = !showingLibrary;
+        htmlPanel.hidden = showingLibrary;
+        addHtmlComponentButton.hidden = showingLibrary;
+      }
+
+      async function loadComponentLibrary() {
+        librarySummary.textContent = "正在读取组件库…";
+        libraryList.innerHTML = '<div class="library-empty">正在读取组件库…</div>';
+        try {
+          const response = await fetch(`./components.json?_=${Date.now()}`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const manifest = await response.json();
+          if (!Array.isArray(manifest.components)) throw new Error("Invalid component manifest");
+          componentCatalog = manifest.components;
+          libraryRevision = manifest.generatedAt || "";
+          renderComponentLibrary();
+          renderItems();
+        } catch (error) {
+          componentCatalog = [];
+          librarySummary.textContent = "组件库不可用";
+          libraryList.innerHTML = `<div class="library-empty">${location.protocol === "file:" ? "请通过本地 HTTP 服务或 GitHub Pages 打开画布。" : "无法读取 components.json。"}</div>`;
+          console.warn("Could not load component library", error);
+        }
+      }
+
+      function renderComponentLibrary() {
+        librarySummary.textContent = `${componentCatalog.length} 个组件`;
+        libraryList.replaceChildren();
+        if (!componentCatalog.length) {
+          libraryList.innerHTML = '<div class="library-empty">组件库为空</div>';
+          return;
+        }
+
+        componentCatalog.forEach(component => {
+          const row = document.createElement("article");
+          row.className = "library-item";
+          const copy = document.createElement("div");
+          copy.className = "library-copy";
+          const name = document.createElement("strong");
+          name.textContent = component.name;
+          const detail = document.createElement("span");
+          detail.textContent = `${component.category} · ${component.description}`;
+          copy.append(name, detail);
+
+          const device = document.createElement("span");
+          device.className = "library-device";
+          device.textContent = ({ desktop: "桌面", tablet: "平板", mobile: "手机" })[component.device] || component.device;
+
+          const addButton = document.createElement("button");
+          addButton.type = "button";
+          addButton.className = "command-button";
+          addButton.innerHTML = '<i data-lucide="plus"></i><span>添加</span>';
+          addButton.addEventListener("click", () => {
+            addComponentFrame({
+              title: component.name,
+              device: component.device,
+              componentId: component.id,
+              componentPath: component.path
+            });
+            dialog.close();
+          });
+          row.append(copy, device, addButton);
+          libraryList.appendChild(row);
+        });
+        if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
+      }
+
+      function addComponentFrame(component) {
+        const device = component.device || "desktop";
+        const size = DEVICE_SIZES[device];
+        const rect = viewport.getBoundingClientRect();
+        const center = worldPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        const item = {
+          id: uid("frame"),
+          type: "frame",
+          title: component.title || "HTML 组件",
+          device,
+          x: center.x - size.width / 2,
+          y: center.y - size.height / 2,
+          width: size.width,
+          height: size.height
+        };
+        if (component.html) item.html = component.html;
+        if (component.componentId) item.componentId = component.componentId;
+        if (component.componentPath) item.componentPath = component.componentPath;
+        state.items.push(item);
+        selectedId = item.id;
+        renderItems();
+        queueSave();
+      }
+
       viewport.addEventListener("pointerdown", event => {
         if (event.button === 1 || tool === "pan" || event.target === viewport || event.target === stage) {
           if (["text", "note", "arrow"].includes(tool) && event.button === 0) {
@@ -1061,9 +1288,16 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       document.getElementById("zoom-in").addEventListener("click", () => setZoom(state.camera.zoom * 1.18));
       document.getElementById("zoom-out").addEventListener("click", () => setZoom(state.camera.zoom / 1.18));
       document.getElementById("fit-board").addEventListener("click", fitBoard);
-      document.getElementById("add-component").addEventListener("click", () => dialog.showModal());
+      document.getElementById("add-component").addEventListener("click", () => {
+        setDialogTab("library");
+        dialog.showModal();
+        loadComponentLibrary();
+      });
       document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
       document.getElementById("cancel-dialog").addEventListener("click", () => dialog.close());
+      document.getElementById("reload-library").addEventListener("click", loadComponentLibrary);
+      libraryTab.addEventListener("click", () => setDialogTab("library"));
+      htmlTab.addEventListener("click", () => setDialogTab("html"));
 
       document.querySelectorAll("[data-template]").forEach(button => {
         button.addEventListener("click", () => {
@@ -1077,26 +1311,13 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       form.addEventListener("submit", event => {
         event.preventDefault();
-        const device = deviceInput.value;
-        const size = DEVICE_SIZES[device];
-        const rect = viewport.getBoundingClientRect();
-        const center = worldPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-        const item = {
-          id: uid("frame"),
-          type: "frame",
+        if (htmlPanel.hidden) return;
+        addComponentFrame({
           title: nameInput.value.trim() || "HTML 组件",
-          device,
-          x: center.x - size.width / 2,
-          y: center.y - size.height / 2,
-          width: size.width,
-          height: size.height,
+          device: deviceInput.value,
           html: htmlInput.value
-        };
-        state.items.push(item);
-        selectedId = item.id;
+        });
         dialog.close();
-        renderItems();
-        queueSave();
       });
 
       document.getElementById("share-board").addEventListener("click", async () => {
@@ -1146,6 +1367,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       htmlInput.value = filterTemplate;
       renderCamera();
       renderItems();
+      loadComponentLibrary();
       if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
     })();
   </script>

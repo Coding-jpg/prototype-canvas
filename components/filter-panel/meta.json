@@ -1,0 +1,8 @@
+{
+  "id": "filter-panel",
+  "name": "项目筛选",
+  "device": "desktop",
+  "category": "数据筛选",
+  "description": "按关键词、状态和负责人筛选项目列表。"
+}
+

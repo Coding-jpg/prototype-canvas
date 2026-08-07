@@ -1130,7 +1130,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         librarySummary.textContent = "正在读取组件库…";
         libraryList.innerHTML = '<div class="library-empty">正在读取组件库…</div>';
         try {
-          const response = await fetch(`./components.json?_=${Date.now()}`, { cache: "no-store" });
+          const response = await fetch(`./component-library.json?_=${Date.now()}`, { cache: "no-store" });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const manifest = await response.json();
           if (!Array.isArray(manifest.components)) throw new Error("Invalid component manifest");
@@ -1141,7 +1141,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         } catch (error) {
           componentCatalog = [];
           librarySummary.textContent = "组件库不可用";
-          libraryList.innerHTML = `<div class="library-empty">${location.protocol === "file:" ? "请通过本地 HTTP 服务或 GitHub Pages 打开画布。" : "无法读取 components.json。"}</div>`;
+          libraryList.innerHTML = `<div class="library-empty">${location.protocol === "file:" ? "请通过本地 HTTP 服务或 GitHub Pages 打开画布。" : "无法读取组件清单。"}</div>`;
           console.warn("Could not load component library", error);
         }
       }

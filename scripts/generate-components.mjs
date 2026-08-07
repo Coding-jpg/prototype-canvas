@@ -4,7 +4,7 @@ import process from "node:process";
 
 const rootDir = process.cwd();
 const componentsDir = path.join(rootDir, "components");
-const outputPath = path.join(rootDir, "components.json");
+const outputPath = path.join(rootDir, "component-library.json");
 const validDevices = new Set(["desktop", "tablet", "mobile"]);
 
 const entries = await readdir(componentsDir, { withFileTypes: true });
@@ -54,5 +54,4 @@ for (const directory of directories) {
 
 await mkdir(path.dirname(outputPath), { recursive: true });
 await writeFile(outputPath, `${JSON.stringify({ generatedAt: new Date().toISOString(), components }, null, 2)}\n`);
-console.log(`Generated components.json with ${components.length} components.`);
-
+console.log(`Generated component-library.json with ${components.length} components.`);

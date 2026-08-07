@@ -25,6 +25,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Run tests
+        run: node --test
       - name: Generate component manifest
         run: node scripts/generate-components.mjs
       - name: Assemble site

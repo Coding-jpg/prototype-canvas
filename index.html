@@ -168,14 +168,13 @@
       position: relative;
       overflow: hidden;
       touch-action: none;
-      cursor: default;
+      cursor: grab;
       background-color: var(--bg);
       background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
       background-size: 20px 20px;
       background-position: 0 0;
     }
 
-    #viewport[data-tool="pan"] { cursor: grab; }
     #viewport.is-panning { cursor: grabbing; }
     #viewport[data-tool="text"],
     #viewport[data-tool="note"],
@@ -617,9 +616,6 @@
       </div>
 
       <nav class="tools" aria-label="画板工具">
-        <button class="icon-button" type="button" data-tool-button="select" aria-pressed="true" title="选择"><i data-lucide="mouse-pointer-2"></i></button>
-        <button class="icon-button" type="button" data-tool-button="pan" aria-pressed="false" title="拖动画布"><i data-lucide="hand"></i></button>
-        <span class="divider" aria-hidden="true"></span>
         <button class="command-button" type="button" id="add-component" title="打开组件库"><i data-lucide="panel-top-open"></i><span>组件</span></button>
         <button class="icon-button" type="button" data-tool-button="text" aria-pressed="false" title="添加文本"><i data-lucide="type"></i></button>
         <button class="icon-button" type="button" data-tool-button="note" aria-pressed="false" title="添加批注"><i data-lucide="sticky-note"></i></button>
@@ -633,7 +629,7 @@
       </div>
     </header>
 
-    <section id="viewport" data-tool="select" aria-label="原型画板">
+    <section id="viewport" aria-label="原型画板">
       <div id="stage"></div>
       <div id="toast" role="status" aria-live="polite"></div>
     </section>
@@ -743,7 +739,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       const addHtmlComponentButton = document.getElementById("add-html-component");
 
       let state = loadState();
-      let tool = "select";
+      let tool = null;
       let selectedId = null;
       let pointerAction = null;
       let saveTimer = null;
@@ -809,7 +805,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       function setTool(nextTool) {
         tool = nextTool;
-        viewport.dataset.tool = nextTool;
+        viewport.dataset.tool = nextTool || "";
         document.querySelectorAll("[data-tool-button]").forEach(button => {
           button.setAttribute("aria-pressed", String(button.dataset.toolButton === nextTool));
         });
@@ -832,21 +828,70 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       }
 
       function renderItems() {
-        stage.replaceChildren();
-        state.items.forEach(item => {
-          if (item.type === "frame") stage.appendChild(renderFrame(item));
-          if (item.type === "note") stage.appendChild(renderNote(item));
-          if (item.type === "text") stage.appendChild(renderText(item));
-          if (item.type === "arrow") stage.appendChild(renderArrow(item));
+        const existing = new Map(Array.from(stage.children, element => [element.dataset.id, element]));
+        const activeIds = new Set();
+
+        state.items.forEach((item, index) => {
+          activeIds.add(item.id);
+          let element = existing.get(item.id);
+          if (!element || element.dataset.type !== item.type) {
+            if (element) element.remove();
+            element = createItemElement(item);
+          } else {
+            element = syncItemElement(element, item);
+          }
+
+          const current = stage.children[index];
+          if (current !== element) stage.insertBefore(element, current || null);
+        });
+
+        existing.forEach((element, id) => {
+          if (!activeIds.has(id)) element.remove();
         });
         updateSelectionStatus();
         if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
+      }
+
+      function createItemElement(item) {
+        if (item.type === "frame") return renderFrame(item);
+        if (item.type === "note") return renderNote(item);
+        if (item.type === "text") return renderText(item);
+        return renderArrow(item);
+      }
+
+      function syncItemElement(element, item) {
+        if (item.type === "arrow") {
+          const replacement = renderArrow(item);
+          element.replaceWith(replacement);
+          return replacement;
+        }
+
+        element.classList.toggle("selected", item.id === selectedId);
+        element.style.left = item.x + "px";
+        element.style.top = item.y + "px";
+
+        if (item.type === "frame") {
+          element.style.width = item.width + "px";
+          element.style.height = item.height + "px";
+          element.querySelector(".frame-title").textContent = item.title;
+          element.querySelector(".device-select").value = item.device;
+          const iframe = element.querySelector("iframe");
+          if (item.componentPath) {
+            const nextUrl = componentUrl(item.componentPath);
+            if (iframe.dataset.componentUrl !== nextUrl) {
+              iframe.dataset.componentUrl = nextUrl;
+              iframe.src = nextUrl;
+            }
+          }
+        }
+        return element;
       }
 
       function baseItemElement(item, className) {
         const element = document.createElement("div");
         element.className = `board-item ${className}` + (item.id === selectedId ? " selected" : "");
         element.dataset.id = item.id;
+        element.dataset.type = item.type;
         element.style.left = item.x + "px";
         element.style.top = item.y + "px";
         return element;
@@ -878,12 +923,13 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           item.device = select.value;
           item.width = size.width;
           item.height = size.height;
-          renderItems();
+          syncItemElement(element, item);
           queueSave();
         });
         const iframe = element.querySelector("iframe");
         if (item.componentPath) {
-          iframe.src = componentUrl(item.componentPath);
+          iframe.dataset.componentUrl = componentUrl(item.componentPath);
+          iframe.src = iframe.dataset.componentUrl;
         } else {
           iframe.srcdoc = item.html || blankTemplate;
         }
@@ -968,6 +1014,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         svg.classList.add("board-item", "board-arrow");
         if (item.id === selectedId) svg.classList.add("selected");
         svg.dataset.id = item.id;
+        svg.dataset.type = item.type;
         svg.style.left = left + "px";
         svg.style.top = top + "px";
         svg.setAttribute("width", width);
@@ -1034,8 +1081,14 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       function selectItem(id) {
         if (selectedId === id) return;
+        const previousId = selectedId;
         selectedId = id;
-        renderItems();
+        [previousId, selectedId].filter(Boolean).forEach(itemId => {
+          const item = state.items.find(entry => entry.id === itemId);
+          const element = stage.querySelector(`[data-id="${CSS.escape(itemId)}"]`);
+          if (item && element) syncItemElement(element, item);
+        });
+        updateSelectionStatus();
       }
 
       function updateSelectionStatus() {
@@ -1058,7 +1111,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         if (type === "arrow") item = { id: uid("arrow"), type, x: point.x, y: point.y, x2: point.x + 170, y2: point.y + 80 };
         state.items.push(item);
         selectedId = item.id;
-        setTool("select");
+        setTool(null);
         renderItems();
         queueSave();
         requestAnimationFrame(() => {
@@ -1213,14 +1266,13 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       }
 
       viewport.addEventListener("pointerdown", event => {
-        if (event.button === 1 || tool === "pan" || event.target === viewport || event.target === stage) {
+        if (event.button === 1 || event.target === viewport || event.target === stage) {
           if (["text", "note", "arrow"].includes(tool) && event.button === 0) {
             addAtPoint(tool, worldPoint(event.clientX, event.clientY));
             return;
           }
           if (event.button !== 0 && event.button !== 1) return;
-          selectedId = null;
-          renderItems();
+          selectItem(null);
           pointerAction = {
             type: "pan",
             startX: event.clientX,
@@ -1244,7 +1296,8 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         if (pointerAction.type === "move" && item) {
           item.x = pointerAction.itemX + (event.clientX - pointerAction.startX) / state.camera.zoom;
           item.y = pointerAction.itemY + (event.clientY - pointerAction.startY) / state.camera.zoom;
-          renderItems();
+          const element = stage.querySelector(`[data-id="${CSS.escape(item.id)}"]`);
+          if (element) syncItemElement(element, item);
         }
         if (pointerAction.type === "move-arrow" && item) {
           const dx = (event.clientX - pointerAction.startX) / state.camera.zoom;
@@ -1253,13 +1306,15 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           item.y = pointerAction.itemY + dy;
           item.x2 = pointerAction.itemX2 + dx;
           item.y2 = pointerAction.itemY2 + dy;
-          renderItems();
+          const element = stage.querySelector(`[data-id="${CSS.escape(item.id)}"]`);
+          if (element) syncItemElement(element, item);
         }
         if (pointerAction.type === "arrow-end" && item) {
           const point = worldPoint(event.clientX, event.clientY);
           if (pointerAction.end === "start") { item.x = point.x; item.y = point.y; }
           else { item.x2 = point.x; item.y2 = point.y; }
-          renderItems();
+          const element = stage.querySelector(`[data-id="${CSS.escape(item.id)}"]`);
+          if (element) syncItemElement(element, item);
         }
       });
 
@@ -1348,20 +1403,9 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           deleteSelected();
         }
         if (!editing && event.key === "Escape") {
-          selectedId = null;
-          setTool("select");
-          renderItems();
+          selectItem(null);
+          setTool(null);
         }
-        if (!editing && event.code === "Space") {
-          event.preventDefault();
-          setTool("pan");
-        }
-      });
-
-      document.addEventListener("keyup", event => {
-        const active = document.activeElement;
-        const editing = active && (active.matches("input, textarea, select") || active.isContentEditable);
-        if (!editing && event.code === "Space") setTool("select");
       });
 
       htmlInput.value = filterTemplate;

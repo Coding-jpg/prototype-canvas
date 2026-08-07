@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:,">
+  <title>Prototype Canvas</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --panel: #ffffff;
+      --panel-2: #f8f9fb;
+      --text: #202226;
+      --muted: #6e737c;
+      --border: #d9dce2;
+      --border-strong: #b9bec8;
+      --accent: #246bfd;
+      --accent-soft: #eaf0ff;
+      --green: #198754;
+      --orange: #c66a13;
+      --danger: #c9362b;
+      --grid-dot: #c7cbd2;
+      --shadow: 0 8px 24px rgba(25, 30, 40, 0.12);
+      --toolbar-height: 58px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea { font: inherit; }
+
+    button { color: inherit; }
+
+    #app {
+      display: grid;
+      grid-template-rows: var(--toolbar-height) 1fr 28px;
+      width: 100%;
+      height: 100svh;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      z-index: 30;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 10px;
+      font-weight: 650;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      color: white;
+      background: var(--text);
+      border-radius: 6px;
+      flex: 0 0 auto;
+    }
+
+    .brand span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tools,
+    .actions,
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tools {
+      padding: 3px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+    }
+
+    .actions { justify-content: flex-end; }
+
+    .divider {
+      width: 1px;
+      height: 24px;
+      margin: 0 4px;
+      background: var(--border);
+    }
+
+    .icon-button,
+    .command-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 34px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .icon-button {
+      width: 34px;
+      padding: 0;
+    }
+
+    .command-button {
+      gap: 7px;
+      padding: 0 10px;
+      background: var(--panel);
+      border-color: var(--border);
+      font-weight: 550;
+    }
+
+    .icon-button:hover,
+    .command-button:hover { background: var(--panel-2); }
+
+    .icon-button[aria-pressed="true"] {
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-color: #b8ccff;
+    }
+
+    .command-button.primary {
+      color: white;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .command-button.primary:hover { background: #1559db; }
+
+    .icon-button svg,
+    .command-button svg,
+    .brand-mark svg {
+      width: 17px;
+      height: 17px;
+      stroke-width: 1.8;
+    }
+
+    #viewport {
+      position: relative;
+      overflow: hidden;
+      touch-action: none;
+      cursor: default;
+      background-color: var(--bg);
+      background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-position: 0 0;
+    }
+
+    #viewport[data-tool="pan"] { cursor: grab; }
+    #viewport.is-panning { cursor: grabbing; }
+    #viewport[data-tool="text"],
+    #viewport[data-tool="note"],
+    #viewport[data-tool="arrow"] { cursor: crosshair; }
+
+    #stage {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .board-item {
+      position: absolute;
+      user-select: none;
+    }
+
+    .board-item.selected {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .board-frame {
+      display: grid;
+      grid-template-rows: 40px 1fr;
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      border-radius: 7px;
+      box-shadow: var(--shadow);
+    }
+
+    .frame-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 0 8px 0 11px;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
+      cursor: grab;
+    }
+
+    .frame-bar:active { cursor: grabbing; }
+
+    .frame-title {
+      flex: 1 1 auto;
+      min-width: 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .device-select {
+      width: 96px;
+      height: 28px;
+      padding: 0 24px 0 8px;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .frame-bar .icon-button {
+      width: 28px;
+      height: 28px;
+    }
+
+    .frame-content {
+      position: relative;
+      overflow: hidden;
+      background: white;
+    }
+
+    .frame-content iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: white;
+    }
+
+    .board-note {
+      display: grid;
+      grid-template-rows: 26px 1fr;
+      width: 230px;
+      min-height: 150px;
+      overflow: hidden;
+      color: #29230f;
+      background: #fff2a8;
+      border: 1px solid #d9c66e;
+      border-radius: 4px;
+      box-shadow: 0 5px 14px rgba(53, 45, 15, 0.12);
+    }
+
+    .note-handle {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 7px;
+      color: #756624;
+      cursor: grab;
+    }
+
+    .note-handle svg { width: 14px; }
+
+    .note-body {
+      min-height: 110px;
+      padding: 4px 14px 14px;
+      outline: 0;
+      user-select: text;
+      white-space: pre-wrap;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .board-text {
+      min-width: 100px;
+      max-width: 420px;
+      padding: 5px 8px;
+      color: var(--text);
+      background: color-mix(in srgb, var(--panel) 90%, transparent);
+      border-radius: 3px;
+      cursor: grab;
+      user-select: text;
+      font-size: 20px;
+      font-weight: 600;
+      white-space: pre-wrap;
+    }
+
+    .board-text [contenteditable] { outline: 0; }
+
+    .board-arrow {
+      overflow: visible;
+      cursor: grab;
+    }
+
+    .board-arrow line,
+    .board-arrow path {
+      stroke: var(--orange);
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+
+    .board-arrow .arrow-hit {
+      stroke: transparent;
+      stroke-width: 18;
+      pointer-events: stroke;
+    }
+
+    .arrow-handle {
+      fill: var(--panel);
+      stroke: var(--accent);
+      stroke-width: 2;
+      cursor: move;
+    }
+
+    .statusbar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 10px;
+      color: var(--muted);
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      z-index: 30;
+    }
+
+    #save-status { justify-self: start; }
+    #selection-status { justify-self: end; }
+
+    .zoom-controls { gap: 1px; }
+    .zoom-controls .icon-button { width: 25px; height: 24px; }
+    #zoom-label { width: 48px; text-align: center; font-variant-numeric: tabular-nums; }
+
+    dialog {
+      width: min(680px, calc(100vw - 32px));
+      max-height: calc(100svh - 40px);
+      padding: 0;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      box-shadow: 0 22px 60px rgba(20, 24, 32, 0.28);
+    }
+
+    dialog::backdrop { background: rgba(27, 31, 38, 0.38); }
+
+    .dialog-head,
+    .dialog-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+    }
+
+    .dialog-head { border-bottom: 1px solid var(--border); }
+    .dialog-actions { justify-content: flex-end; border-top: 1px solid var(--border); }
+
+    .dialog-head h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 650;
+    }
+
+    .dialog-body {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 160px;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 550;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      border-radius: 5px;
+      outline: none;
+    }
+
+    input,
+    select { height: 36px; padding: 0 10px; }
+    textarea { min-height: 300px; padding: 10px; resize: vertical; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    input:focus,
+    select:focus,
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .template-switcher {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .template-switcher button {
+      height: 32px;
+      padding: 0 10px;
+      color: var(--muted);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .template-switcher button[aria-pressed="true"] {
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-color: #b8ccff;
+    }
+
+    #toast {
+      position: absolute;
+      left: 50%;
+      bottom: 44px;
+      z-index: 80;
+      padding: 9px 12px;
+      color: white;
+      background: #262a31;
+      border-radius: 5px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      transform: translate(-50%, 10px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #181a1e;
+        --panel: #23262b;
+        --panel-2: #2b2e34;
+        --text: #f0f1f3;
+        --muted: #a8adb6;
+        --border: #3b3f47;
+        --border-strong: #555b66;
+        --accent: #79a5ff;
+        --accent-soft: #26375b;
+        --grid-dot: #3a3e45;
+        --shadow: 0 9px 26px rgba(0, 0, 0, 0.35);
+      }
+
+      .brand-mark { color: #1e2024; background: #f4f5f7; }
+      .board-note { color: #29230f; }
+      .frame-content,
+      .frame-content iframe { background: white; }
+    }
+
+    @media (max-width: 820px) {
+      :root { --toolbar-height: 104px; }
+
+      .topbar {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: 42px 42px;
+        padding: 6px 8px;
+      }
+
+      .brand { grid-column: 1; grid-row: 1; }
+      .actions { grid-column: 2; grid-row: 1; }
+      .tools {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-content: center;
+        overflow-x: auto;
+      }
+
+      .command-button span { display: none; }
+      .command-button { width: 34px; padding: 0; }
+      .field-row { grid-template-columns: 1fr; }
+      .statusbar { grid-template-columns: 1fr auto; }
+      #selection-status { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i data-lucide="panels-top-left"></i></span>
+        <span>Prototype Canvas</span>
+      </div>
+
+      <nav class="tools" aria-label="画板工具">
+        <button class="icon-button" type="button" data-tool-button="select" aria-pressed="true" title="选择"><i data-lucide="mouse-pointer-2"></i></button>
+        <button class="icon-button" type="button" data-tool-button="pan" aria-pressed="false" title="拖动画布"><i data-lucide="hand"></i></button>
+        <span class="divider" aria-hidden="true"></span>
+        <button class="command-button" type="button" id="add-component" title="添加 HTML 组件"><i data-lucide="panel-top-open"></i><span>组件</span></button>
+        <button class="icon-button" type="button" data-tool-button="text" aria-pressed="false" title="添加文本"><i data-lucide="type"></i></button>
+        <button class="icon-button" type="button" data-tool-button="note" aria-pressed="false" title="添加批注"><i data-lucide="sticky-note"></i></button>
+        <button class="icon-button" type="button" data-tool-button="arrow" aria-pressed="false" title="添加箭头"><i data-lucide="move-up-right"></i></button>
+      </nav>
+
+      <div class="actions">
+        <button class="icon-button" type="button" id="fit-board" title="适应画板"><i data-lucide="scan"></i></button>
+        <button class="icon-button" type="button" id="reset-board" title="恢复示例"><i data-lucide="rotate-ccw"></i></button>
+        <button class="command-button primary" type="button" id="share-board" title="复制分享链接"><i data-lucide="share-2"></i><span>分享</span></button>
+      </div>
+    </header>
+
+    <section id="viewport" data-tool="select" aria-label="原型画板">
+      <div id="stage"></div>
+      <div id="toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <footer class="statusbar">
+      <span id="save-status">已保存</span>
+      <div class="zoom-controls" aria-label="缩放">
+        <button class="icon-button" type="button" id="zoom-out" title="缩小"><i data-lucide="minus"></i></button>
+        <span id="zoom-label">75%</span>
+        <button class="icon-button" type="button" id="zoom-in" title="放大"><i data-lucide="plus"></i></button>
+      </div>
+      <span id="selection-status">未选择对象</span>
+    </footer>
+  </main>
+
+  <dialog id="component-dialog">
+    <form method="dialog" id="component-form">
+      <div class="dialog-head">
+        <h2>添加 HTML 组件</h2>
+        <button class="icon-button" type="button" id="close-dialog" title="关闭"><i data-lucide="x"></i></button>
+      </div>
+      <div class="dialog-body">
+        <div class="field-row">
+          <label>名称
+            <input id="component-name" name="name" value="筛选面板" required>
+          </label>
+          <label>画框
+            <select id="component-device" name="device">
+              <option value="desktop">桌面 1200 × 760</option>
+              <option value="tablet">平板 768 × 720</option>
+              <option value="mobile">手机 390 × 844</option>
+            </select>
+          </label>
+        </div>
+        <div class="template-switcher" aria-label="模板">
+          <button type="button" data-template="filter" aria-pressed="true">筛选面板</button>
+          <button type="button" data-template="review" aria-pressed="false">确认弹窗</button>
+          <button type="button" data-template="blank" aria-pressed="false">空白组件</button>
+        </div>
+        <label>HTML
+          <textarea id="component-html" name="html" spellcheck="false" required></textarea>
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button class="command-button" type="button" id="cancel-dialog">取消</button>
+        <button class="command-button primary" type="submit">添加到画板</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script>
+    (() => {
+      const STORAGE_KEY = "prototype-canvas-v1";
+      const DEVICE_SIZES = {
+        desktop: { width: 1200, height: 800 },
+        tablet: { width: 768, height: 760 },
+        mobile: { width: 390, height: 884 }
+      };
+
+      const filterTemplate = `<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+*{box-sizing:border-box}body{margin:0;background:#f6f7f9;color:#202226;font:14px/1.5 system-ui,-apple-system,sans-serif}.shell{min-height:100vh;padding:36px}.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:22px}.toolbar h1{margin:0 auto 0 0;font-size:22px}.count{color:#616772}.filter{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:12px;padding:16px;background:#fff;border:1px solid #dfe2e7;border-radius:7px}.field{display:grid;gap:6px}.field span{color:#686e78;font-size:12px;font-weight:600}.field input,.field select{height:40px;padding:0 11px;border:1px solid #c9ced7;border-radius:5px;background:white;font:inherit}.apply{align-self:end;height:40px;padding:0 18px;border:0;border-radius:5px;background:#246bfd;color:#fff;font-weight:650;cursor:pointer}.chips{display:flex;gap:8px;min-height:32px;margin:14px 0;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;background:#eaf0ff;border:1px solid #bdceff;border-radius:16px;color:#184dab}.chip button{border:0;background:transparent;color:inherit;cursor:pointer}.results{display:grid;gap:9px}.row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:15px 16px;background:#fff;border:1px solid #e0e3e8;border-radius:6px}.row strong{display:block}.row small{color:#737983}.status{color:#198754;font-weight:600}@media(max-width:700px){.shell{padding:18px}.filter{grid-template-columns:1fr}.toolbar{align-items:flex-start}.toolbar h1{font-size:19px}}
+</style></head><body><main class="shell"><div class="toolbar"><h1>项目筛选</h1><span class="count" id="count">3 个结果</span></div><section class="filter"><label class="field"><span>关键词</span><input id="query" placeholder="名称或负责人"></label><label class="field"><span>状态</span><select id="status"><option value="">全部状态</option><option>进行中</option><option>待评审</option><option>已完成</option></select></label><label class="field"><span>负责人</span><select id="owner"><option value="">全部成员</option><option>林然</option><option>周宁</option><option>顾言</option></select></label><button class="apply" id="apply">应用筛选</button></section><div class="chips" id="chips"></div><section class="results" id="results"></section></main><script>
+const data=[['结算流程优化','林然','进行中'],['会员权益改版','周宁','待评审'],['消息中心重构','顾言','已完成']];const q=document.querySelector('#query'),s=document.querySelector('#status'),o=document.querySelector('#owner'),r=document.querySelector('#results'),c=document.querySelector('#chips'),n=document.querySelector('#count');function draw(){const rows=data.filter(x=>(!q.value||x[0].includes(q.value)||x[1].includes(q.value))&&(!s.value||x[2]===s.value)&&(!o.value||x[1]===o.value));r.innerHTML=rows.map(x=>'<article class="row"><div><strong>'+x[0]+'</strong><small>负责人 · '+x[1]+'</small></div><span class="status">'+x[2]+'</span></article>').join('')||'<article class="row"><strong>暂无匹配结果</strong></article>';n.textContent=rows.length+' 个结果';const active=[q.value&&['关键词',q.value,()=>q.value=''],s.value&&['状态',s.value,()=>s.value=''],o.value&&['负责人',o.value,()=>o.value='']].filter(Boolean);c.innerHTML=active.map((x,i)=>'<span class="chip">'+x[0]+'：'+x[1]+' <button data-i="'+i+'">×</button></span>').join('');c.querySelectorAll('button').forEach(b=>b.onclick=()=>{active[+b.dataset.i][2]();draw()})}document.querySelector('#apply').onclick=draw;draw();
+<\/script></body></html>`;
+
+      const reviewTemplate = `<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+*{box-sizing:border-box}body{margin:0;background:#edf0f4;color:#202226;font:14px/1.5 system-ui,-apple-system,sans-serif}.page{min-height:100vh;padding:30px}.page h1{margin:0 0 6px;font-size:22px}.page p{margin:0;color:#707680}.list{display:grid;gap:10px;margin-top:24px}.item{height:72px;background:white;border:1px solid #dfe2e7;border-radius:6px}.open{margin-top:20px;height:40px;padding:0 16px;border:0;border-radius:5px;background:#246bfd;color:#fff;font-weight:650;cursor:pointer}.backdrop{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(20,24,32,.48)}.dialog{width:min(440px,100%);background:#fff;border-radius:7px;box-shadow:0 20px 60px rgba(0,0,0,.25)}.head,.body,.actions{padding:18px 20px}.head{display:flex;align-items:center;border-bottom:1px solid #e2e5e9}.head h2{margin:0;font-size:18px}.close{margin-left:auto;border:0;background:transparent;font-size:22px;cursor:pointer}.body{display:grid;gap:14px}.summary{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px;background:#f5f7fa;border:1px solid #e0e3e8;border-radius:5px}.summary span{color:#707680}.check{display:flex;gap:9px;align-items:flex-start}.actions{display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #e2e5e9}.actions button{height:38px;padding:0 15px;border-radius:5px;border:1px solid #cbd0d8;background:white;cursor:pointer}.actions .primary{border-color:#246bfd;background:#246bfd;color:white;font-weight:650}.hidden{display:none}
+</style></head><body><main class="page"><h1>发布设置</h1><p>配置完成后提交发布。</p><div class="list"><div class="item"></div><div class="item"></div></div><button class="open" id="open">提交发布</button></main><div class="backdrop" id="modal"><section class="dialog" role="dialog" aria-modal="true"><header class="head"><h2>确认发布</h2><button class="close" id="close" aria-label="关闭">×</button></header><div class="body"><div class="summary"><span>目标环境</span><strong>正式环境</strong><span>影响用户</span><strong>12,480</strong></div><label class="check"><input type="checkbox" id="confirm"><span>我已检查配置和影响范围</span></label></div><footer class="actions"><button id="cancel">取消</button><button class="primary" id="publish" disabled>确认发布</button></footer></section></div><script>
+const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=document.querySelector('#publish');document.querySelector('#open').onclick=()=>m.classList.remove('hidden');document.querySelector('#close').onclick=document.querySelector('#cancel').onclick=()=>m.classList.add('hidden');c.onchange=()=>p.disabled=!c.checked;p.onclick=()=>{p.textContent='发布中…';setTimeout(()=>{p.textContent='发布成功';p.style.background='#198754';p.style.borderColor='#198754'},800)};
+<\/script></body></html>`;
+
+      const blankTemplate = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f6f7f9;color:#565c66;font:14px system-ui,-apple-system,sans-serif}.component{width:min(360px,calc(100% - 40px));padding:24px;background:white;border:1px solid #dfe2e7;border-radius:7px}.component h1{margin:0 0 8px;color:#202226;font-size:20px}.component button{height:38px;margin-top:16px;padding:0 14px;border:0;border-radius:5px;background:#246bfd;color:white;cursor:pointer}</style></head><body><section class="component"><h1>HTML 组件</h1><div id="status">默认状态</div><button id="action">切换状态</button></section><script>document.querySelector('#action').onclick=()=>document.querySelector('#status').textContent='交互已触发';<\/script></body></html>`;
+
+      const viewport = document.getElementById("viewport");
+      const stage = document.getElementById("stage");
+      const zoomLabel = document.getElementById("zoom-label");
+      const saveStatus = document.getElementById("save-status");
+      const selectionStatus = document.getElementById("selection-status");
+      const toast = document.getElementById("toast");
+      const dialog = document.getElementById("component-dialog");
+      const form = document.getElementById("component-form");
+      const htmlInput = document.getElementById("component-html");
+      const nameInput = document.getElementById("component-name");
+      const deviceInput = document.getElementById("component-device");
+
+      let state = loadState();
+      let tool = "select";
+      let selectedId = null;
+      let pointerAction = null;
+      let saveTimer = null;
+      let toastTimer = null;
+
+      function uid(prefix) {
+        return prefix + "-" + Math.random().toString(36).slice(2, 9);
+      }
+
+      function defaultState() {
+        return {
+          version: 1,
+          camera: { x: 110, y: 80, zoom: 0.68 },
+          items: [
+            { id: uid("frame"), type: "frame", title: "项目筛选 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, html: filterTemplate },
+            { id: uid("frame"), type: "frame", title: "发布确认 · 手机", device: "mobile", x: 1270, y: 0, width: 390, height: 884, html: reviewTemplate },
+            { id: uid("note"), type: "note", x: 1270, y: 940, width: 230, height: 160, text: "确认按钮需要在勾选后启用。" },
+            { id: uid("arrow"), type: "arrow", x: 1180, y: 840, x2: 1330, y2: 940 }
+          ]
+        };
+      }
+
+      function loadState() {
+        const shared = location.hash.startsWith("#board=") ? location.hash.slice(7) : "";
+        if (shared) {
+          try {
+            const decoded = decodeURIComponent(escape(atob(shared)));
+            const parsed = JSON.parse(decoded);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+            history.replaceState(null, "", location.pathname + location.search);
+            return parsed;
+          } catch (error) {
+            console.warn("Invalid shared board", error);
+          }
+        }
+
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          return stored ? JSON.parse(stored) : defaultState();
+        } catch (error) {
+          console.warn("Could not load board", error);
+          return defaultState();
+        }
+      }
+
+      function queueSave() {
+        saveStatus.textContent = "保存中…";
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          saveStatus.textContent = "已保存";
+        }, 180);
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+
+      function setTool(nextTool) {
+        tool = nextTool;
+        viewport.dataset.tool = nextTool;
+        document.querySelectorAll("[data-tool-button]").forEach(button => {
+          button.setAttribute("aria-pressed", String(button.dataset.toolButton === nextTool));
+        });
+      }
+
+      function worldPoint(clientX, clientY) {
+        const rect = viewport.getBoundingClientRect();
+        return {
+          x: (clientX - rect.left - state.camera.x) / state.camera.zoom,
+          y: (clientY - rect.top - state.camera.y) / state.camera.zoom
+        };
+      }
+
+      function renderCamera() {
+        const { x, y, zoom } = state.camera;
+        stage.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
+        viewport.style.backgroundPosition = `${x % (20 * zoom)}px ${y % (20 * zoom)}px`;
+        viewport.style.backgroundSize = `${20 * zoom}px ${20 * zoom}px`;
+        zoomLabel.textContent = Math.round(zoom * 100) + "%";
+      }
+
+      function renderItems() {
+        stage.replaceChildren();
+        state.items.forEach(item => {
+          if (item.type === "frame") stage.appendChild(renderFrame(item));
+          if (item.type === "note") stage.appendChild(renderNote(item));
+          if (item.type === "text") stage.appendChild(renderText(item));
+          if (item.type === "arrow") stage.appendChild(renderArrow(item));
+        });
+        updateSelectionStatus();
+        if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
+      }
+
+      function baseItemElement(item, className) {
+        const element = document.createElement("div");
+        element.className = `board-item ${className}` + (item.id === selectedId ? " selected" : "");
+        element.dataset.id = item.id;
+        element.style.left = item.x + "px";
+        element.style.top = item.y + "px";
+        return element;
+      }
+
+      function renderFrame(item) {
+        const element = baseItemElement(item, "board-frame");
+        element.style.width = item.width + "px";
+        element.style.height = item.height + "px";
+        element.innerHTML = `
+          <header class="frame-bar" data-drag-handle>
+            <span class="frame-title"></span>
+            <select class="device-select" aria-label="画框尺寸">
+              <option value="desktop">桌面</option>
+              <option value="tablet">平板</option>
+              <option value="mobile">手机</option>
+            </select>
+            <button class="icon-button" type="button" data-duplicate title="复制画框"><i data-lucide="copy"></i></button>
+            <button class="icon-button" type="button" data-delete title="删除画框"><i data-lucide="trash-2"></i></button>
+          </header>
+          <div class="frame-content"><iframe title="${escapeHtml(item.title)}" sandbox="allow-scripts allow-forms allow-modals"></iframe></div>`;
+        element.querySelector(".frame-title").textContent = item.title;
+        const select = element.querySelector(".device-select");
+        select.value = item.device;
+        select.addEventListener("pointerdown", event => event.stopPropagation());
+        select.addEventListener("change", () => {
+          const size = DEVICE_SIZES[select.value];
+          item.device = select.value;
+          item.width = size.width;
+          item.height = size.height;
+          renderItems();
+          queueSave();
+        });
+        element.querySelector("iframe").srcdoc = item.html;
+        element.querySelector("[data-duplicate]").addEventListener("click", event => {
+          event.stopPropagation();
+          const copy = { ...item, id: uid("frame"), x: item.x + 48, y: item.y + 48, title: item.title + " 副本" };
+          state.items.push(copy);
+          selectedId = copy.id;
+          renderItems();
+          queueSave();
+        });
+        element.querySelector("[data-delete]").addEventListener("click", event => {
+          event.stopPropagation();
+          deleteSelected(item.id);
+        });
+        bindMove(element, item, element.querySelector("[data-drag-handle]"));
+        return element;
+      }
+
+      function renderNote(item) {
+        const element = baseItemElement(item, "board-note");
+        element.style.width = item.width + "px";
+        element.style.height = item.height + "px";
+        element.innerHTML = `<div class="note-handle" data-drag-handle><i data-lucide="grip-horizontal"></i></div><div class="note-body" contenteditable="true" role="textbox" aria-label="批注"></div>`;
+        const body = element.querySelector(".note-body");
+        body.textContent = item.text;
+        body.addEventListener("pointerdown", event => {
+          selectItem(item.id);
+          event.stopPropagation();
+        });
+        body.addEventListener("input", () => {
+          item.text = body.textContent;
+          queueSave();
+        });
+        bindMove(element, item, element.querySelector("[data-drag-handle]"));
+        return element;
+      }
+
+      function renderText(item) {
+        const element = baseItemElement(item, "board-text");
+        element.innerHTML = `<span contenteditable="true" role="textbox" aria-label="文本"></span>`;
+        const content = element.querySelector("span");
+        content.textContent = item.text;
+        content.addEventListener("input", () => {
+          item.text = content.textContent;
+          queueSave();
+        });
+        element.addEventListener("pointerdown", event => {
+          selectItem(item.id);
+          if (event.detail < 2) startMove(event, item);
+        });
+        return element;
+      }
+
+      function renderArrow(item) {
+        const pad = 18;
+        const left = Math.min(item.x, item.x2) - pad;
+        const top = Math.min(item.y, item.y2) - pad;
+        const width = Math.max(Math.abs(item.x2 - item.x) + pad * 2, 40);
+        const height = Math.max(Math.abs(item.y2 - item.y) + pad * 2, 40);
+        const x1 = item.x - left;
+        const y1 = item.y - top;
+        const x2 = item.x2 - left;
+        const y2 = item.y2 - top;
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const head = 14;
+        const ax1 = x2 - head * Math.cos(angle - Math.PI / 6);
+        const ay1 = y2 - head * Math.sin(angle - Math.PI / 6);
+        const ax2 = x2 - head * Math.cos(angle + Math.PI / 6);
+        const ay2 = y2 - head * Math.sin(angle + Math.PI / 6);
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.classList.add("board-item", "board-arrow");
+        if (item.id === selectedId) svg.classList.add("selected");
+        svg.dataset.id = item.id;
+        svg.style.left = left + "px";
+        svg.style.top = top + "px";
+        svg.setAttribute("width", width);
+        svg.setAttribute("height", height);
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.innerHTML = `<line class="arrow-hit" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"></line><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"></line><path d="M ${ax1} ${ay1} L ${x2} ${y2} L ${ax2} ${ay2}"></path>`;
+        if (item.id === selectedId) {
+          svg.insertAdjacentHTML("beforeend", `<circle class="arrow-handle" data-end="start" cx="${x1}" cy="${y1}" r="7"></circle><circle class="arrow-handle" data-end="end" cx="${x2}" cy="${y2}" r="7"></circle>`);
+          svg.querySelectorAll(".arrow-handle").forEach(handle => {
+            handle.addEventListener("pointerdown", event => startArrowEndpoint(event, item, handle.dataset.end));
+          });
+        }
+        svg.addEventListener("pointerdown", event => {
+          if (event.target.classList.contains("arrow-handle")) return;
+          selectItem(item.id);
+          startMoveArrow(event, item);
+        });
+        return svg;
+      }
+
+      function bindMove(element, item, handle) {
+        handle.addEventListener("pointerdown", event => startMove(event, item));
+      }
+
+      function startMove(event, item) {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        selectItem(item.id);
+        pointerAction = {
+          type: "move",
+          id: item.id,
+          startX: event.clientX,
+          startY: event.clientY,
+          itemX: item.x,
+          itemY: item.y
+        };
+        viewport.setPointerCapture(event.pointerId);
+      }
+
+      function startMoveArrow(event, item) {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        pointerAction = {
+          type: "move-arrow",
+          id: item.id,
+          startX: event.clientX,
+          startY: event.clientY,
+          itemX: item.x,
+          itemY: item.y,
+          itemX2: item.x2,
+          itemY2: item.y2
+        };
+        viewport.setPointerCapture(event.pointerId);
+      }
+
+      function startArrowEndpoint(event, item, end) {
+        event.preventDefault();
+        event.stopPropagation();
+        pointerAction = { type: "arrow-end", id: item.id, end };
+        viewport.setPointerCapture(event.pointerId);
+      }
+
+      function selectItem(id) {
+        if (selectedId === id) return;
+        selectedId = id;
+        renderItems();
+      }
+
+      function updateSelectionStatus() {
+        const item = state.items.find(entry => entry.id === selectedId);
+        selectionStatus.textContent = item ? ({ frame: "HTML 组件", note: "批注", text: "文本", arrow: "箭头" }[item.type] || item.type) : "未选择对象";
+      }
+
+      function deleteSelected(id = selectedId) {
+        if (!id) return;
+        state.items = state.items.filter(item => item.id !== id);
+        if (selectedId === id) selectedId = null;
+        renderItems();
+        queueSave();
+      }
+
+      function addAtPoint(type, point) {
+        let item;
+        if (type === "note") item = { id: uid("note"), type, x: point.x, y: point.y, width: 230, height: 160, text: "输入批注" };
+        if (type === "text") item = { id: uid("text"), type, x: point.x, y: point.y, text: "文本标记" };
+        if (type === "arrow") item = { id: uid("arrow"), type, x: point.x, y: point.y, x2: point.x + 170, y2: point.y + 80 };
+        state.items.push(item);
+        selectedId = item.id;
+        setTool("select");
+        renderItems();
+        queueSave();
+        requestAnimationFrame(() => {
+          const editable = stage.querySelector(`[data-id="${item.id}"] [contenteditable]`);
+          if (editable) {
+            editable.focus();
+            document.getSelection().selectAllChildren(editable);
+          }
+        });
+      }
+
+      function setZoom(nextZoom, clientX, clientY) {
+        const oldZoom = state.camera.zoom;
+        const zoom = Math.min(2.2, Math.max(0.15, nextZoom));
+        const rect = viewport.getBoundingClientRect();
+        const pivotX = (clientX ?? rect.left + rect.width / 2) - rect.left;
+        const pivotY = (clientY ?? rect.top + rect.height / 2) - rect.top;
+        const worldX = (pivotX - state.camera.x) / oldZoom;
+        const worldY = (pivotY - state.camera.y) / oldZoom;
+        state.camera.zoom = zoom;
+        state.camera.x = pivotX - worldX * zoom;
+        state.camera.y = pivotY - worldY * zoom;
+        renderCamera();
+        queueSave();
+      }
+
+      function fitBoard() {
+        if (!state.items.length) return;
+        const bounds = state.items.reduce((box, item) => {
+          const itemRight = item.type === "arrow" ? Math.max(item.x, item.x2) : item.x + (item.width || 220);
+          const itemBottom = item.type === "arrow" ? Math.max(item.y, item.y2) : item.y + (item.height || 60);
+          return {
+            left: Math.min(box.left, item.x, item.x2 ?? item.x),
+            top: Math.min(box.top, item.y, item.y2 ?? item.y),
+            right: Math.max(box.right, itemRight),
+            bottom: Math.max(box.bottom, itemBottom)
+          };
+        }, { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity });
+        const rect = viewport.getBoundingClientRect();
+        const padding = 72;
+        const zoom = Math.min(1, (rect.width - padding * 2) / (bounds.right - bounds.left), (rect.height - padding * 2) / (bounds.bottom - bounds.top));
+        state.camera.zoom = Math.max(0.15, zoom);
+        state.camera.x = (rect.width - (bounds.right - bounds.left) * state.camera.zoom) / 2 - bounds.left * state.camera.zoom;
+        state.camera.y = (rect.height - (bounds.bottom - bounds.top) * state.camera.zoom) / 2 - bounds.top * state.camera.zoom;
+        renderCamera();
+        queueSave();
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>\"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char]));
+      }
+
+      viewport.addEventListener("pointerdown", event => {
+        if (event.button === 1 || tool === "pan" || event.target === viewport || event.target === stage) {
+          if (["text", "note", "arrow"].includes(tool) && event.button === 0) {
+            addAtPoint(tool, worldPoint(event.clientX, event.clientY));
+            return;
+          }
+          if (event.button !== 0 && event.button !== 1) return;
+          selectedId = null;
+          renderItems();
+          pointerAction = {
+            type: "pan",
+            startX: event.clientX,
+            startY: event.clientY,
+            cameraX: state.camera.x,
+            cameraY: state.camera.y
+          };
+          viewport.classList.add("is-panning");
+          viewport.setPointerCapture(event.pointerId);
+        }
+      });
+
+      viewport.addEventListener("pointermove", event => {
+        if (!pointerAction) return;
+        const item = state.items.find(entry => entry.id === pointerAction.id);
+        if (pointerAction.type === "pan") {
+          state.camera.x = pointerAction.cameraX + event.clientX - pointerAction.startX;
+          state.camera.y = pointerAction.cameraY + event.clientY - pointerAction.startY;
+          renderCamera();
+        }
+        if (pointerAction.type === "move" && item) {
+          item.x = pointerAction.itemX + (event.clientX - pointerAction.startX) / state.camera.zoom;
+          item.y = pointerAction.itemY + (event.clientY - pointerAction.startY) / state.camera.zoom;
+          renderItems();
+        }
+        if (pointerAction.type === "move-arrow" && item) {
+          const dx = (event.clientX - pointerAction.startX) / state.camera.zoom;
+          const dy = (event.clientY - pointerAction.startY) / state.camera.zoom;
+          item.x = pointerAction.itemX + dx;
+          item.y = pointerAction.itemY + dy;
+          item.x2 = pointerAction.itemX2 + dx;
+          item.y2 = pointerAction.itemY2 + dy;
+          renderItems();
+        }
+        if (pointerAction.type === "arrow-end" && item) {
+          const point = worldPoint(event.clientX, event.clientY);
+          if (pointerAction.end === "start") { item.x = point.x; item.y = point.y; }
+          else { item.x2 = point.x; item.y2 = point.y; }
+          renderItems();
+        }
+      });
+
+      viewport.addEventListener("pointerup", () => {
+        if (pointerAction) queueSave();
+        pointerAction = null;
+        viewport.classList.remove("is-panning");
+      });
+
+      viewport.addEventListener("wheel", event => {
+        event.preventDefault();
+        if (event.ctrlKey || event.metaKey) {
+          setZoom(state.camera.zoom * Math.exp(-event.deltaY * 0.002), event.clientX, event.clientY);
+        } else {
+          state.camera.x -= event.deltaX;
+          state.camera.y -= event.deltaY;
+          renderCamera();
+          queueSave();
+        }
+      }, { passive: false });
+
+      document.querySelectorAll("[data-tool-button]").forEach(button => {
+        button.addEventListener("click", () => setTool(button.dataset.toolButton));
+      });
+
+      document.getElementById("zoom-in").addEventListener("click", () => setZoom(state.camera.zoom * 1.18));
+      document.getElementById("zoom-out").addEventListener("click", () => setZoom(state.camera.zoom / 1.18));
+      document.getElementById("fit-board").addEventListener("click", fitBoard);
+      document.getElementById("add-component").addEventListener("click", () => dialog.showModal());
+      document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
+      document.getElementById("cancel-dialog").addEventListener("click", () => dialog.close());
+
+      document.querySelectorAll("[data-template]").forEach(button => {
+        button.addEventListener("click", () => {
+          const template = button.dataset.template;
+          document.querySelectorAll("[data-template]").forEach(entry => entry.setAttribute("aria-pressed", String(entry === button)));
+          htmlInput.value = template === "filter" ? filterTemplate : template === "review" ? reviewTemplate : blankTemplate;
+          nameInput.value = template === "filter" ? "筛选面板" : template === "review" ? "确认弹窗" : "HTML 组件";
+          deviceInput.value = template === "review" ? "mobile" : "desktop";
+        });
+      });
+
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        const device = deviceInput.value;
+        const size = DEVICE_SIZES[device];
+        const rect = viewport.getBoundingClientRect();
+        const center = worldPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        const item = {
+          id: uid("frame"),
+          type: "frame",
+          title: nameInput.value.trim() || "HTML 组件",
+          device,
+          x: center.x - size.width / 2,
+          y: center.y - size.height / 2,
+          width: size.width,
+          height: size.height,
+          html: htmlInput.value
+        };
+        state.items.push(item);
+        selectedId = item.id;
+        dialog.close();
+        renderItems();
+        queueSave();
+      });
+
+      document.getElementById("share-board").addEventListener("click", async () => {
+        try {
+          const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+          const url = location.href.split("#")[0] + "#board=" + encoded;
+          await navigator.clipboard.writeText(url);
+          showToast("分享链接已复制");
+        } catch (error) {
+          showToast("浏览器阻止了复制，请从地址栏复制链接");
+        }
+      });
+
+      document.getElementById("reset-board").addEventListener("click", () => {
+        if (!confirm("恢复初始示例？当前画板内容将被替换。")) return;
+        state = defaultState();
+        selectedId = null;
+        renderCamera();
+        renderItems();
+        queueSave();
+      });
+
+      document.addEventListener("keydown", event => {
+        const active = document.activeElement;
+        const editing = active && (active.matches("input, textarea, select") || active.isContentEditable);
+        if (!editing && (event.key === "Delete" || event.key === "Backspace")) {
+          event.preventDefault();
+          deleteSelected();
+        }
+        if (!editing && event.key === "Escape") {
+          selectedId = null;
+          setTool("select");
+          renderItems();
+        }
+        if (!editing && event.code === "Space") {
+          event.preventDefault();
+          setTool("pan");
+        }
+      });
+
+      document.addEventListener("keyup", event => {
+        const active = document.activeElement;
+        const editing = active && (active.matches("input, textarea, select") || active.isContentEditable);
+        if (!editing && event.code === "Space") setTool("select");
+      });
+
+      htmlInput.value = filterTemplate;
+      renderCamera();
+      renderItems();
+      if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
+    })();
+  </script>
+</body>
+</html>

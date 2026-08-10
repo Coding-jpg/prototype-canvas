@@ -7,50 +7,60 @@
   <title>商品导入流程</title>
   <style>
     :root {
-      --blue: #2457e6;
-      --blue-hover: #1948ce;
-      --blue-soft: #eef3ff;
-      --ink: #171a21;
-      --muted: #686e7a;
-      --line: #e2e5ea;
-      --line-strong: #cfd4dc;
+      --blue: #1769e0;
+      --blue-hover: #0e56bd;
+      --blue-soft: #eef5ff;
+      --ink: #27292e;
+      --muted: #777b84;
+      --line: #eceef1;
+      --line-strong: #dfe2e7;
       --surface: #fff;
-      --canvas: #f7f8fa;
+      --canvas: #f4f5f7;
       --danger: #d83b3b;
       --warning: #a86400;
       --success: #198754;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; min-width: 320px; background: var(--canvas); color: var(--ink); font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    body { margin: 0; min-width: 320px; background: #fff; color: var(--ink); font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
     button, input, textarea, select { font: inherit; }
     button { cursor: pointer; }
     button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid rgba(36, 87, 230, .18); outline-offset: 1px; }
-    .app { min-height: 100vh; background: var(--surface); }
-    .topbar { height: 54px; display: flex; align-items: center; gap: 26px; padding: 0 28px; border-bottom: 1px solid var(--line); background: #fff; }
-    .brand { display: flex; align-items: center; gap: 9px; font-weight: 760; }
-    .brand-mark { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 6px; background: #10131a; color: #fff; font-size: 12px; }
-    .topnav { display: flex; align-self: stretch; gap: 24px; color: #5f6570; }
-    .topnav span { display: flex; align-items: center; }
-    .topnav .active { color: var(--ink); font-weight: 650; border-bottom: 2px solid var(--ink); }
-    .workspace { max-width: 1440px; min-height: calc(100vh - 54px); margin: 0 auto; padding: 26px 32px 48px; }
-    .crumb { margin-bottom: 5px; color: var(--muted); font-size: 12px; }
-    .page-head { display: flex; align-items: center; gap: 12px; padding-bottom: 22px; }
-    h1 { margin: 0 auto 0 0; font-size: 24px; line-height: 1.2; letter-spacing: 0; }
-    .button { height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 15px; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; color: var(--ink); font-weight: 650; white-space: nowrap; }
-    .button:hover { border-color: #aeb5c0; background: #fafafa; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 58px 166px minmax(0, 1fr); background: #fff; }
+    .global-rail { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 18px 7px 12px; background: #f0f1f3; }
+    .brand-mark { width: 32px; height: 32px; display: grid; place-items: center; margin-bottom: 22px; border-radius: 5px; background: #0f1012; color: #fff; font-size: 13px; font-weight: 800; }
+    .rail-nav { width: 100%; display: grid; gap: 8px; }
+    .rail-item { width: 100%; display: grid; place-items: center; gap: 3px; padding: 7px 0; border: 0; border-radius: 5px; background: transparent; color: #858993; font-size: 11px; }
+    .rail-item.active { color: #22252a; }
+    .rail-icon { width: 22px; height: 22px; display: grid; place-items: center; font-size: 16px; }
+    .account-dot { width: 30px; height: 30px; display: grid; place-items: center; margin-top: auto; border-radius: 50%; background: #0f1012; color: #fff; font-size: 11px; }
+    .asset-nav { min-height: 100vh; padding: 24px 14px; border-right: 1px solid #f0f1f3; background: #fff; }
+    .account-title { display: flex; align-items: center; gap: 7px; margin: 0 8px 18px; color: #555961; font-size: 13px; }
+    .asset-menu { display: grid; gap: 5px; }
+    .asset-item { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 0; border-radius: 5px; background: transparent; color: #4e525a; text-align: left; }
+    .asset-item.active { background: #f1f2f4; color: #202227; font-weight: 600; }
+    .workspace { min-width: 0; min-height: calc(100vh - 20px); margin: 10px 10px 10px 0; padding: 26px 20px 40px; border-radius: 14px; background: var(--canvas); }
+    .crumb { margin-bottom: 26px; color: #8b8f97; font-size: 12px; }
+    .page-head { padding-bottom: 0; }
+    h1 { margin: 0; font-size: 20px; line-height: 1.3; letter-spacing: 0; font-weight: 650; }
+    .page-tabs { display: flex; gap: 28px; height: 46px; align-items: flex-end; margin-bottom: 16px; border-bottom: 1px solid #e7e9ec; }
+    .page-tab { height: 35px; padding: 0 2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #454951; }
+    .page-tab.active { border-bottom-color: #2e6adf; color: #202328; font-weight: 650; }
+    .page-tab span { margin-left: 5px; color: #92969e; font-weight: 400; }
+    .button { height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 14px; border: 1px solid transparent; border-radius: 17px; background: #f1f2f4; color: #2f3238; font-weight: 550; white-space: nowrap; }
+    .button:hover { background: #e8eaed; }
     .button.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
     .button.primary:hover { background: var(--blue-hover); }
     .button.ghost { border-color: transparent; background: transparent; color: var(--muted); }
     .button.small { height: 30px; padding: 0 10px; font-size: 13px; }
     .plus { font-size: 18px; font-weight: 400; line-height: 1; }
-    .panel { border-top: 1px solid var(--line); }
-    .section-head { min-height: 64px; display: flex; align-items: center; gap: 12px; }
-    .section-head h2 { margin: 0; font-size: 16px; }
+    .panel { overflow: hidden; border: 1px solid #e9ebee; border-radius: 6px; background: #fff; }
+    .section-head { min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 0 18px; }
+    .section-head h2 { margin: 0; font-size: 14px; font-weight: 650; }
     .section-head .hint { color: var(--muted); font-size: 12px; }
     .section-head .right { margin-left: auto; }
     .task-table, .product-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th { height: 40px; padding: 0 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; font-weight: 600; text-align: left; }
-    td { height: 60px; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    th { height: 42px; padding: 0 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f7f7f8; color: #5d6169; font-size: 12px; font-weight: 600; text-align: left; }
+    td { height: 62px; padding: 10px 18px; border-bottom: 1px solid var(--line); vertical-align: middle; }
     .task-table th:nth-child(1) { width: 20%; }
     .task-table th:nth-child(2) { width: 15%; }
     .task-table th:nth-child(3) { width: 24%; }
@@ -58,14 +68,15 @@
     .task-table th:nth-child(5) { width: 15%; }
     .task-table th:nth-child(6) { width: 12%; }
     .source { display: flex; align-items: center; gap: 9px; font-weight: 650; }
-    .source-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; background: var(--blue-soft); color: var(--blue); font-size: 12px; }
-    .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+    .source-icon { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid #e6e8eb; border-radius: 5px; background: #f6f7f8; color: #555a63; font-size: 11px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; }
     .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
     .status.failed { color: var(--danger); }
     .status.success { color: var(--success); }
     .progress { display: flex; align-items: center; gap: 10px; }
+    .progress strong { white-space: nowrap; }
     .progress-track { flex: 1; min-width: 70px; height: 4px; overflow: hidden; border-radius: 2px; background: #e8ebf0; }
-    .progress-track i { display: block; width: 100%; height: 100%; background: var(--blue); }
+    .progress-track i { display: block; width: 100%; height: 100%; background: #737882; }
     .muted { color: var(--muted); }
     .link-button { padding: 0; border: 0; background: transparent; color: var(--blue); }
     .task-detail { display: none; background: #fafbfc; }
@@ -76,17 +87,18 @@
     .failure-copy strong { display: block; margin-bottom: 3px; }
     .failure-copy span { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
     .failure-actions { display: flex; gap: 14px; white-space: nowrap; }
-    .toolbar { display: flex; align-items: center; gap: 10px; padding: 16px 0; }
-    .search { width: 280px; height: 36px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
+    .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: #fff; }
+    .toolbar-actions { display: flex; gap: 10px; margin-left: auto; }
+    .search { width: 280px; height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
     .select-compact { height: 36px; padding: 0 30px 0 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; }
     .product-table th:nth-child(1) { width: 44%; }
     .product { display: flex; align-items: center; gap: 12px; }
-    .thumb { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f0f2f5; color: #8a909a; font-size: 11px; }
+    .thumb { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f4f5f6; color: #8a909a; font-size: 11px; }
     .product strong { display: block; font-size: 13px; }
     .product small { color: var(--muted); }
     .empty-products { padding: 32px 0; text-align: center; color: var(--muted); }
 
-    .overlay { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; background: rgba(18, 22, 31, .42); opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+    .overlay { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; background: rgba(28, 30, 35, .36); opacity: 0; pointer-events: none; transition: opacity .18s ease; }
     .overlay.open { opacity: 1; pointer-events: auto; }
     .drawer { width: min(1000px, calc(100vw - 80px)); height: 100%; display: grid; grid-template-rows: 64px minmax(0, 1fr) 68px; background: #fff; box-shadow: -12px 0 32px rgba(20, 25, 35, .12); transform: translateX(20px); transition: transform .18s ease; }
     .overlay.open .drawer { transform: translateX(0); }
@@ -96,12 +108,12 @@
     .close { width: 34px; height: 34px; display: grid; place-items: center; margin-left: auto; border: 0; border-radius: 5px; background: transparent; color: #4f5560; font-size: 22px; }
     .close:hover { background: #f1f2f4; }
     .drawer-main { min-height: 0; display: grid; grid-template-columns: 226px minmax(0, 1fr); }
-    .method-nav { padding: 18px 12px; border-right: 1px solid var(--line); background: #fafbfc; overflow: auto; }
+    .method-nav { padding: 18px 12px; border-right: 1px solid var(--line); background: #f7f8f9; overflow: auto; }
     .nav-label { margin: 12px 10px 7px; color: #9297a0; font-size: 11px; font-weight: 700; text-transform: uppercase; }
     .nav-label:first-child { margin-top: 0; }
     .method-button { width: 100%; min-height: 50px; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 5px; background: transparent; color: #434852; text-align: left; }
     .method-button:hover { background: #f0f2f5; }
-    .method-button.active { background: #e9efff; color: #163fa8; font-weight: 650; }
+    .method-button.active { background: #e9eaec; color: #202328; font-weight: 650; }
     .method-icon { width: 28px; height: 28px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid currentColor; border-radius: 5px; font-size: 12px; }
     .method-copy { min-width: 0; }
     .method-copy small { display: block; color: #7d8490; font-size: 11px; font-weight: 400; }
@@ -143,17 +155,22 @@
     .toast { position: fixed; left: 50%; bottom: 28px; z-index: 30; padding: 10px 16px; border-radius: 5px; background: #20242d; color: #fff; opacity: 0; transform: translate(-50%, 8px); transition: .18s ease; pointer-events: none; }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
     [hidden] { display: none !important; }
-    @media (max-width: 760px) {
-      .topbar { padding: 0 16px; } .topnav { display: none; }
-      .workspace { padding: 20px 16px 40px; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .global-rail, .asset-nav { display: none; }
+      .workspace { min-height: 100vh; margin: 0; padding: 20px 16px 40px; border-radius: 0; }
       .page-head { align-items: flex-start; flex-wrap: wrap; }
       h1 { width: 100%; }
-      .page-head .button { flex: 1; padding: 0 9px; }
-      .task-table th:nth-child(2), .task-table td:nth-child(2), .task-table th:nth-child(5), .task-table td:nth-child(5) { display: none; }
-      .task-table th:nth-child(1) { width: 31%; } .task-table th:nth-child(3) { width: 34%; } .task-table th:nth-child(4) { width: 20%; } .task-table th:nth-child(6) { width: 15%; }
+      .task-table th:nth-child(2), .task-table td:nth-child(2), .task-table th:nth-child(4), .task-table td:nth-child(4), .task-table th:nth-child(5), .task-table td:nth-child(5) { display: none; }
+      .task-table th:nth-child(1) { width: 40%; } .task-table th:nth-child(3) { width: 36%; } .task-table th:nth-child(6) { width: 24%; }
+      .task-table th, .task-table td { padding-left: 10px; padding-right: 10px; }
+      .task-table td:nth-child(6) .link-button { white-space: nowrap; }
       .failure { align-items: flex-start; flex-direction: column; }
       .toolbar { flex-wrap: wrap; } .search { width: 100%; }
-      .product-table th:nth-child(3), .product-table td:nth-child(3) { display: none; }
+      .toolbar-actions { width: 100%; margin-left: 0; }
+      .toolbar-actions .button { flex: 1; padding: 0 9px; }
+      .product-table th:nth-child(2), .product-table td:nth-child(2), .product-table th:nth-child(3), .product-table td:nth-child(3), .product-table th:nth-child(5), .product-table td:nth-child(5) { display: none; }
+      .product-table th:nth-child(1) { width: 76%; } .product-table th:nth-child(4) { width: 24%; }
       .drawer { width: 100%; grid-template-rows: 60px minmax(0, 1fr) 64px; }
       .drawer-main { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
       .method-nav { display: flex; gap: 6px; padding: 10px 12px; border-right: 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
@@ -168,19 +185,56 @@
 </head>
 <body>
   <main class="app">
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark">RF</span> ReelFlock</div>
-      <nav class="topnav"><span>视频</span><span class="active">资产</span><span>发布</span><span>数据</span></nav>
-    </header>
+    <aside class="global-rail" aria-label="主导航">
+      <div class="brand-mark">RF</div>
+      <nav class="rail-nav">
+        <button class="rail-item"><span class="rail-icon">◇</span><span>工作台</span></button>
+        <button class="rail-item"><span class="rail-icon">▱</span><span>创作</span></button>
+        <button class="rail-item active"><span class="rail-icon">□</span><span>资产</span></button>
+        <button class="rail-item"><span class="rail-icon">▥</span><span>数据</span></button>
+      </nav>
+      <div class="account-dot">人</div>
+    </aside>
+    <aside class="asset-nav" aria-label="资产导航">
+      <div class="account-title"><span>♙</span><span>账号管理</span></div>
+      <nav class="asset-menu">
+        <button class="asset-item active"><span>▢</span><span>商品管理</span></button>
+        <button class="asset-item"><span>▤</span><span>脚本库</span></button>
+        <button class="asset-item"><span>✧</span><span>AI 生成的</span></button>
+      </nav>
+    </aside>
     <section class="workspace">
-      <div class="crumb">商品资产</div>
+      <div class="crumb">资产库&nbsp; / &nbsp;<strong>商品管理</strong></div>
       <div class="page-head">
-        <h1>商品列表</h1>
-        <button class="button" data-open="tk"><span class="plus">＋</span>导入 TK 商品</button>
-        <button class="button" data-open="site"><span class="plus">＋</span>导入独立站商品</button>
+        <h1>商品管理</h1>
       </div>
-
+      <div class="page-tabs">
+        <button class="page-tab active">全部<span>128</span></button>
+        <button class="page-tab">可用商品<span>96</span></button>
+        <button class="page-tab">待处理<span>28</span></button>
+        <button class="page-tab">异常<span>4</span></button>
+      </div>
       <section class="panel">
+        <div class="toolbar">
+          <select class="select-compact" aria-label="商品状态"><option>全部状态</option><option>可用</option><option>信息不完整</option></select>
+          <select class="select-compact" aria-label="商品来源"><option>全部来源</option><option>TK 商品</option><option>独立站商品</option></select>
+          <select class="select-compact" aria-label="市场"><option>全部市场</option><option>美国</option><option>英国</option></select>
+          <input class="search" placeholder="搜索商品名称或 ID">
+          <div class="toolbar-actions">
+            <button class="button" data-open="tk"><span class="plus">＋</span>导入 TK 商品</button>
+            <button class="button" data-open="site"><span class="plus">＋</span>导入独立站商品</button>
+          </div>
+        </div>
+        <table class="product-table">
+          <thead><tr><th>商品</th><th>来源</th><th>市场</th><th>状态</th><th>更新时间</th></tr></thead>
+          <tbody>
+            <tr><td><div class="product"><span class="thumb">IMG</span><div><strong>Portable Blender Cup</strong><small>商品 ID · 1729483061</small></div></div></td><td>TK Shop</td><td>美国</td><td><span class="status success">可用</span></td><td class="muted">2 分钟前</td></tr>
+            <tr><td><div class="product"><span class="thumb">IMG</span><div><strong>Minimal Travel Backpack</strong><small>SKU · BP-2026-08</small></div></div></td><td>独立站</td><td>英国</td><td><span class="status success">可用</span></td><td class="muted">昨天</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel" style="margin-top: 18px">
         <div class="section-head">
           <div><h2>导入任务</h2><span class="hint">最近 30 天</span></div>
           <button class="button ghost small right" id="toggle-tasks">收起任务</button>
@@ -213,22 +267,6 @@
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section class="panel" style="margin-top: 26px">
-        <div class="section-head"><h2>全部商品</h2><span class="hint">2 个商品</span></div>
-        <div class="toolbar">
-          <input class="search" placeholder="搜索商品名称或 ID">
-          <select class="select-compact" aria-label="商品来源"><option>全部来源</option><option>TK 商品</option><option>独立站商品</option></select>
-          <select class="select-compact" aria-label="商品状态"><option>全部状态</option><option>可用</option><option>信息不完整</option></select>
-        </div>
-        <table class="product-table">
-          <thead><tr><th>商品</th><th>来源</th><th>市场</th><th>状态</th><th>更新时间</th></tr></thead>
-          <tbody>
-            <tr><td><div class="product"><span class="thumb">IMG</span><div><strong>Portable Blender Cup</strong><small>商品 ID · 1729483061</small></div></div></td><td>TK Shop</td><td>美国</td><td><span class="status success">可用</span></td><td class="muted">2 分钟前</td></tr>
-            <tr><td><div class="product"><span class="thumb">IMG</span><div><strong>Minimal Travel Backpack</strong><small>SKU · BP-2026-08</small></div></div></td><td>独立站</td><td>英国</td><td><span class="status success">可用</span></td><td class="muted">昨天</td></tr>
-          </tbody>
-        </table>
       </section>
     </section>
   </main>
@@ -410,6 +448,9 @@
     }
 
     document.querySelectorAll("[data-open]").forEach(button => button.onclick = () => openDrawer(button.dataset.open));
+    document.querySelectorAll(".page-tab").forEach(tab => tab.onclick = () => {
+      document.querySelectorAll(".page-tab").forEach(item => item.classList.toggle("active", item === tab));
+    });
     document.querySelector("#close-drawer").onclick = closeDrawer;
     document.querySelector("#cancel").onclick = closeDrawer;
     overlay.addEventListener("click", event => { if (event.target === overlay) closeDrawer(); });

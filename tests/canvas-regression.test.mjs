@@ -35,3 +35,17 @@ test("selection changes do not rebuild components", () => {
   assert.doesNotMatch(selectItem, /renderItems\(\)/);
   assert.match(selectItem, /syncItemElement/);
 });
+
+test("the default board showcases the product import flow", () => {
+  const defaultState = section("function defaultState()", "function migrateState");
+  assert.match(defaultState, /version: 2/);
+  assert.match(defaultState, /componentId: "product-import-flow"/);
+  assert.match(defaultState, /components\/product-import-flow\/index\.html/);
+});
+
+test("legacy boards receive the product import frame without replacing their items", () => {
+  const migration = section("function migrateState(savedState)", "function loadState");
+  assert.match(migration, /savedState\.items\.push/);
+  assert.match(migration, /componentId === "product-import-flow"/);
+  assert.doesNotMatch(migration, /savedState\.items\s*=/);
+});

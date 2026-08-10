@@ -753,15 +753,27 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       function defaultState() {
         return {
-          version: 1,
-          camera: { x: 110, y: 80, zoom: 0.68 },
+          version: 2,
+          camera: { x: 76, y: 64, zoom: 0.72 },
           items: [
-            { id: uid("frame"), type: "frame", title: "项目筛选 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, componentId: "filter-panel", componentPath: "./components/filter-panel/index.html" },
-            { id: uid("frame"), type: "frame", title: "发布确认 · 手机", device: "mobile", x: 1270, y: 0, width: 390, height: 884, componentId: "release-confirm", componentPath: "./components/release-confirm/index.html" },
-            { id: uid("note"), type: "note", x: 1270, y: 940, width: 230, height: 160, text: "确认按钮需要在勾选后启用。" },
-            { id: uid("arrow"), type: "arrow", x: 1180, y: 840, x2: 1330, y2: 940 }
+            { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" },
+            { id: uid("note"), type: "note", x: 1260, y: 40, width: 250, height: 168, text: "主入口只保留两类商品来源；具体导入方式在抽屉内选择。" },
+            { id: uid("note"), type: "note", x: 1260, y: 260, width: 250, height: 184, text: "抓取失败不会生成空商品，可在统一任务中心重试或转为手动录入。" },
+            { id: uid("arrow"), type: "arrow", x: 1180, y: 140, x2: 1260, y2: 124 },
+            { id: uid("arrow"), type: "arrow", x: 1180, y: 390, x2: 1260, y2: 350 }
           ]
         };
+      }
+
+      function migrateState(savedState) {
+        if (!savedState || !Array.isArray(savedState.items)) return defaultState();
+        if ((savedState.version || 1) >= 2) return savedState;
+        savedState.version = 2;
+        if (!savedState.items.some(item => item.componentId === "product-import-flow")) {
+          savedState.items.push({ id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" });
+          savedState.items.push({ id: uid("note"), type: "note", x: 1260, y: 1080, width: 250, height: 184, text: "新增：商品导入流程。主入口按 TK 商品与独立站商品分流。" });
+        }
+        return savedState;
       }
 
       function loadState() {
@@ -770,9 +782,10 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           try {
             const decoded = decodeURIComponent(escape(atob(shared)));
             const parsed = JSON.parse(decoded);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+            const migrated = migrateState(parsed);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
             history.replaceState(null, "", location.pathname + location.search);
-            return parsed;
+            return migrated;
           } catch (error) {
             console.warn("Invalid shared board", error);
           }
@@ -780,7 +793,10 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
         try {
           const stored = localStorage.getItem(STORAGE_KEY);
-          return stored ? JSON.parse(stored) : defaultState();
+          if (!stored) return defaultState();
+          const migrated = migrateState(JSON.parse(stored));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+          return migrated;
         } catch (error) {
           console.warn("Could not load board", error);
           return defaultState();

@@ -1,0 +1,7 @@
+{
+  "id": "product-import-flow",
+  "name": "商品导入流程",
+  "device": "desktop",
+  "category": "商品资产",
+  "description": "按 TK 商品和独立站商品分流，覆盖链接、表格、手动录入、店铺同步及导入任务处理。"
+}

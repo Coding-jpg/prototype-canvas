@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>商品导入流程</title>
+  <style>
+    :root {
+      --blue: #2457e6;
+      --blue-hover: #1948ce;
+      --blue-soft: #eef3ff;
+      --ink: #171a21;
+      --muted: #686e7a;
+      --line: #e2e5ea;
+      --line-strong: #cfd4dc;
+      --surface: #fff;
+      --canvas: #f7f8fa;
+      --danger: #d83b3b;
+      --warning: #a86400;
+      --success: #198754;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--canvas); color: var(--ink); font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid rgba(36, 87, 230, .18); outline-offset: 1px; }
+    .app { min-height: 100vh; background: var(--surface); }
+    .topbar { height: 54px; display: flex; align-items: center; gap: 26px; padding: 0 28px; border-bottom: 1px solid var(--line); background: #fff; }
+    .brand { display: flex; align-items: center; gap: 9px; font-weight: 760; }
+    .brand-mark { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 6px; background: #10131a; color: #fff; font-size: 12px; }
+    .topnav { display: flex; align-self: stretch; gap: 24px; color: #5f6570; }
+    .topnav span { display: flex; align-items: center; }
+    .topnav .active { color: var(--ink); font-weight: 650; border-bottom: 2px solid var(--ink); }
+    .workspace { max-width: 1440px; min-height: calc(100vh - 54px); margin: 0 auto; padding: 26px 32px 48px; }
+    .crumb { margin-bottom: 5px; color: var(--muted); font-size: 12px; }
+    .page-head { display: flex; align-items: center; gap: 12px; padding-bottom: 22px; }
+    h1 { margin: 0 auto 0 0; font-size: 24px; line-height: 1.2; letter-spacing: 0; }
+    .button { height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 15px; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; color: var(--ink); font-weight: 650; white-space: nowrap; }
+    .button:hover { border-color: #aeb5c0; background: #fafafa; }
+    .button.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .button.primary:hover { background: var(--blue-hover); }
+    .button.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+    .button.small { height: 30px; padding: 0 10px; font-size: 13px; }
+    .plus { font-size: 18px; font-weight: 400; line-height: 1; }
+    .panel { border-top: 1px solid var(--line); }
+    .section-head { min-height: 64px; display: flex; align-items: center; gap: 12px; }
+    .section-head h2 { margin: 0; font-size: 16px; }
+    .section-head .hint { color: var(--muted); font-size: 12px; }
+    .section-head .right { margin-left: auto; }
+    .task-table, .product-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { height: 40px; padding: 0 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; font-weight: 600; text-align: left; }
+    td { height: 60px; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    .task-table th:nth-child(1) { width: 20%; }
+    .task-table th:nth-child(2) { width: 15%; }
+    .task-table th:nth-child(3) { width: 24%; }
+    .task-table th:nth-child(4) { width: 14%; }
+    .task-table th:nth-child(5) { width: 15%; }
+    .task-table th:nth-child(6) { width: 12%; }
+    .source { display: flex; align-items: center; gap: 9px; font-weight: 650; }
+    .source-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; background: var(--blue-soft); color: var(--blue); font-size: 12px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+    .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .status.failed { color: var(--danger); }
+    .status.success { color: var(--success); }
+    .progress { display: flex; align-items: center; gap: 10px; }
+    .progress-track { flex: 1; min-width: 70px; height: 4px; overflow: hidden; border-radius: 2px; background: #e8ebf0; }
+    .progress-track i { display: block; width: 100%; height: 100%; background: var(--blue); }
+    .muted { color: var(--muted); }
+    .link-button { padding: 0; border: 0; background: transparent; color: var(--blue); }
+    .task-detail { display: none; background: #fafbfc; }
+    .task-detail.open { display: table-row; }
+    .task-detail td { height: auto; padding: 16px 20px; }
+    .failure { display: flex; align-items: center; gap: 18px; padding: 12px 14px; border: 1px solid #f0d2d2; border-radius: 6px; background: #fff; }
+    .failure-copy { flex: 1; min-width: 0; }
+    .failure-copy strong { display: block; margin-bottom: 3px; }
+    .failure-copy span { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .failure-actions { display: flex; gap: 14px; white-space: nowrap; }
+    .toolbar { display: flex; align-items: center; gap: 10px; padding: 16px 0; }
+    .search { width: 280px; height: 36px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
+    .select-compact { height: 36px; padding: 0 30px 0 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; }
+    .product-table th:nth-child(1) { width: 44%; }
+    .product { display: flex; align-items: center; gap: 12px; }
+    .thumb { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f0f2f5; color: #8a909a; font-size: 11px; }
+    .product strong { display: block; font-size: 13px; }
+    .product small { color: var(--muted); }
+    .empty-products { padding: 32px 0; text-align: center; color: var(--muted); }
+
+    .overlay { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; background: rgba(18, 22, 31, .42); opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+    .overlay.open { opacity: 1; pointer-events: auto; }
+    .drawer { width: min(1000px, calc(100vw - 80px)); height: 100%; display: grid; grid-template-rows: 64px minmax(0, 1fr) 68px; background: #fff; box-shadow: -12px 0 32px rgba(20, 25, 35, .12); transform: translateX(20px); transition: transform .18s ease; }
+    .overlay.open .drawer { transform: translateX(0); }
+    .drawer-head { display: flex; align-items: center; gap: 12px; padding: 0 22px; border-bottom: 1px solid var(--line); }
+    .drawer-head h2 { margin: 0; font-size: 18px; }
+    .drawer-head p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .close { width: 34px; height: 34px; display: grid; place-items: center; margin-left: auto; border: 0; border-radius: 5px; background: transparent; color: #4f5560; font-size: 22px; }
+    .close:hover { background: #f1f2f4; }
+    .drawer-main { min-height: 0; display: grid; grid-template-columns: 226px minmax(0, 1fr); }
+    .method-nav { padding: 18px 12px; border-right: 1px solid var(--line); background: #fafbfc; overflow: auto; }
+    .nav-label { margin: 12px 10px 7px; color: #9297a0; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .nav-label:first-child { margin-top: 0; }
+    .method-button { width: 100%; min-height: 50px; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 5px; background: transparent; color: #434852; text-align: left; }
+    .method-button:hover { background: #f0f2f5; }
+    .method-button.active { background: #e9efff; color: #163fa8; font-weight: 650; }
+    .method-icon { width: 28px; height: 28px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid currentColor; border-radius: 5px; font-size: 12px; }
+    .method-copy { min-width: 0; }
+    .method-copy small { display: block; color: #7d8490; font-size: 11px; font-weight: 400; }
+    .badge { display: inline-flex; align-items: center; height: 18px; margin-left: 5px; padding: 0 5px; border-radius: 3px; background: #e5f5ec; color: #147647; font-size: 10px; vertical-align: 1px; }
+    .form-scroll { min-width: 0; overflow: auto; }
+    .form-area { width: min(680px, 100%); padding: 28px 34px 38px; }
+    .form-title { margin: 0 0 5px; font-size: 19px; }
+    .form-desc { margin: 0 0 24px; color: var(--muted); }
+    .field { display: grid; gap: 7px; margin-bottom: 18px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label > span, .field > span { font-size: 13px; font-weight: 650; }
+    .required::after { content: " *"; color: var(--danger); }
+    input, textarea, select { width: 100%; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; color: var(--ink); }
+    input, select { height: 40px; padding: 0 11px; }
+    textarea { min-height: 144px; padding: 10px 11px; resize: vertical; }
+    input::placeholder, textarea::placeholder { color: #a0a5ae; }
+    .field-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+    .notice { margin-bottom: 18px; padding: 12px 14px; border: 1px solid #d9e3ff; border-radius: 5px; background: #f5f8ff; color: #3b4f7d; font-size: 13px; }
+    .notice.warning { border-color: #f0d8ad; background: #fff9ee; color: #775117; }
+    .tabs { display: inline-flex; margin-bottom: 20px; padding: 3px; border-radius: 5px; background: #f0f2f5; }
+    .tab { height: 32px; padding: 0 16px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); }
+    .tab.active { background: #fff; color: var(--ink); font-weight: 650; box-shadow: 0 1px 3px rgba(20, 24, 32, .12); }
+    .upload { min-height: 150px; display: grid; place-items: center; padding: 24px; border: 1px dashed #b7bec9; border-radius: 6px; background: #fafbfc; text-align: center; }
+    .upload:hover { border-color: var(--blue); background: #f7f9ff; }
+    .upload-icon { width: 38px; height: 38px; display: grid; place-items: center; margin: 0 auto 9px; border-radius: 50%; background: var(--blue-soft); color: var(--blue); font-size: 21px; }
+    .upload p { margin: 0 0 3px; font-weight: 650; }
+    .upload small { color: var(--muted); }
+    .config { border: 1px solid var(--line); border-radius: 6px; }
+    .config-head { display: flex; align-items: center; padding: 13px 14px; border-bottom: 1px solid var(--line); font-weight: 650; }
+    .steps { margin: 0; padding: 14px 20px 14px 36px; color: var(--muted); font-size: 13px; }
+    .steps li { margin: 5px 0; }
+    .shop-card { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 6px; }
+    .shop-logo { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 7px; background: #111; color: #fff; font-weight: 800; }
+    .shop-card .copy { flex: 1; }
+    .shop-card strong, .shop-card small { display: block; }
+    .shop-card small { color: var(--muted); }
+    .drawer-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 0 22px; border-top: 1px solid var(--line); background: #fff; }
+    .drawer-foot .foot-hint { margin-right: auto; color: var(--muted); font-size: 12px; }
+    .toast { position: fixed; left: 50%; bottom: 28px; z-index: 30; padding: 10px 16px; border-radius: 5px; background: #20242d; color: #fff; opacity: 0; transform: translate(-50%, 8px); transition: .18s ease; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) {
+      .topbar { padding: 0 16px; } .topnav { display: none; }
+      .workspace { padding: 20px 16px 40px; }
+      .page-head { align-items: flex-start; flex-wrap: wrap; }
+      h1 { width: 100%; }
+      .page-head .button { flex: 1; padding: 0 9px; }
+      .task-table th:nth-child(2), .task-table td:nth-child(2), .task-table th:nth-child(5), .task-table td:nth-child(5) { display: none; }
+      .task-table th:nth-child(1) { width: 31%; } .task-table th:nth-child(3) { width: 34%; } .task-table th:nth-child(4) { width: 20%; } .task-table th:nth-child(6) { width: 15%; }
+      .failure { align-items: flex-start; flex-direction: column; }
+      .toolbar { flex-wrap: wrap; } .search { width: 100%; }
+      .product-table th:nth-child(3), .product-table td:nth-child(3) { display: none; }
+      .drawer { width: 100%; grid-template-rows: 60px minmax(0, 1fr) 64px; }
+      .drawer-main { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+      .method-nav { display: flex; gap: 6px; padding: 10px 12px; border-right: 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
+      .nav-label { display: none; }
+      .method-button { width: auto; min-width: max-content; min-height: 38px; padding: 6px 10px; }
+      .method-copy small, .method-icon { display: none; }
+      .form-area { padding: 22px 18px 32px; }
+      .field-row { grid-template-columns: 1fr; gap: 0; }
+      .drawer-foot .foot-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">RF</span> ReelFlock</div>
+      <nav class="topnav"><span>视频</span><span class="active">资产</span><span>发布</span><span>数据</span></nav>
+    </header>
+    <section class="workspace">
+      <div class="crumb">商品资产</div>
+      <div class="page-head">
+        <h1>商品列表</h1>
+        <button class="button primary" data-open="tk"><span class="plus">＋</span>导入 TK 商品</button>
+        <button class="button" data-open="site"><span class="plus">＋</span>导入独立站商品</button>
+      </div>
+
+      <section class="panel">
+        <div class="section-head">
+          <div><h2>导入任务</h2><span class="hint">最近 30 天</span></div>
+          <button class="button ghost small right" id="toggle-tasks">收起任务</button>
+        </div>
+        <div id="task-content">
+          <table class="task-table">
+            <thead><tr><th>来源</th><th>导入方式</th><th>进度</th><th>结果</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="source"><span class="source-icon">独</span><span>独立站商品</span></div></td>
+                <td>商品链接</td>
+                <td><div class="progress"><strong>2 / 2</strong><span class="progress-track"><i></i></span></div></td>
+                <td><span class="status failed">成功 1 · 失败 1</span></td>
+                <td class="muted">今天 10:46</td>
+                <td><button class="link-button" id="show-detail">查看详情</button></td>
+              </tr>
+              <tr class="task-detail" id="task-detail"><td colspan="6">
+                <div class="failure">
+                  <div class="failure-copy"><strong>无法完整获取商品信息</strong><span>https://shop.example.com/products/wireless-lavalier-microphone</span></div>
+                  <div class="failure-actions"><button class="link-button" id="retry-task">重试</button><button class="link-button" id="manual-task">转为手动录入</button><button class="link-button muted" id="ignore-task">忽略</button></div>
+                </div>
+              </td></tr>
+              <tr id="new-task" hidden>
+                <td><div class="source"><span class="source-icon" id="new-source-icon">TK</span><span id="new-source">TK 商品</span></div></td>
+                <td id="new-method">商品链接</td>
+                <td><div class="progress"><strong>0 / 3</strong><span class="progress-track"><i style="width:18%"></i></span></div></td>
+                <td><span class="status success">处理中</span></td>
+                <td class="muted">刚刚</td><td><button class="link-button">查看详情</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 26px">
+        <div class="section-head"><h2>全部商品</h2><span class="hint">2 个商品</span></div>
+        <div class="toolbar">
+          <input class="search" placeholder="搜索商品名称或 ID">
+          <select class="select-compact" aria-label="商品来源"><option>全部来源</option><option>TK 商品</option><option>独立站商品</option></select>
+          <select class="select-compact" aria-label="商品状态"><option>全部状态</option><option>可用</option><option>信息不完整</option></select>
+        </div>
+        <table class="product-table">
+          <thead><tr><th>商品</th><th>来源</th><th>市场</th><th>状态</th><th>更新时间</th></tr></thead>
+          <tbody>
+            <tr><td><div class="product"><span class="thumb">IMG</span><div><strong>Portable Blender Cup</strong><small>商品 ID · 1729483061</small></div></div></td><td>TK Shop</td><td>美国</td><td><span class="status success">可用</span></td><td class="muted">2 分钟前</td></tr>
+            <tr><td><div class="product"><span class="thumb">IMG</span><div><strong>Minimal Travel Backpack</strong><small>SKU · BP-2026-08</small></div></div></td><td>独立站</td><td>英国</td><td><span class="status success">可用</span></td><td class="muted">昨天</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+  </main>
+
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <section class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <header class="drawer-head">
+        <div><h2 id="drawer-title">导入 TK 商品</h2><p id="drawer-subtitle">选择适合当前商品来源的导入方式</p></div>
+        <button class="close" id="close-drawer" aria-label="关闭">×</button>
+      </header>
+      <div class="drawer-main">
+        <nav class="method-nav" id="method-nav" aria-label="导入方式"></nav>
+        <div class="form-scroll"><div class="form-area" id="form-area"></div></div>
+      </div>
+      <footer class="drawer-foot">
+        <span class="foot-hint" id="foot-hint">提交后可在导入任务中查看进度</span>
+        <button class="button" id="cancel">取消</button>
+        <button class="button primary" id="submit-import">开始导入</button>
+      </footer>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const methods = {
+      tk: [
+        { group: "一次性导入", id: "tk-link", icon: "链", name: "商品链接", detail: "FastMoss / Kalodata" },
+        { group: "一次性导入", id: "tk-sheet", icon: "表", name: "在线表格", detail: "飞书 / Lark" },
+        { group: "一次性导入", id: "tk-csv", icon: "CSV", name: "上传表格", detail: "最多 1,000 行" },
+        { group: "持续同步", id: "tk-shop", icon: "店", name: "TikTok Shop 店铺", detail: "自动同步商品" }
+      ],
+      site: [
+        { group: "导入方式", id: "site-link", icon: "链", name: "商品链接", detail: "自动获取商品信息", recommended: true },
+        { group: "导入方式", id: "site-csv", icon: "CSV", name: "上传表格", detail: "适合批量导入" },
+        { group: "导入方式", id: "site-manual", icon: "＋", name: "手动录入", detail: "单个添加商品" }
+      ]
+    };
+
+    const overlay = document.querySelector("#overlay");
+    const methodNav = document.querySelector("#method-nav");
+    const formArea = document.querySelector("#form-area");
+    const submitButton = document.querySelector("#submit-import");
+    const footHint = document.querySelector("#foot-hint");
+    const toast = document.querySelector("#toast");
+    let source = "tk";
+    let activeMethod = "tk-link";
+    let toastTimer;
+
+    const formTemplates = {
+      "tk-link": () => `
+        <h3 class="form-title">通过商品链接导入</h3>
+        <p class="form-desc">粘贴 FastMoss 或 Kalodata 的商品链接，系统将获取对应的 TikTok Shop 商品。</p>
+        <div class="notice">支持 FastMoss 和 Kalodata 商品详情链接。每行一个链接，每次最多导入 10 个。</div>
+        <label class="field"><span class="required">商品链接</span><textarea id="link-input" placeholder="https://www.fastmoss.com/product/...\nhttps://www.kalodata.com/product/..."></textarea><small class="field-meta"><span>每行一个链接</span><span id="link-count">0 / 10</span></small></label>
+        ${marketField()}`,
+      "tk-sheet": () => `
+        <h3 class="form-title">通过在线表格导入</h3>
+        <p class="form-desc">连接团队正在维护的在线表格，按行读取商品信息。</p>
+        <div class="tabs"><button class="tab active" data-provider="feishu">飞书</button><button class="tab" data-provider="lark">Lark</button></div>
+        <div class="config"><div class="config-head">首次使用需要完成应用配置</div><ol class="steps"><li>在飞书开放平台创建企业自建应用</li><li>为应用开通云文档和电子表格读取权限</li><li>将表格分享给应用，并填写下方凭证</li></ol></div>
+        <div class="field-row" style="margin-top:18px"><label class="field"><span class="required">App ID</span><input placeholder="cli_xxxxxxxxxx"></label><label class="field"><span class="required">App Secret</span><input type="password" placeholder="输入应用密钥"></label></div>
+        <label class="field"><span class="required">表格链接</span><input placeholder="https://example.feishu.cn/sheets/..."></label>
+        <label class="field"><span>工作表名称</span><input placeholder="默认读取第一个工作表"></label>`,
+      "tk-csv": () => csvForm("TikTok Shop 商品", "商品名称、TikTok Shop 商品编号 / SKU", "下载 TK 商品模板"),
+      "tk-shop": () => `
+        <h3 class="form-title">连接 TikTok Shop 店铺</h3>
+        <p class="form-desc">授权后自动同步店铺商品，后续新增和更新也会持续同步。</p>
+        <div class="notice">授权将在 TikTok Shop 官方页面完成。ReelFlock 仅获取商品读取权限。</div>
+        <div class="shop-card"><div class="shop-logo">TK</div><div class="copy"><strong id="shop-name">尚未连接店铺</strong><small id="shop-state">连接后可选择需要同步的市场</small></div><button class="button primary small" id="connect-shop">连接店铺</button></div>
+        <label class="field" style="margin-top:18px"><span>同步范围</span><select><option>全部在售商品</option><option>仅同步指定类目</option></select></label>`,
+      "site-link": () => `
+        <h3 class="form-title">通过商品链接导入 <span class="badge">推荐</span></h3>
+        <p class="form-desc">系统自动读取公开商品页中的名称、价格、图片和描述，导入前可检查结果。</p>
+        <div class="notice">支持 Shopify 等公开商品页面。每行一个链接，每次最多导入 10 个。</div>
+        <label class="field"><span class="required">商品链接</span><textarea id="link-input" placeholder="https://your-store.com/products/product-name"></textarea><small class="field-meta"><span>抓取失败的商品不会进入正式商品列表</span><span id="link-count">0 / 10</span></small></label>
+        ${marketField()}`,
+      "site-csv": () => csvForm("独立站商品", "商品名称，以及来源商品 ID 或公开链接", "下载独立站商品模板"),
+      "site-manual": () => `
+        <h3 class="form-title">手动录入商品</h3>
+        <p class="form-desc">添加一个独立站商品。后续仍可在商品详情中补充或修改信息。</p>
+        <div id="manual-notice"></div>
+        <div class="field-row"><label class="field"><span class="required">商品名称</span><input id="manual-name" placeholder="输入商品名称"></label><label class="field"><span class="required">来源商品 ID</span><input placeholder="例如 SKU-001"></label></div>
+        <label class="field"><span>公开商品链接</span><input id="manual-url" placeholder="https://your-store.com/products/..."></label>
+        <div class="field-row"><label class="field"><span>价格</span><input type="number" min="0" step="0.01" placeholder="0.00"></label><label class="field"><span>币种</span><select><option>USD</option><option>GBP</option><option>EUR</option><option>CAD</option></select></label></div>
+        <label class="field"><span>商品描述</span><textarea style="min-height:96px" placeholder="输入商品描述、核心卖点或适用场景"></textarea></label>
+        <label class="field"><span>商品图片</span><div class="upload" data-upload><div><div class="upload-icon">＋</div><p>上传商品图片</p><small>最多 20 张，支持 JPG、PNG、WebP</small></div></div></label>`
+    };
+
+    function marketField() {
+      return `<label class="field"><span>目标市场</span><select><option value="">自动识别</option><option>美国</option><option>英国</option><option>加拿大</option><option>东南亚</option></select></label>`;
+    }
+
+    function csvForm(name, required, downloadLabel) {
+      return `<h3 class="form-title">上传${name}表格</h3><p class="form-desc">使用标准模板批量整理商品信息，适合已有商品资料的团队。</p><div class="notice">文件需为 UTF-8 编码的 CSV，最多 1,000 行。必填字段：${required}。</div><label class="field"><span class="required">CSV 文件</span><div class="upload" data-upload><div><div class="upload-icon">↑</div><p id="upload-title">点击选择或拖入 CSV 文件</p><small id="upload-detail">单个文件不超过 10 MB</small></div></div><input type="file" accept=".csv,text/csv" hidden></label><button class="link-button" type="button">${downloadLabel}</button>`;
+    }
+
+    function openDrawer(nextSource, method) {
+      source = nextSource;
+      activeMethod = method || (source === "tk" ? "tk-link" : "site-link");
+      document.querySelector("#drawer-title").textContent = source === "tk" ? "导入 TK 商品" : "导入独立站商品";
+      renderNav();
+      renderForm();
+      overlay.classList.add("open");
+      overlay.setAttribute("aria-hidden", "false");
+      setTimeout(() => document.querySelector("#close-drawer").focus(), 0);
+    }
+
+    function closeDrawer() {
+      overlay.classList.remove("open");
+      overlay.setAttribute("aria-hidden", "true");
+    }
+
+    function renderNav() {
+      methodNav.replaceChildren();
+      let lastGroup = "";
+      methods[source].forEach(method => {
+        if (method.group !== lastGroup) {
+          const label = document.createElement("div");
+          label.className = "nav-label";
+          label.textContent = method.group;
+          methodNav.append(label);
+          lastGroup = method.group;
+        }
+        const button = document.createElement("button");
+        button.className = "method-button" + (method.id === activeMethod ? " active" : "");
+        button.innerHTML = `<span class="method-icon">${method.icon}</span><span class="method-copy">${method.name}${method.recommended ? '<span class="badge">推荐</span>' : ""}<small>${method.detail}</small></span>`;
+        button.onclick = () => { activeMethod = method.id; renderNav(); renderForm(); };
+        methodNav.append(button);
+      });
+    }
+
+    function renderForm() {
+      formArea.innerHTML = formTemplates[activeMethod]();
+      submitButton.textContent = activeMethod === "tk-shop" ? "完成" : activeMethod === "site-manual" ? "添加商品" : "开始导入";
+      footHint.textContent = activeMethod === "tk-shop" ? "连接后将自动同步店铺商品" : activeMethod === "site-manual" ? "保存后商品将进入商品列表" : "提交后可在导入任务中查看进度";
+      bindFormInteractions();
+    }
+
+    function bindFormInteractions() {
+      const linkInput = document.querySelector("#link-input");
+      if (linkInput) linkInput.addEventListener("input", () => {
+        const count = linkInput.value.split("\n").filter(line => line.trim()).length;
+        document.querySelector("#link-count").textContent = `${Math.min(count, 10)} / 10`;
+      });
+      document.querySelectorAll("[data-provider]").forEach(tab => tab.onclick = () => {
+        document.querySelectorAll("[data-provider]").forEach(item => item.classList.toggle("active", item === tab));
+        const platform = tab.dataset.provider === "lark" ? "Lark" : "飞书";
+        document.querySelector(".config-head").textContent = `首次使用需要完成 ${platform} 应用配置`;
+        const stepItems = document.querySelectorAll(".steps li");
+        stepItems[0].textContent = `在 ${platform} 开放平台创建企业自建应用`;
+        stepItems[1].textContent = "为应用开通云文档和电子表格读取权限";
+        stepItems[2].textContent = "将表格分享给应用，并填写下方凭证";
+      });
+      document.querySelectorAll("[data-upload]").forEach(zone => zone.onclick = () => {
+        const fileInput = zone.parentElement.querySelector('input[type="file"]');
+        if (fileInput) fileInput.click();
+        else showToast("已选择 2 张商品图片");
+      });
+      const fileInput = formArea.querySelector('input[type="file"]');
+      if (fileInput) fileInput.onchange = () => {
+        document.querySelector("#upload-title").textContent = fileInput.files[0]?.name || "products-import.csv";
+        document.querySelector("#upload-detail").textContent = "文件已就绪，提交后开始校验";
+      };
+      const connect = document.querySelector("#connect-shop");
+      if (connect) connect.onclick = () => {
+        document.querySelector("#shop-name").textContent = "US Demo Store";
+        document.querySelector("#shop-state").textContent = "美国 · 128 个在售商品";
+        connect.textContent = "已连接";
+        connect.classList.remove("primary");
+        showToast("店铺授权成功");
+      };
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    document.querySelectorAll("[data-open]").forEach(button => button.onclick = () => openDrawer(button.dataset.open));
+    document.querySelector("#close-drawer").onclick = closeDrawer;
+    document.querySelector("#cancel").onclick = closeDrawer;
+    overlay.addEventListener("click", event => { if (event.target === overlay) closeDrawer(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeDrawer(); });
+
+    document.querySelector("#toggle-tasks").onclick = event => {
+      const content = document.querySelector("#task-content");
+      content.hidden = !content.hidden;
+      event.currentTarget.textContent = content.hidden ? "展开任务" : "收起任务";
+    };
+    document.querySelector("#show-detail").onclick = event => {
+      const detail = document.querySelector("#task-detail");
+      detail.classList.toggle("open");
+      event.currentTarget.textContent = detail.classList.contains("open") ? "收起" : "查看详情";
+    };
+    document.querySelector("#retry-task").onclick = () => showToast("已重新加入抓取队列");
+    document.querySelector("#ignore-task").onclick = () => {
+      document.querySelector("#task-detail").classList.remove("open");
+      showToast("已忽略失败记录");
+    };
+    document.querySelector("#manual-task").onclick = () => {
+      openDrawer("site", "site-manual");
+      document.querySelector("#manual-notice").innerHTML = '<div class="notice warning">已带入抓取到的信息，请补全必填字段后保存。</div>';
+      document.querySelector("#manual-name").value = "Wireless Lavalier Microphone";
+      document.querySelector("#manual-url").value = "https://shop.example.com/products/wireless-lavalier-microphone";
+    };
+    submitButton.onclick = () => {
+      if (activeMethod === "tk-shop") { closeDrawer(); showToast("店铺同步设置已保存"); return; }
+      document.querySelector("#new-task").hidden = false;
+      document.querySelector("#new-source").textContent = source === "tk" ? "TK 商品" : "独立站商品";
+      document.querySelector("#new-source-icon").textContent = source === "tk" ? "TK" : "独";
+      const method = methods[source].find(item => item.id === activeMethod);
+      document.querySelector("#new-method").textContent = method?.name || "手动录入";
+      closeDrawer();
+      showToast(activeMethod === "site-manual" ? "商品已添加" : "导入任务已创建");
+    };
+  </script>
+</body>
+</html>

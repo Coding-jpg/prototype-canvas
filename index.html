@@ -753,26 +753,49 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       function defaultState() {
         return {
-          version: 2,
+          version: 3,
           camera: { x: 76, y: 64, zoom: 0.72 },
           items: [
             { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" },
-            { id: uid("note"), type: "note", x: 1260, y: 40, width: 250, height: 168, text: "主入口只保留两类商品来源；具体导入方式在抽屉内选择。" },
-            { id: uid("note"), type: "note", x: 1260, y: 260, width: 250, height: 184, text: "抓取失败不会生成空商品，可在统一任务中心重试或转为手动录入。" },
-            { id: uid("arrow"), type: "arrow", x: 1180, y: 140, x2: 1260, y2: 124 },
-            { id: uid("arrow"), type: "arrow", x: 1180, y: 390, x2: 1260, y2: 350 }
+            { id: uid("note"), type: "note", annotationKey: "product-import-entry", x: 1260, y: 40, width: 250, height: 168, text: "主入口只保留两类商品来源；具体导入方式在抽屉内选择。" },
+            { id: uid("note"), type: "note", annotationKey: "product-import-failure", x: 1260, y: 260, width: 250, height: 184, text: "抓取失败不会生成空商品，可在统一任务中心重试或转为手动录入。" },
+            { id: uid("arrow"), type: "arrow", annotationKey: "product-import-entry-arrow", x: 1180, y: 140, x2: 1260, y2: 124 },
+            { id: uid("arrow"), type: "arrow", annotationKey: "product-import-failure-arrow", x: 1180, y: 390, x2: 1260, y2: 350 }
           ]
         };
       }
 
       function migrateState(savedState) {
         if (!savedState || !Array.isArray(savedState.items)) return defaultState();
-        if ((savedState.version || 1) >= 2) return savedState;
-        savedState.version = 2;
-        if (!savedState.items.some(item => item.componentId === "product-import-flow")) {
-          savedState.items.push({ id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" });
-          savedState.items.push({ id: uid("note"), type: "note", x: 1260, y: 1080, width: 250, height: 184, text: "新增：商品导入流程。主入口按 TK 商品与独立站商品分流。" });
+        if ((savedState.version || 1) >= 3) return savedState;
+        savedState.version = 3;
+        let frame = savedState.items.find(item => item.componentId === "product-import-flow");
+        if (!frame) {
+          frame = { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" };
+          savedState.items.push(frame);
         }
+
+        const noteDefinitions = [
+          { key: "product-import-entry", x: frame.x + 1260, y: frame.y + 40, width: 250, height: 168, text: "主入口只保留两类商品来源；具体导入方式在抽屉内选择。", legacyText: "新增：商品导入流程" },
+          { key: "product-import-failure", x: frame.x + 1260, y: frame.y + 260, width: 250, height: 184, text: "抓取失败不会生成空商品，可在统一任务中心重试或转为手动录入。" }
+        ];
+        noteDefinitions.forEach(definition => {
+          let note = savedState.items.find(item => item.annotationKey === definition.key || (item.type === "note" && (item.text === definition.text || (definition.legacyText && item.text.startsWith(definition.legacyText)))));
+          if (!note) {
+            note = { id: uid("note"), type: "note" };
+            savedState.items.push(note);
+          }
+          Object.assign(note, { annotationKey: definition.key, x: definition.x, y: definition.y, width: definition.width, height: definition.height, text: definition.text });
+        });
+
+        const arrowDefinitions = [
+          { key: "product-import-entry-arrow", x: frame.x + 1180, y: frame.y + 140, x2: frame.x + 1260, y2: frame.y + 124 },
+          { key: "product-import-failure-arrow", x: frame.x + 1180, y: frame.y + 390, x2: frame.x + 1260, y2: frame.y + 350 }
+        ];
+        arrowDefinitions.forEach(definition => {
+          if (savedState.items.some(item => item.annotationKey === definition.key)) return;
+          savedState.items.push({ id: uid("arrow"), type: "arrow", annotationKey: definition.key, x: definition.x, y: definition.y, x2: definition.x2, y2: definition.y2 });
+        });
         return savedState;
       }
 

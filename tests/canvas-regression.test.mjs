@@ -36,6 +36,30 @@ test("selection changes do not rebuild components", () => {
   assert.match(selectItem, /syncItemElement/);
 });
 
+test("component library preferences persist aliases and deleted components", () => {
+  assert.match(html, /prototype-canvas-component-preferences-v1/);
+  const loadPreferences = section("function loadComponentPreferences()", "function saveComponentPreferences");
+  const savePreferences = section("function saveComponentPreferences()", "function componentDisplayName");
+  assert.match(loadPreferences, /names:/);
+  assert.match(loadPreferences, /deleted:/);
+  assert.match(savePreferences, /localStorage\.setItem\(COMPONENT_PREFERENCES_KEY/);
+});
+
+test("component library supports rename, delete, and restore", () => {
+  const management = section("function renameLibraryComponent(component)", "function addComponentFrame(component)");
+  assert.match(management, /componentPreferences\.names\[component\.id\] = name/);
+  assert.match(management, /componentPreferences\.deleted\.push\(component\.id\)/);
+  assert.match(management, /componentPreferences\.deleted = componentPreferences\.deleted\.filter/);
+  assert.match(management, /saveComponentPreferences\(\)/);
+});
+
+test("frame toolbar controls do not start frame dragging", () => {
+  const renderFrame = section("function renderFrame(item)", "function renameFrame(item, element)");
+  assert.match(renderFrame, /querySelectorAll\("\.frame-bar button"\)/);
+  assert.match(renderFrame, /button\.addEventListener\("pointerdown", event => event\.stopPropagation\(\)\)/);
+  assert.match(renderFrame, /data-rename/);
+});
+
 test("the default board showcases the product import flow", () => {
   const defaultState = section("function defaultState()", "function migrateState");
   assert.match(defaultState, /version: 3/);

@@ -54,49 +54,58 @@
     .button.small { height: 30px; padding: 0 10px; font-size: 13px; }
     .plus { font-size: 18px; font-weight: 400; line-height: 1; }
     .panel { overflow: hidden; border: 1px solid #e9ebee; border-radius: 6px; background: #fff; }
-    .section-head { min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 0 18px; }
-    .section-head h2 { margin: 0; font-size: 14px; font-weight: 650; }
-    .section-head .hint { color: var(--muted); font-size: 12px; }
-    .section-head .right { margin-left: auto; }
-    .task-table, .product-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .table-scroll { overflow-x: auto; }
+    .product-table { width: 100%; min-width: 1480px; border-collapse: collapse; table-layout: fixed; }
     th { height: 42px; padding: 0 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f7f7f8; color: #5d6169; font-size: 12px; font-weight: 600; text-align: left; }
     td { height: 62px; padding: 10px 18px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-    .task-table th:nth-child(1) { width: 20%; }
-    .task-table th:nth-child(2) { width: 15%; }
-    .task-table th:nth-child(3) { width: 24%; }
-    .task-table th:nth-child(4) { width: 14%; }
-    .task-table th:nth-child(5) { width: 15%; }
-    .task-table th:nth-child(6) { width: 12%; }
-    .source { display: flex; align-items: center; gap: 9px; font-weight: 650; }
-    .source-icon { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid #e6e8eb; border-radius: 5px; background: #f6f7f8; color: #555a63; font-size: 11px; }
     .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; }
     .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-    .status.failed { color: var(--danger); }
     .status.success { color: var(--success); }
-    .progress { display: flex; align-items: center; gap: 10px; }
-    .progress strong { white-space: nowrap; }
-    .progress-track { flex: 1; min-width: 70px; height: 4px; overflow: hidden; border-radius: 2px; background: #e8ebf0; }
-    .progress-track i { display: block; width: 100%; height: 100%; background: #737882; }
+    .status.preparing { color: var(--blue); }
+    .status.missing { color: var(--warning); }
     .muted { color: var(--muted); }
     .link-button { padding: 0; border: 0; background: transparent; color: var(--blue); }
-    .task-detail { display: none; background: #fafbfc; }
-    .task-detail.open { display: table-row; }
-    .task-detail td { height: auto; padding: 16px 20px; }
-    .failure { display: flex; align-items: center; gap: 18px; padding: 12px 14px; border: 1px solid #f0d2d2; border-radius: 6px; background: #fff; }
-    .failure-copy { flex: 1; min-width: 0; }
-    .failure-copy strong { display: block; margin-bottom: 3px; }
-    .failure-copy span { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
-    .failure-actions { display: flex; gap: 14px; white-space: nowrap; }
     .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: #fff; }
     .toolbar-actions { display: flex; gap: 10px; margin-left: auto; }
     .search { width: 280px; height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
     .select-compact { height: 36px; padding: 0 30px 0 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; }
-    .product-table th:nth-child(1) { width: 44%; }
+    .product-table th:nth-child(1) { width: 220px; }
+    .product-table th:nth-child(2) { width: 90px; }
+    .product-table th:nth-child(3) { width: 100px; }
+    .product-table th:nth-child(4) { width: 110px; }
+    .product-table th:nth-child(5) { width: 120px; }
+    .product-table th:nth-child(6) { width: 235px; }
+    .product-table th:nth-child(7), .product-table th:nth-child(8) { width: 112px; }
+    .product-table th:nth-child(9) { width: 150px; }
+    .product-table th:nth-child(10) { width: 110px; }
+    .product-table th:nth-child(9), .product-table td:nth-child(9) { position: sticky; right: 110px; z-index: 2; background: #fff; box-shadow: -8px 0 12px -12px rgba(25, 29, 38, .45); }
+    .product-table th:nth-child(10), .product-table td:nth-child(10) { position: sticky; right: 0; z-index: 2; background: #fff; }
+    .product-table th:nth-child(9), .product-table th:nth-child(10) { z-index: 3; background: #f7f7f8; }
+    .product-table tbody tr[hidden] { display: none; }
     .product { display: flex; align-items: center; gap: 12px; }
     .thumb { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f4f5f6; color: #8a909a; font-size: 11px; }
+    .asset-thumb { width: 58px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f4f5f6; color: #8a909a; font-size: 10px; }
+    .asset-thumb.white { background: #fff; }
     .product strong { display: block; font-size: 13px; }
     .product small { color: var(--muted); }
+    .cell-copy { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: #52565f; font-size: 12px; }
+    .missing-value { color: var(--danger); font-size: 12px; font-weight: 600; }
+    .preparing-value { color: var(--blue); font-size: 12px; }
+    .qr { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #d5d8dd; background: repeating-conic-gradient(#333 0 25%, #fff 0 50%) 50% / 8px 8px; color: transparent; }
     .empty-products { padding: 32px 0; text-align: center; color: var(--muted); }
+
+    .product-dialog { width: min(760px, calc(100vw - 48px)); padding: 0; border: 0; border-radius: 7px; background: #fff; box-shadow: 0 24px 70px rgba(25, 29, 38, .22); }
+    .product-dialog::backdrop { background: rgba(28, 30, 35, .4); }
+    .product-dialog-head { display: flex; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .product-dialog-head h2 { margin: 0; font-size: 18px; }
+    .product-dialog-body { max-height: min(620px, calc(100vh - 170px)); padding: 22px; overflow: auto; }
+    .issue-summary { margin-bottom: 20px; padding: 12px 14px; border: 1px solid #f0d8ad; border-radius: 5px; background: #fff9ee; color: #775117; }
+    .material-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    .field.invalid input, .field.invalid textarea { border-color: var(--danger); box-shadow: 0 0 0 1px rgba(216, 59, 59, .08); }
+    .field.invalid .upload { border-color: var(--danger); background: #fffafa; }
+    .field-error { color: var(--danger); font-size: 12px; }
+    .field:not(.invalid) .field-error { display: none; }
+    .product-dialog-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--line); }
 
     .overlay { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; background: rgba(28, 30, 35, .36); opacity: 0; pointer-events: none; transition: opacity .18s ease; }
     .overlay.open { opacity: 1; pointer-events: auto; }
@@ -161,16 +170,9 @@
       .workspace { min-height: 100vh; margin: 0; padding: 20px 16px 40px; border-radius: 0; }
       .page-head { align-items: flex-start; flex-wrap: wrap; }
       h1 { width: 100%; }
-      .task-table th:nth-child(2), .task-table td:nth-child(2), .task-table th:nth-child(4), .task-table td:nth-child(4), .task-table th:nth-child(5), .task-table td:nth-child(5) { display: none; }
-      .task-table th:nth-child(1) { width: 40%; } .task-table th:nth-child(3) { width: 36%; } .task-table th:nth-child(6) { width: 24%; }
-      .task-table th, .task-table td { padding-left: 10px; padding-right: 10px; }
-      .task-table td:nth-child(6) .link-button { white-space: nowrap; }
-      .failure { align-items: flex-start; flex-direction: column; }
       .toolbar { flex-wrap: wrap; } .search { width: 100%; }
       .toolbar-actions { width: 100%; margin-left: 0; }
       .toolbar-actions .button { flex: 1; padding: 0 9px; }
-      .product-table th:nth-child(2), .product-table td:nth-child(2), .product-table th:nth-child(3), .product-table td:nth-child(3), .product-table th:nth-child(5), .product-table td:nth-child(5) { display: none; }
-      .product-table th:nth-child(1) { width: 76%; } .product-table th:nth-child(4) { width: 24%; }
       .drawer { width: 100%; grid-template-rows: 60px minmax(0, 1fr) 64px; }
       .drawer-main { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
       .method-nav { display: flex; gap: 6px; padding: 10px 12px; border-right: 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
@@ -209,14 +211,13 @@
         <h1>商品管理</h1>
       </div>
       <div class="page-tabs">
-        <button class="page-tab active">全部<span>128</span></button>
-        <button class="page-tab">可用商品<span>96</span></button>
-        <button class="page-tab">待处理<span>28</span></button>
-        <button class="page-tab">异常<span>4</span></button>
+        <button class="page-tab active" data-status-filter="all">全部<span>128</span></button>
+        <button class="page-tab" data-status-filter="available">可用<span>96</span></button>
+        <button class="page-tab" data-status-filter="preparing">准备中<span>12</span></button>
+        <button class="page-tab" data-status-filter="missing">物料缺失<span>20</span></button>
       </div>
       <section class="panel">
         <div class="toolbar">
-          <select class="select-compact" aria-label="商品状态"><option>全部状态</option><option>可用</option><option>信息不完整</option></select>
           <select class="select-compact" aria-label="商品来源"><option>全部来源</option><option>TK 商品</option><option>独立站商品</option></select>
           <select class="select-compact" aria-label="市场"><option>全部市场</option><option>美国</option><option>英国</option></select>
           <input class="search" placeholder="搜索商品名称或 ID">
@@ -225,44 +226,33 @@
             <button class="button" data-open="site"><span class="plus">＋</span>导入独立站商品</button>
           </div>
         </div>
-        <table class="product-table">
-          <thead><tr><th>商品</th><th>来源</th><th>市场</th><th>状态</th><th>更新时间</th></tr></thead>
-          <tbody>
-            <tr><td><div class="product"><span class="thumb">IMG</span><div><strong>Portable Blender Cup</strong><small>商品 ID · 1729483061</small></div></div></td><td>TK Shop</td><td>美国</td><td><span class="status success">可用</span></td><td class="muted">2 分钟前</td></tr>
-            <tr><td><div class="product"><span class="thumb">IMG</span><div><strong>Minimal Travel Backpack</strong><small>SKU · BP-2026-08</small></div></div></td><td>独立站</td><td>英国</td><td><span class="status success">可用</span></td><td class="muted">昨天</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="panel" style="margin-top: 18px">
-        <div class="section-head">
-          <div><h2>导入任务</h2><span class="hint">最近 30 天</span></div>
-          <button class="button ghost small right" id="toggle-tasks">收起任务</button>
-        </div>
-        <div id="task-content">
-          <table class="task-table">
-            <thead><tr><th>来源</th><th>导入方式</th><th>进度</th><th>结果</th><th>创建时间</th><th>操作</th></tr></thead>
+        <div class="table-scroll">
+          <table class="product-table">
+            <thead><tr><th>商品名称</th><th>国家</th><th>挂链状态</th><th>挂链二维码</th><th>类目</th><th>商品卖点</th><th>商品图</th><th>商品白底图</th><th>商品状态</th><th>操作</th></tr></thead>
             <tbody>
-              <tr>
-                <td><div class="source"><span class="source-icon">独</span><span>独立站商品</span></div></td>
-                <td>商品链接</td>
-                <td><div class="progress"><strong>2 / 2</strong><span class="progress-track"><i></i></span></div></td>
-                <td><span class="status failed">成功 1 · 失败 1</span></td>
-                <td class="muted">今天 10:46</td>
-                <td><button class="link-button" id="show-detail">查看详情</button></td>
+              <tr data-product-row data-status="available">
+                <td><div class="product"><span class="thumb">IMG</span><div><strong>Portable Blender Cup</strong><small>商品 ID · 1729483061</small></div></div></td>
+                <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>厨房电器</td>
+                <td><span class="cell-copy">便携榨汁、USB 充电、随时制作新鲜饮品</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="asset-thumb white">白底图</span></td>
+                <td><span class="status success">可用</span></td><td><button class="link-button" data-view-product>查看</button></td>
               </tr>
-              <tr class="task-detail" id="task-detail"><td colspan="6">
-                <div class="failure">
-                  <div class="failure-copy"><strong>无法完整获取商品信息</strong><span>https://shop.example.com/products/wireless-lavalier-microphone</span></div>
-                  <div class="failure-actions"><button class="link-button" id="retry-task">重试</button><button class="link-button" id="manual-task">转为手动录入</button><button class="link-button muted" id="ignore-task">忽略</button></div>
-                </div>
-              </td></tr>
-              <tr id="new-task" hidden>
-                <td><div class="source"><span class="source-icon" id="new-source-icon">TK</span><span id="new-source">TK 商品</span></div></td>
-                <td id="new-method">商品链接</td>
-                <td><div class="progress"><strong>0 / 3</strong><span class="progress-track"><i style="width:18%"></i></span></div></td>
-                <td><span class="status success">处理中</span></td>
-                <td class="muted">刚刚</td><td><button class="link-button">查看详情</button></td>
+              <tr data-product-row data-status="preparing">
+                <td><div class="product"><span class="thumb">IMG</span><div><strong>Wireless Lavalier Microphone</strong><small>来源链接 · shop.example.com</small></div></div></td>
+                <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>数码配件</td>
+                <td><span class="preparing-value">正在分析商品卖点…</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="preparing-value">正在生成…</span></td>
+                <td><span class="status preparing">准备中</span></td><td><button class="link-button" data-preparing-product>查看</button></td>
+              </tr>
+              <tr data-product-row data-status="missing" id="missing-product-row">
+                <td><div class="product"><span class="thumb">IMG</span><div><strong>Minimal Travel Backpack</strong><small>SKU · BP-2026-08</small></div></div></td>
+                <td>英国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>箱包</td>
+                <td><span class="missing-value">缺失</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="missing-value">缺失</span></td>
+                <td><span class="status missing" id="missing-product-status">物料缺失 · 2 项</span></td><td><button class="link-button" id="complete-product">去完善</button></td>
+              </tr>
+              <tr data-product-row data-status="preparing" data-created="false" id="new-product-row" hidden>
+                <td><div class="product"><span class="thumb">IMG</span><div><strong id="new-product-name">新导入商品</strong><small id="new-product-source">正在读取来源信息</small></div></div></td>
+                <td><span class="preparing-value">识别中</span></td><td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td><td><span class="preparing-value">识别中</span></td>
+                <td><span class="preparing-value">正在分析…</span></td><td><span class="asset-thumb">读取中</span></td><td><span class="preparing-value">生成中</span></td>
+                <td><span class="status preparing">准备中</span></td><td><button class="link-button" data-preparing-product>查看</button></td>
               </tr>
             </tbody>
           </table>
@@ -270,6 +260,26 @@
       </section>
     </section>
   </main>
+
+  <dialog class="product-dialog" id="product-dialog">
+    <form method="dialog" id="product-detail-form">
+      <header class="product-dialog-head"><h2>商品详情</h2><button class="close" value="cancel" aria-label="关闭">×</button></header>
+      <div class="product-dialog-body">
+        <div class="issue-summary" id="issue-summary">缺少 2 项必要物料，补充完整后商品将自动变为可用。</div>
+        <div class="material-grid">
+          <label class="field"><span class="required">商品名称</span><input value="Minimal Travel Backpack"></label>
+          <label class="field"><span class="required">国家</span><select><option>英国</option><option>美国</option></select></label>
+          <label class="field"><span class="required">挂链状态</span><select><option>已挂链</option><option>未挂链</option></select></label>
+          <label class="field"><span class="required">挂链二维码</span><input value="QR-BP-2026-08"></label>
+          <label class="field"><span class="required">类目</span><input value="箱包"></label>
+          <label class="field invalid" id="selling-point-field"><span class="required">商品卖点</span><textarea id="selling-point-input" style="min-height:88px" placeholder="输入商品卖点"></textarea><small class="field-error">缺少商品卖点</small></label>
+          <label class="field"><span class="required">商品图</span><div class="upload" style="min-height:112px"><div><p>已上传 3 张商品图</p><small>点击查看或替换</small></div></div></label>
+          <label class="field invalid" id="white-image-field"><span class="required">商品白底图</span><div class="upload" id="white-image-upload" style="min-height:112px"><div><div class="upload-icon">＋</div><p id="white-image-label">上传商品白底图</p></div></div><small class="field-error">缺少商品白底图</small></label>
+        </div>
+      </div>
+      <footer class="product-dialog-foot"><button class="button" value="cancel">取消</button><button class="button primary" type="button" id="save-product">保存商品</button></footer>
+    </form>
+  </dialog>
 
   <div class="overlay" id="overlay" aria-hidden="true">
     <section class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
@@ -282,7 +292,7 @@
         <div class="form-scroll"><div class="form-area" id="form-area"></div></div>
       </div>
       <footer class="drawer-foot">
-        <span class="foot-hint" id="foot-hint">提交后可在导入任务中查看进度</span>
+        <span class="foot-hint" id="foot-hint">提交后商品将进入商品库并准备必要物料</span>
         <button class="button" id="cancel">取消</button>
         <button class="button primary" id="submit-import">开始导入</button>
       </footer>
@@ -311,8 +321,13 @@
     const submitButton = document.querySelector("#submit-import");
     const footHint = document.querySelector("#foot-hint");
     const toast = document.querySelector("#toast");
+    const productDialog = document.querySelector("#product-dialog");
+    const missingProductRow = document.querySelector("#missing-product-row");
+    const newProductRow = document.querySelector("#new-product-row");
     let source = "tk";
     let activeMethod = "tk-link";
+    let activeStatusFilter = "all";
+    let whiteImageSelected = false;
     let toastTimer;
 
     const formTemplates = {
@@ -401,7 +416,7 @@
     function renderForm() {
       formArea.innerHTML = formTemplates[activeMethod]();
       submitButton.textContent = activeMethod === "tk-shop" ? "完成" : activeMethod === "site-manual" ? "添加商品" : "开始导入";
-      footHint.textContent = activeMethod === "tk-shop" ? "连接后将自动同步店铺商品" : activeMethod === "site-manual" ? "保存后商品将进入商品列表" : "提交后可在导入任务中查看进度";
+      footHint.textContent = activeMethod === "tk-shop" ? "连接后将自动同步店铺商品" : activeMethod === "site-manual" ? "保存后商品将进入商品库" : "提交后商品将进入商品库并准备必要物料";
       bindFormInteractions();
     }
 
@@ -447,45 +462,76 @@
       toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
     }
 
+    function filterProducts(status) {
+      activeStatusFilter = status;
+      document.querySelectorAll("[data-product-row]").forEach(row => {
+        const notCreated = row.dataset.created === "false";
+        row.hidden = notCreated || (status !== "all" && row.dataset.status !== status);
+      });
+    }
+
+    function openMissingProduct() {
+      productDialog.showModal();
+      setTimeout(() => document.querySelector("#selling-point-input").focus(), 0);
+    }
+
+    function updateTabCount(status, change) {
+      const count = document.querySelector(`[data-status-filter="${status}"] span`);
+      count.textContent = Number(count.textContent) + change;
+    }
+
     document.querySelectorAll("[data-open]").forEach(button => button.onclick = () => openDrawer(button.dataset.open));
-    document.querySelectorAll(".page-tab").forEach(tab => tab.onclick = () => {
+    document.querySelectorAll("[data-status-filter]").forEach(tab => tab.onclick = () => {
       document.querySelectorAll(".page-tab").forEach(item => item.classList.toggle("active", item === tab));
+      filterProducts(tab.dataset.statusFilter);
     });
     document.querySelector("#close-drawer").onclick = closeDrawer;
     document.querySelector("#cancel").onclick = closeDrawer;
     overlay.addEventListener("click", event => { if (event.target === overlay) closeDrawer(); });
     document.addEventListener("keydown", event => { if (event.key === "Escape") closeDrawer(); });
 
-    document.querySelector("#toggle-tasks").onclick = event => {
-      const content = document.querySelector("#task-content");
-      content.hidden = !content.hidden;
-      event.currentTarget.textContent = content.hidden ? "展开任务" : "收起任务";
+    document.querySelector("#complete-product").onclick = openMissingProduct;
+    document.querySelectorAll("[data-preparing-product]").forEach(button => button.onclick = () => showToast("商品物料正在准备，完成后会自动更新状态"));
+    document.querySelectorAll("[data-view-product]").forEach(button => button.onclick = () => showToast("已打开商品详情"));
+    document.querySelector("#selling-point-input").oninput = event => {
+      document.querySelector("#selling-point-field").classList.toggle("invalid", !event.currentTarget.value.trim());
     };
-    document.querySelector("#show-detail").onclick = event => {
-      const detail = document.querySelector("#task-detail");
-      detail.classList.toggle("open");
-      event.currentTarget.textContent = detail.classList.contains("open") ? "收起" : "查看详情";
+    document.querySelector("#white-image-upload").onclick = () => {
+      whiteImageSelected = true;
+      document.querySelector("#white-image-field").classList.remove("invalid");
+      document.querySelector("#white-image-label").textContent = "已选择 backpack-white.jpg";
     };
-    document.querySelector("#retry-task").onclick = () => showToast("已重新加入抓取队列");
-    document.querySelector("#ignore-task").onclick = () => {
-      document.querySelector("#task-detail").classList.remove("open");
-      showToast("已忽略失败记录");
-    };
-    document.querySelector("#manual-task").onclick = () => {
-      openDrawer("site", "site-manual");
-      document.querySelector("#manual-notice").innerHTML = '<div class="notice warning">已带入抓取到的信息，请补全必填字段后保存。</div>';
-      document.querySelector("#manual-name").value = "Wireless Lavalier Microphone";
-      document.querySelector("#manual-url").value = "https://shop.example.com/products/wireless-lavalier-microphone";
+    document.querySelector("#save-product").onclick = () => {
+      const sellingPoint = document.querySelector("#selling-point-input").value.trim();
+      document.querySelector("#selling-point-field").classList.toggle("invalid", !sellingPoint);
+      document.querySelector("#white-image-field").classList.toggle("invalid", !whiteImageSelected);
+      if (!sellingPoint || !whiteImageSelected) {
+        const count = Number(!sellingPoint) + Number(!whiteImageSelected);
+        document.querySelector("#issue-summary").textContent = `仍缺少 ${count} 项必要物料，请补充后保存。`;
+        showToast("请补充标红的必要字段");
+        return;
+      }
+      missingProductRow.dataset.status = "available";
+      missingProductRow.children[5].innerHTML = `<span class="cell-copy">${sellingPoint}</span>`;
+      missingProductRow.children[7].innerHTML = '<span class="asset-thumb white">白底图</span>';
+      missingProductRow.children[8].innerHTML = '<span class="status success">可用</span>';
+      missingProductRow.children[9].innerHTML = '<button class="link-button" data-view-product>查看</button>';
+      missingProductRow.querySelector("[data-view-product]").onclick = () => showToast("已打开商品详情");
+      updateTabCount("available", 1);
+      updateTabCount("missing", -1);
+      productDialog.close();
+      filterProducts(activeStatusFilter);
+      showToast("商品物料已完整，状态已更新为可用");
     };
     submitButton.onclick = () => {
       if (activeMethod === "tk-shop") { closeDrawer(); showToast("店铺同步设置已保存"); return; }
-      document.querySelector("#new-task").hidden = false;
-      document.querySelector("#new-source").textContent = source === "tk" ? "TK 商品" : "独立站商品";
-      document.querySelector("#new-source-icon").textContent = source === "tk" ? "TK" : "独";
-      const method = methods[source].find(item => item.id === activeMethod);
-      document.querySelector("#new-method").textContent = method?.name || "手动录入";
+      const manualName = document.querySelector("#manual-name")?.value.trim();
+      newProductRow.dataset.created = "true";
+      document.querySelector("#new-product-name").textContent = manualName || "新导入商品";
+      document.querySelector("#new-product-source").textContent = source === "tk" ? "TK 商品 · 正在读取来源信息" : "独立站商品 · 正在读取来源信息";
+      filterProducts(activeStatusFilter);
       closeDrawer();
-      showToast(activeMethod === "site-manual" ? "商品已添加" : "导入任务已创建");
+      showToast("商品已加入商品库，正在准备必要物料");
     };
   </script>
 </body>

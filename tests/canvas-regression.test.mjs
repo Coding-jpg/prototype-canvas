@@ -62,7 +62,7 @@ test("frame toolbar controls do not start frame dragging", () => {
 
 test("the default board showcases the product import flow", () => {
   const defaultState = section("function defaultState()", "function migrateState");
-  assert.match(defaultState, /version: 3/);
+  assert.match(defaultState, /version: 4/);
   assert.match(defaultState, /componentId: "product-import-flow"/);
   assert.match(defaultState, /components\/product-import-flow\/index\.html/);
   assert.match(defaultState, /product-import-entry-arrow/);
@@ -96,9 +96,28 @@ test("product import annotations are added once to a version 2 board", () => {
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 3);
+  assert.equal(board.version, 4);
   assert.equal(board.items.length, itemCount);
   assert.equal(board.items.filter(item => item.annotationKey?.startsWith("product-import-")).length, 4);
   assert.equal(board.items.filter(item => item.type === "note" && item.annotationKey?.startsWith("product-import-")).length, 2);
   assert.ok(board.items.includes(userNote));
+});
+
+test("version 3 boards replace the task-center annotation with product readiness", () => {
+  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-new`);
+  const board = {
+    version: 3,
+    items: [
+      { id: "frame-product", type: "frame", x: 0, y: 0, componentId: "product-import-flow" },
+      { id: "note-readiness", type: "note", annotationKey: "product-import-failure", text: "抓取失败不会生成空商品，可在统一任务中心重试或转为手动录入。" },
+      { id: "arrow-readiness", type: "arrow", annotationKey: "product-import-failure-arrow" }
+    ]
+  };
+
+  migrateState(board);
+
+  assert.equal(board.version, 4);
+  assert.match(board.items.find(item => item.annotationKey === "product-import-failure").text, /准备中.*可用.*物料缺失/);
+  assert.doesNotMatch(board.items.find(item => item.annotationKey === "product-import-failure").text, /任务中心/);
 });

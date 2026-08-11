@@ -244,25 +244,25 @@
                 <td><div class="product"><span class="thumb">IMG</span><div><strong>Portable Blender Cup</strong><small>商品 ID · 1729483061</small></div></div></td>
                 <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>厨房电器</td>
                 <td><span class="cell-copy">便携榨汁、USB 充电、随时制作新鲜饮品</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="asset-thumb white">白底图</span></td>
-                <td><span class="status success">可用</span></td><td><div class="table-actions"><button class="link-button" data-view-product>查看</button><button class="link-button danger" data-delete-product>删除</button></div></td>
+                <td><span class="status success">可用</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing">
                 <td><div class="product"><span class="thumb">IMG</span><div><strong>Wireless Lavalier Microphone</strong><small>来源链接 · shop.example.com</small></div></div></td>
                 <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>数码配件</td>
                 <td><span class="preparing-value">正在分析商品卖点…</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="preparing-value">正在生成…</span></td>
-                <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-preparing-product>查看</button><button class="link-button danger" data-delete-product>删除</button></div></td>
+                <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="missing" id="missing-product-row">
                 <td><div class="product"><span class="thumb">IMG</span><div><strong>Minimal Travel Backpack</strong><small>SKU · BP-2026-08</small></div></div></td>
                 <td>英国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>箱包</td>
                 <td><span class="missing-value">缺失</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="missing-value">缺失</span></td>
-                <td><span class="status missing" id="missing-product-status">物料缺失 · 2 项</span></td><td><div class="table-actions"><button class="link-button" id="complete-product">去完善</button><button class="link-button danger" data-delete-product>删除</button></div></td>
+                <td><span class="status missing" id="missing-product-status">物料缺失</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing" data-created="false" id="new-product-row" hidden>
                 <td><div class="product"><span class="thumb">IMG</span><div><strong id="new-product-name">新导入商品</strong><small id="new-product-source">正在读取来源信息</small></div></div></td>
                 <td><span class="preparing-value">识别中</span></td><td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td><td><span class="preparing-value">识别中</span></td>
                 <td><span class="preparing-value">正在分析…</span></td><td><span class="asset-thumb">读取中</span></td><td><span class="preparing-value">生成中</span></td>
-                <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-preparing-product>查看</button><button class="link-button danger" data-delete-product>删除</button></div></td>
+                <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
             </tbody>
           </table>
@@ -519,10 +519,13 @@
     overlay.addEventListener("click", event => { if (event.target === overlay) closeDrawer(); });
     document.addEventListener("keydown", event => { if (event.key === "Escape") closeDrawer(); });
 
-    document.querySelector("#complete-product").onclick = openMissingProduct;
-    document.querySelectorAll("[data-preparing-product]").forEach(button => button.onclick = () => showToast("商品物料正在准备，完成后会自动更新状态"));
-    document.querySelectorAll("[data-view-product]").forEach(button => button.onclick = () => showToast("已打开商品详情"));
     productTableBody.addEventListener("click", event => {
+      const editButton = event.target.closest("[data-edit-product]");
+      if (editButton) {
+        const row = editButton.closest("[data-product-row]");
+        if (row.dataset.status === "missing") openMissingProduct();
+        else showToast(row.dataset.status === "preparing" ? "商品物料正在准备，可编辑已获取的字段" : "已打开商品编辑");
+      }
       const deleteButton = event.target.closest("[data-delete-product]");
       if (deleteButton) openDeleteProduct(deleteButton.closest("[data-product-row]"));
     });
@@ -569,8 +572,7 @@
       missingProductRow.children[5].innerHTML = `<span class="cell-copy">${sellingPoint}</span>`;
       missingProductRow.children[7].innerHTML = '<span class="asset-thumb white">白底图</span>';
       missingProductRow.children[8].innerHTML = '<span class="status success">可用</span>';
-      missingProductRow.children[9].innerHTML = '<div class="table-actions"><button class="link-button" data-view-product>查看</button><button class="link-button danger" data-delete-product>删除</button></div>';
-      missingProductRow.querySelector("[data-view-product]").onclick = () => showToast("已打开商品详情");
+      missingProductRow.children[9].innerHTML = '<div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div>';
       updateTabCount("available", 1);
       updateTabCount("missing", -1);
       productDialog.close();

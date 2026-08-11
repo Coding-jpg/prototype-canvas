@@ -45,3 +45,10 @@ test("every product state supports confirmed deletion", () => {
   assert.match(html, /updateTabCount\("all", -1\)/);
   assert.match(html, /当前筛选下没有商品/);
 });
+
+test("product actions use edit consistently and missing status has no field count", () => {
+  assert.ok((html.match(/data-edit-product/g) || []).length >= 4);
+  assert.doesNotMatch(html, /<button[^>]*>(?:查看|去完善)<\/button>/);
+  assert.match(html, /id="missing-product-status">物料缺失<\/span>/);
+  assert.doesNotMatch(html, /id="missing-product-status">物料缺失\s*·/);
+});

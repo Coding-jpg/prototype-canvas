@@ -88,8 +88,10 @@
     .thumb { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f4f5f6; color: #8a909a; font-size: 11px; }
     .asset-thumb { width: 58px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f4f5f6; color: #8a909a; font-size: 10px; }
     .asset-thumb.white { background: #fff; }
-    .product strong { display: block; font-size: 13px; }
-    .product small { color: var(--muted); }
+    .product-name-line { min-width: 0; display: flex; align-items: center; gap: 6px; }
+    .product strong { min-width: 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .copy-name { width: 26px; height: 26px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #7a7f88; font-size: 16px; line-height: 1; }
+    .copy-name:hover { background: #eef0f3; color: #30343a; }
     .cell-copy { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: #52565f; font-size: 12px; }
     .missing-value { color: var(--danger); font-size: 12px; font-weight: 600; }
     .preparing-value { color: var(--blue); font-size: 12px; }
@@ -241,25 +243,25 @@
             <thead><tr><th>商品名称</th><th>国家</th><th>挂链状态</th><th>挂链二维码</th><th>类目</th><th>商品卖点</th><th>商品图</th><th>商品白底图</th><th>商品状态</th><th>操作</th></tr></thead>
             <tbody>
               <tr data-product-row data-status="available">
-                <td><div class="product"><span class="thumb">IMG</span><div><strong>Portable Blender Cup</strong><small>商品 ID · 1729483061</small></div></div></td>
+                <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Portable Blender Cup</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Portable Blender Cup"><span aria-hidden="true">⧉</span></button></div></div></td>
                 <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>厨房电器</td>
                 <td><span class="cell-copy">便携榨汁、USB 充电、随时制作新鲜饮品</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="asset-thumb white">白底图</span></td>
                 <td><span class="status success">可用</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing">
-                <td><div class="product"><span class="thumb">IMG</span><div><strong>Wireless Lavalier Microphone</strong><small>来源链接 · shop.example.com</small></div></div></td>
+                <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Wireless Lavalier Microphone</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Wireless Lavalier Microphone"><span aria-hidden="true">⧉</span></button></div></div></td>
                 <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>数码配件</td>
                 <td><span class="preparing-value">正在分析商品卖点…</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="preparing-value">正在生成…</span></td>
                 <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="missing" id="missing-product-row">
-                <td><div class="product"><span class="thumb">IMG</span><div><strong>Minimal Travel Backpack</strong><small>SKU · BP-2026-08</small></div></div></td>
+                <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Minimal Travel Backpack</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Minimal Travel Backpack"><span aria-hidden="true">⧉</span></button></div></div></td>
                 <td>英国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>箱包</td>
                 <td><span class="missing-value">缺失</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="missing-value">缺失</span></td>
                 <td><span class="status missing" id="missing-product-status">物料缺失</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing" data-created="false" id="new-product-row" hidden>
-                <td><div class="product"><span class="thumb">IMG</span><div><strong id="new-product-name">新导入商品</strong><small id="new-product-source">正在读取来源信息</small></div></div></td>
+                <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong id="new-product-name">新导入商品</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制商品名称"><span aria-hidden="true">⧉</span></button></div></div></td>
                 <td><span class="preparing-value">识别中</span></td><td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td><td><span class="preparing-value">识别中</span></td>
                 <td><span class="preparing-value">正在分析…</span></td><td><span class="asset-thumb">读取中</span></td><td><span class="preparing-value">生成中</span></td>
                 <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
@@ -482,6 +484,27 @@
       toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
     }
 
+    async function copyProductName(button) {
+      const name = button.closest(".product").querySelector("strong").textContent.trim();
+      let copied = false;
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(name);
+          copied = true;
+        }
+      } catch {}
+      if (!copied) {
+        const fallback = document.createElement("textarea");
+        fallback.value = name;
+        fallback.style.cssText = "position:fixed;left:-9999px;top:0";
+        document.body.append(fallback);
+        fallback.select();
+        copied = document.execCommand("copy");
+        fallback.remove();
+      }
+      showToast(copied ? `已复制“${name}”` : "复制失败，请手动复制商品名称");
+    }
+
     function filterProducts(status) {
       activeStatusFilter = status;
       let visibleCount = 0;
@@ -520,6 +543,11 @@
     document.addEventListener("keydown", event => { if (event.key === "Escape") closeDrawer(); });
 
     productTableBody.addEventListener("click", event => {
+      const copyButton = event.target.closest("[data-copy-name]");
+      if (copyButton) {
+        copyProductName(copyButton);
+        return;
+      }
       const editButton = event.target.closest("[data-edit-product]");
       if (editButton) {
         const row = editButton.closest("[data-product-row]");
@@ -588,8 +616,9 @@
         updateTabCount("all", 1);
         updateTabCount("preparing", 1);
       }
-      document.querySelector("#new-product-name").textContent = manualName || "新导入商品";
-      document.querySelector("#new-product-source").textContent = source === "tk" ? "TK 商品 · 正在读取来源信息" : "独立站商品 · 正在读取来源信息";
+      const newProductName = manualName || "新导入商品";
+      document.querySelector("#new-product-name").textContent = newProductName;
+      newProductRow.querySelector("[data-copy-name]").setAttribute("aria-label", `复制 ${newProductName}`);
       filterProducts(activeStatusFilter);
       closeDrawer();
       showToast("商品已加入商品库，正在准备必要物料");

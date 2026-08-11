@@ -52,3 +52,12 @@ test("product actions use edit consistently and missing status has no field coun
   assert.match(html, /id="missing-product-status">物料缺失<\/span>/);
   assert.doesNotMatch(html, /id="missing-product-status">物料缺失\s*·/);
 });
+
+test("product names can be copied without showing ids or source links", () => {
+  assert.ok((html.match(/data-copy-name/g) || []).length >= 4);
+  assert.match(html, /async function copyProductName/);
+  assert.match(html, /navigator\.clipboard\?\.writeText/);
+  assert.match(html, /document\.execCommand\("copy"\)/);
+  assert.doesNotMatch(html, /商品 ID · 1729483061|来源链接 · shop\.example\.com|SKU · BP-2026-08/);
+  assert.doesNotMatch(html, /id="new-product-source"/);
+});

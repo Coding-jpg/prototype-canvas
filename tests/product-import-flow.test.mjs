@@ -61,3 +61,12 @@ test("product names can be copied without showing ids or source links", () => {
   assert.doesNotMatch(html, /商品 ID · 1729483061|来源链接 · shop\.example\.com|SKU · BP-2026-08/);
   assert.doesNotMatch(html, /id="new-product-source"/);
 });
+
+test("toolbar keeps product name and country queries on one row", () => {
+  assert.match(html, /id="product-search" placeholder="搜索商品名称"/);
+  assert.match(html, /id="country-filter" aria-label="国家"/);
+  assert.doesNotMatch(html, /aria-label="商品来源"|全部来源/);
+  assert.doesNotMatch(html, /aria-label="市场"|全部市场/);
+  assert.match(html, /countryMismatch = activeCountry !== "all"/);
+  assert.match(html, /nameMismatch = productSearchQuery/);
+});

@@ -70,7 +70,7 @@
     .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: #fff; }
     .toolbar-actions { display: flex; gap: 10px; margin-left: auto; }
     .search { width: 280px; height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
-    .select-compact { height: 36px; padding: 0 30px 0 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; }
+    .select-compact { width: 150px; height: 36px; padding: 0 30px 0 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; }
     .product-table th:nth-child(1) { width: 220px; }
     .product-table th:nth-child(2) { width: 90px; }
     .product-table th:nth-child(3) { width: 100px; }
@@ -230,9 +230,8 @@
       </div>
       <section class="panel">
         <div class="toolbar">
-          <select class="select-compact" aria-label="商品来源"><option>全部来源</option><option>TK 商品</option><option>独立站商品</option></select>
-          <select class="select-compact" aria-label="市场"><option>全部市场</option><option>美国</option><option>英国</option></select>
-          <input class="search" placeholder="搜索商品名称或 ID">
+          <input class="search" id="product-search" placeholder="搜索商品名称">
+          <select class="select-compact" id="country-filter" aria-label="国家"><option value="all">全部国家</option><option value="美国">美国</option><option value="英国">英国</option></select>
           <div class="toolbar-actions">
             <button class="button" data-open="tk"><span class="plus">＋</span>导入 TK 商品</button>
             <button class="button" data-open="site"><span class="plus">＋</span>导入独立站商品</button>
@@ -242,25 +241,25 @@
           <table class="product-table">
             <thead><tr><th>商品名称</th><th>国家</th><th>挂链状态</th><th>挂链二维码</th><th>类目</th><th>商品卖点</th><th>商品图</th><th>商品白底图</th><th>商品状态</th><th>操作</th></tr></thead>
             <tbody>
-              <tr data-product-row data-status="available">
+              <tr data-product-row data-status="available" data-country="美国">
                 <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Portable Blender Cup</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Portable Blender Cup"><span aria-hidden="true">⧉</span></button></div></div></td>
                 <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>厨房电器</td>
                 <td><span class="cell-copy">便携榨汁、USB 充电、随时制作新鲜饮品</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="asset-thumb white">白底图</span></td>
                 <td><span class="status success">可用</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
-              <tr data-product-row data-status="preparing">
+              <tr data-product-row data-status="preparing" data-country="美国">
                 <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Wireless Lavalier Microphone</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Wireless Lavalier Microphone"><span aria-hidden="true">⧉</span></button></div></div></td>
                 <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>数码配件</td>
                 <td><span class="preparing-value">正在分析商品卖点…</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="preparing-value">正在生成…</span></td>
                 <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
-              <tr data-product-row data-status="missing" id="missing-product-row">
+              <tr data-product-row data-status="missing" data-country="英国" id="missing-product-row">
                 <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Minimal Travel Backpack</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Minimal Travel Backpack"><span aria-hidden="true">⧉</span></button></div></div></td>
                 <td>英国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>箱包</td>
                 <td><span class="missing-value">缺失</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="missing-value">缺失</span></td>
                 <td><span class="status missing" id="missing-product-status">物料缺失</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
-              <tr data-product-row data-status="preparing" data-created="false" id="new-product-row" hidden>
+              <tr data-product-row data-status="preparing" data-country="" data-created="false" id="new-product-row" hidden>
                 <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong id="new-product-name">新导入商品</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制商品名称"><span aria-hidden="true">⧉</span></button></div></div></td>
                 <td><span class="preparing-value">识别中</span></td><td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td><td><span class="preparing-value">识别中</span></td>
                 <td><span class="preparing-value">正在分析…</span></td><td><span class="asset-thumb">读取中</span></td><td><span class="preparing-value">生成中</span></td>
@@ -343,11 +342,15 @@
     const deleteProductDialog = document.querySelector("#delete-product-dialog");
     const productTableBody = document.querySelector(".product-table tbody");
     const emptyProducts = document.querySelector("#empty-products");
+    const productSearch = document.querySelector("#product-search");
+    const countryFilter = document.querySelector("#country-filter");
     const missingProductRow = document.querySelector("#missing-product-row");
     const newProductRow = document.querySelector("#new-product-row");
     let source = "tk";
     let activeMethod = "tk-link";
     let activeStatusFilter = "all";
+    let activeCountry = "all";
+    let productSearchQuery = "";
     let whiteImageSelected = false;
     let productToDelete = null;
     let toastTimer;
@@ -510,7 +513,11 @@
       let visibleCount = 0;
       document.querySelectorAll("[data-product-row]").forEach(row => {
         const notCreated = row.dataset.created === "false";
-        row.hidden = notCreated || (status !== "all" && row.dataset.status !== status);
+        const statusMismatch = status !== "all" && row.dataset.status !== status;
+        const countryMismatch = activeCountry !== "all" && row.dataset.country !== activeCountry;
+        const productName = row.querySelector(".product strong").textContent.trim().toLocaleLowerCase();
+        const nameMismatch = productSearchQuery && !productName.includes(productSearchQuery);
+        row.hidden = notCreated || statusMismatch || countryMismatch || nameMismatch;
         if (!row.hidden) visibleCount += 1;
       });
       emptyProducts.hidden = visibleCount > 0;
@@ -537,6 +544,14 @@
       document.querySelectorAll(".page-tab").forEach(item => item.classList.toggle("active", item === tab));
       filterProducts(tab.dataset.statusFilter);
     });
+    countryFilter.onchange = () => {
+      activeCountry = countryFilter.value;
+      filterProducts(activeStatusFilter);
+    };
+    productSearch.oninput = () => {
+      productSearchQuery = productSearch.value.trim().toLocaleLowerCase();
+      filterProducts(activeStatusFilter);
+    };
     document.querySelector("#close-drawer").onclick = closeDrawer;
     document.querySelector("#cancel").onclick = closeDrawer;
     overlay.addEventListener("click", event => { if (event.target === overlay) closeDrawer(); });

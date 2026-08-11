@@ -55,7 +55,7 @@
     .plus { font-size: 18px; font-weight: 400; line-height: 1; }
     .panel { overflow: hidden; border: 1px solid #e9ebee; border-radius: 6px; background: #fff; }
     .table-scroll { overflow-x: auto; }
-    .product-table { width: 100%; min-width: 1480px; border-collapse: collapse; table-layout: fixed; }
+    .product-table { width: 100%; min-width: 1500px; border-collapse: collapse; table-layout: fixed; }
     th { height: 42px; padding: 0 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f7f7f8; color: #5d6169; font-size: 12px; font-weight: 600; text-align: left; }
     td { height: 62px; padding: 10px 18px; border-bottom: 1px solid var(--line); vertical-align: middle; }
     .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; }
@@ -65,6 +65,8 @@
     .status.missing { color: var(--warning); }
     .muted { color: var(--muted); }
     .link-button { padding: 0; border: 0; background: transparent; color: var(--blue); }
+    .link-button.danger { color: var(--danger); }
+    .table-actions { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
     .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: #fff; }
     .toolbar-actions { display: flex; gap: 10px; margin-left: auto; }
     .search { width: 280px; height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
@@ -77,8 +79,8 @@
     .product-table th:nth-child(6) { width: 235px; }
     .product-table th:nth-child(7), .product-table th:nth-child(8) { width: 112px; }
     .product-table th:nth-child(9) { width: 150px; }
-    .product-table th:nth-child(10) { width: 110px; }
-    .product-table th:nth-child(9), .product-table td:nth-child(9) { position: sticky; right: 110px; z-index: 2; background: #fff; box-shadow: -8px 0 12px -12px rgba(25, 29, 38, .45); }
+    .product-table th:nth-child(10) { width: 130px; }
+    .product-table th:nth-child(9), .product-table td:nth-child(9) { position: sticky; right: 130px; z-index: 2; background: #fff; box-shadow: -8px 0 12px -12px rgba(25, 29, 38, .45); }
     .product-table th:nth-child(10), .product-table td:nth-child(10) { position: sticky; right: 0; z-index: 2; background: #fff; }
     .product-table th:nth-child(9), .product-table th:nth-child(10) { z-index: 3; background: #f7f7f8; }
     .product-table tbody tr[hidden] { display: none; }
@@ -106,6 +108,14 @@
     .field-error { color: var(--danger); font-size: 12px; }
     .field:not(.invalid) .field-error { display: none; }
     .product-dialog-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--line); }
+    .confirm-dialog { width: min(440px, calc(100vw - 48px)); padding: 0; border: 0; border-radius: 7px; background: #fff; box-shadow: 0 24px 70px rgba(25, 29, 38, .22); }
+    .confirm-dialog::backdrop { background: rgba(28, 30, 35, .4); }
+    .confirm-body { padding: 22px; }
+    .confirm-body h2 { margin: 0 0 8px; font-size: 18px; }
+    .confirm-body p { margin: 0; color: var(--muted); }
+    .confirm-body strong { color: var(--ink); }
+    .button.danger { border-color: var(--danger); background: var(--danger); color: #fff; }
+    .button.danger:hover { background: #bd2f2f; }
 
     .overlay { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; background: rgba(28, 30, 35, .36); opacity: 0; pointer-events: none; transition: opacity .18s ease; }
     .overlay.open { opacity: 1; pointer-events: auto; }
@@ -234,36 +244,37 @@
                 <td><div class="product"><span class="thumb">IMG</span><div><strong>Portable Blender Cup</strong><small>商品 ID · 1729483061</small></div></div></td>
                 <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>厨房电器</td>
                 <td><span class="cell-copy">便携榨汁、USB 充电、随时制作新鲜饮品</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="asset-thumb white">白底图</span></td>
-                <td><span class="status success">可用</span></td><td><button class="link-button" data-view-product>查看</button></td>
+                <td><span class="status success">可用</span></td><td><div class="table-actions"><button class="link-button" data-view-product>查看</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing">
                 <td><div class="product"><span class="thumb">IMG</span><div><strong>Wireless Lavalier Microphone</strong><small>来源链接 · shop.example.com</small></div></div></td>
                 <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>数码配件</td>
                 <td><span class="preparing-value">正在分析商品卖点…</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="preparing-value">正在生成…</span></td>
-                <td><span class="status preparing">准备中</span></td><td><button class="link-button" data-preparing-product>查看</button></td>
+                <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-preparing-product>查看</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="missing" id="missing-product-row">
                 <td><div class="product"><span class="thumb">IMG</span><div><strong>Minimal Travel Backpack</strong><small>SKU · BP-2026-08</small></div></div></td>
                 <td>英国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>箱包</td>
                 <td><span class="missing-value">缺失</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="missing-value">缺失</span></td>
-                <td><span class="status missing" id="missing-product-status">物料缺失 · 2 项</span></td><td><button class="link-button" id="complete-product">去完善</button></td>
+                <td><span class="status missing" id="missing-product-status">物料缺失 · 2 项</span></td><td><div class="table-actions"><button class="link-button" id="complete-product">去完善</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing" data-created="false" id="new-product-row" hidden>
                 <td><div class="product"><span class="thumb">IMG</span><div><strong id="new-product-name">新导入商品</strong><small id="new-product-source">正在读取来源信息</small></div></div></td>
                 <td><span class="preparing-value">识别中</span></td><td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td><td><span class="preparing-value">识别中</span></td>
                 <td><span class="preparing-value">正在分析…</span></td><td><span class="asset-thumb">读取中</span></td><td><span class="preparing-value">生成中</span></td>
-                <td><span class="status preparing">准备中</span></td><td><button class="link-button" data-preparing-product>查看</button></td>
+                <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-preparing-product>查看</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
             </tbody>
           </table>
         </div>
+        <div class="empty-products" id="empty-products" hidden>当前筛选下没有商品</div>
       </section>
     </section>
   </main>
 
-  <dialog class="product-dialog" id="product-dialog">
+  <dialog class="product-dialog" id="product-dialog" aria-labelledby="product-detail-title">
     <form method="dialog" id="product-detail-form">
-      <header class="product-dialog-head"><h2>商品详情</h2><button class="close" value="cancel" aria-label="关闭">×</button></header>
+      <header class="product-dialog-head"><h2 id="product-detail-title">商品详情</h2><button class="close" value="cancel" aria-label="关闭">×</button></header>
       <div class="product-dialog-body">
         <div class="issue-summary" id="issue-summary">缺少 2 项必要物料，补充完整后商品将自动变为可用。</div>
         <div class="material-grid">
@@ -279,6 +290,11 @@
       </div>
       <footer class="product-dialog-foot"><button class="button" value="cancel">取消</button><button class="button primary" type="button" id="save-product">保存商品</button></footer>
     </form>
+  </dialog>
+
+  <dialog class="confirm-dialog" id="delete-product-dialog" aria-labelledby="delete-dialog-title">
+    <div class="confirm-body"><h2 id="delete-dialog-title">删除商品</h2><p>确定删除“<strong id="delete-product-name"></strong>”吗？删除后将无法用于视频创作。</p></div>
+    <footer class="product-dialog-foot"><button class="button" type="button" id="cancel-delete">取消</button><button class="button danger" type="button" id="confirm-delete">删除商品</button></footer>
   </dialog>
 
   <div class="overlay" id="overlay" aria-hidden="true">
@@ -322,12 +338,16 @@
     const footHint = document.querySelector("#foot-hint");
     const toast = document.querySelector("#toast");
     const productDialog = document.querySelector("#product-dialog");
+    const deleteProductDialog = document.querySelector("#delete-product-dialog");
+    const productTableBody = document.querySelector(".product-table tbody");
+    const emptyProducts = document.querySelector("#empty-products");
     const missingProductRow = document.querySelector("#missing-product-row");
     const newProductRow = document.querySelector("#new-product-row");
     let source = "tk";
     let activeMethod = "tk-link";
     let activeStatusFilter = "all";
     let whiteImageSelected = false;
+    let productToDelete = null;
     let toastTimer;
 
     const formTemplates = {
@@ -464,10 +484,13 @@
 
     function filterProducts(status) {
       activeStatusFilter = status;
+      let visibleCount = 0;
       document.querySelectorAll("[data-product-row]").forEach(row => {
         const notCreated = row.dataset.created === "false";
         row.hidden = notCreated || (status !== "all" && row.dataset.status !== status);
+        if (!row.hidden) visibleCount += 1;
       });
+      emptyProducts.hidden = visibleCount > 0;
     }
 
     function openMissingProduct() {
@@ -478,6 +501,12 @@
     function updateTabCount(status, change) {
       const count = document.querySelector(`[data-status-filter="${status}"] span`);
       count.textContent = Number(count.textContent) + change;
+    }
+
+    function openDeleteProduct(row) {
+      productToDelete = row;
+      document.querySelector("#delete-product-name").textContent = row.querySelector(".product strong").textContent;
+      deleteProductDialog.showModal();
     }
 
     document.querySelectorAll("[data-open]").forEach(button => button.onclick = () => openDrawer(button.dataset.open));
@@ -493,6 +522,31 @@
     document.querySelector("#complete-product").onclick = openMissingProduct;
     document.querySelectorAll("[data-preparing-product]").forEach(button => button.onclick = () => showToast("商品物料正在准备，完成后会自动更新状态"));
     document.querySelectorAll("[data-view-product]").forEach(button => button.onclick = () => showToast("已打开商品详情"));
+    productTableBody.addEventListener("click", event => {
+      const deleteButton = event.target.closest("[data-delete-product]");
+      if (deleteButton) openDeleteProduct(deleteButton.closest("[data-product-row]"));
+    });
+    document.querySelector("#cancel-delete").onclick = () => {
+      productToDelete = null;
+      deleteProductDialog.close();
+    };
+    document.querySelector("#confirm-delete").onclick = () => {
+      if (!productToDelete) return;
+      const deletedName = productToDelete.querySelector(".product strong").textContent;
+      const deletedStatus = productToDelete.dataset.status;
+      if (productToDelete === newProductRow) {
+        newProductRow.dataset.created = "false";
+        newProductRow.hidden = true;
+      } else {
+        productToDelete.remove();
+      }
+      updateTabCount("all", -1);
+      updateTabCount(deletedStatus, -1);
+      productToDelete = null;
+      deleteProductDialog.close();
+      filterProducts(activeStatusFilter);
+      showToast(`已删除商品“${deletedName}”`);
+    };
     document.querySelector("#selling-point-input").oninput = event => {
       document.querySelector("#selling-point-field").classList.toggle("invalid", !event.currentTarget.value.trim());
     };
@@ -515,7 +569,7 @@
       missingProductRow.children[5].innerHTML = `<span class="cell-copy">${sellingPoint}</span>`;
       missingProductRow.children[7].innerHTML = '<span class="asset-thumb white">白底图</span>';
       missingProductRow.children[8].innerHTML = '<span class="status success">可用</span>';
-      missingProductRow.children[9].innerHTML = '<button class="link-button" data-view-product>查看</button>';
+      missingProductRow.children[9].innerHTML = '<div class="table-actions"><button class="link-button" data-view-product>查看</button><button class="link-button danger" data-delete-product>删除</button></div>';
       missingProductRow.querySelector("[data-view-product]").onclick = () => showToast("已打开商品详情");
       updateTabCount("available", 1);
       updateTabCount("missing", -1);
@@ -526,7 +580,12 @@
     submitButton.onclick = () => {
       if (activeMethod === "tk-shop") { closeDrawer(); showToast("店铺同步设置已保存"); return; }
       const manualName = document.querySelector("#manual-name")?.value.trim();
+      const firstCreation = newProductRow.dataset.created !== "true";
       newProductRow.dataset.created = "true";
+      if (firstCreation) {
+        updateTabCount("all", 1);
+        updateTabCount("preparing", 1);
+      }
       document.querySelector("#new-product-name").textContent = manualName || "新导入商品";
       document.querySelector("#new-product-source").textContent = source === "tk" ? "TK 商品 · 正在读取来源信息" : "独立站商品 · 正在读取来源信息";
       filterProducts(activeStatusFilter);

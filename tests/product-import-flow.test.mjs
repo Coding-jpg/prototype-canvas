@@ -36,3 +36,12 @@ test("new imports appear in the product library as preparing", () => {
   assert.match(html, /newProductRow\.dataset\.created = "true"/);
   assert.match(html, /商品已加入商品库，正在准备必要物料/);
 });
+
+test("every product state supports confirmed deletion", () => {
+  assert.ok((html.match(/data-delete-product/g) || []).length >= 4);
+  assert.match(html, /id="delete-product-dialog"/);
+  assert.match(html, /id="confirm-delete"/);
+  assert.match(html, /productToDelete\.remove\(\)/);
+  assert.match(html, /updateTabCount\("all", -1\)/);
+  assert.match(html, /当前筛选下没有商品/);
+});

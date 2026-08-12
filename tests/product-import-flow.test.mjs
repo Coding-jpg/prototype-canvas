@@ -5,8 +5,8 @@ import test from "node:test";
 const html = await readFile(new URL("../components/product-import-flow/index.html", import.meta.url), "utf8");
 
 test("product library keeps only quick-check fields and a leading status marker", () => {
-  assert.match(html, /visually-hidden">商品状态<\/span><\/th><th>商品信息<\/th><th>国家<\/th><th>挂链状态<\/th><th>商品白底图<\/th><th>操作/);
-  assert.doesNotMatch(html, /<th>(?:商品图|商品名称|类目|商品卖点|挂链二维码|商品状态)<\/th>/);
+  assert.match(html, /visually-hidden">商品状态<\/span><\/th><th>商品信息<\/th><th>国家<\/th><th>商品白底图<\/th><th>操作/);
+  assert.doesNotMatch(html, /<th>(?:商品图|商品名称|挂链状态|类目|商品卖点|挂链二维码|商品状态)<\/th>/);
   assert.ok((html.match(/class="product-info"/g) || []).length >= 4);
   assert.doesNotMatch(html, /更新时间/);
 });

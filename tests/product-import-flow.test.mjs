@@ -5,8 +5,8 @@ import test from "node:test";
 const html = await readFile(new URL("../components/product-import-flow/index.html", import.meta.url), "utf8");
 
 test("product library keeps only quick-check fields and a leading status marker", () => {
-  assert.match(html, /visually-hidden">商品状态<\/span><\/th><th>商品信息<\/th><th>挂链状态<\/th><th>商品白底图<\/th><th>操作/);
-  assert.doesNotMatch(html, /<th>(?:商品图|商品名称|国家|类目|商品卖点|挂链二维码|商品状态)<\/th>/);
+  assert.match(html, /visually-hidden">商品状态<\/span><\/th><th>商品信息<\/th><th>国家<\/th><th>挂链状态<\/th><th>商品白底图<\/th><th>操作/);
+  assert.doesNotMatch(html, /<th>(?:商品图|商品名称|类目|商品卖点|挂链二维码|商品状态)<\/th>/);
   assert.ok((html.match(/class="product-info"/g) || []).length >= 4);
   assert.doesNotMatch(html, /更新时间/);
 });
@@ -67,14 +67,17 @@ test("product names can be copied without showing source links", () => {
   assert.doesNotMatch(html, /id="new-product-source"/);
 });
 
-test("toolbar uses one query for product names and TK product IDs", () => {
+test("toolbar uses one query for names and IDs plus a country filter", () => {
   assert.match(html, /id="product-search"[^>]*placeholder="搜索商品名称 \/ TK Product ID"/);
   assert.doesNotMatch(html, /id="product-id-search"/);
-  assert.doesNotMatch(html, /id="country-filter"|全部国家/);
+  assert.match(html, /id="country-filter" aria-label="国家"/);
+  assert.match(html, /<option value="all">全部国家<\/option>/);
   assert.doesNotMatch(html, /aria-label="商品来源"|全部来源/);
   assert.doesNotMatch(html, /aria-label="市场"|全部市场/);
   assert.match(html, /searchMismatch = productSearchQuery/);
   assert.match(html, /!productName\.includes\(productSearchQuery\) && !productId\.includes\(productSearchQuery\)/);
+  assert.match(html, /countryMismatch = activeCountry !== "all"/);
+  assert.match(html, /countryFilter\.onchange/);
 });
 
 test("TK product IDs appear under product names and drive ID filtering", () => {

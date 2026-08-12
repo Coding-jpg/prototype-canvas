@@ -70,15 +70,17 @@
     .table-actions { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
     .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: #fff; }
     .toolbar-actions { display: flex; gap: 10px; margin-left: auto; }
-    .search { width: 360px; height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
+    .search { width: 300px; height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
+    .select-compact { width: 140px; height: 36px; padding: 0 30px 0 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; }
     .product-table th:nth-child(1) { width: 52px; padding-right: 0; }
-    .product-table th:nth-child(2) { width: 464px; }
-    .product-table th:nth-child(3) { width: 120px; }
-    .product-table th:nth-child(4) { width: 130px; }
+    .product-table th:nth-child(2) { width: 374px; }
+    .product-table th:nth-child(3) { width: 90px; }
+    .product-table th:nth-child(4) { width: 120px; }
     .product-table th:nth-child(5) { width: 130px; }
+    .product-table th:nth-child(6) { width: 130px; }
     .product-table td:first-child { padding-right: 0; }
-    .product-table th:nth-child(5), .product-table td:nth-child(5) { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -8px 0 12px -12px rgba(25, 29, 38, .45); }
-    .product-table th:nth-child(5) { z-index: 3; background: #f7f7f8; }
+    .product-table th:nth-child(6), .product-table td:nth-child(6) { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -8px 0 12px -12px rgba(25, 29, 38, .45); }
+    .product-table th:nth-child(6) { z-index: 3; background: #f7f7f8; }
     .product-table tbody tr[hidden] { display: none; }
     .product-info { display: flex; align-items: center; gap: 12px; }
     .product-copy { min-width: 0; }
@@ -235,6 +237,7 @@
       <section class="panel">
         <div class="toolbar">
           <input class="search" id="product-search" aria-label="商品名称或 TK Product ID" placeholder="搜索商品名称 / TK Product ID">
+          <select class="select-compact" id="country-filter" aria-label="国家"><option value="all">全部国家</option><option value="美国">美国</option><option value="英国">英国</option></select>
           <div class="toolbar-actions">
             <button class="button" data-open="tk"><span class="plus">＋</span>导入 TK 商品</button>
             <button class="button" data-open="site"><span class="plus">＋</span>导入独立站商品</button>
@@ -242,30 +245,30 @@
         </div>
         <div class="table-scroll">
           <table class="product-table">
-            <thead><tr><th><span class="visually-hidden">商品状态</span></th><th>商品信息</th><th>挂链状态</th><th>商品白底图</th><th>操作</th></tr></thead>
+            <thead><tr><th><span class="visually-hidden">商品状态</span></th><th>商品信息</th><th>国家</th><th>挂链状态</th><th>商品白底图</th><th>操作</th></tr></thead>
             <tbody>
               <tr data-product-row data-status="available" data-country="美国" data-product-id="1729483061000123456">
                 <td><span class="status-mark available" role="img" aria-label="可用" title="可用">✓</span></td>
                 <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Portable Blender Cup</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Portable Blender Cup"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Portable Blender Cup 的挂链二维码"></button></div><small class="product-id">TK Product ID：1729483061000123456</small></div></div></td>
-                <td><span class="status success">已挂链</span></td><td><span class="asset-thumb white">白底图</span></td>
+                <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="asset-thumb white">白底图</span></td>
                 <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing" data-country="美国" data-product-id="1729483061000987654">
                 <td><span class="status-mark preparing" role="img" aria-label="准备中" title="准备中">…</span></td>
                 <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Wireless Lavalier Microphone</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Wireless Lavalier Microphone"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Wireless Lavalier Microphone 的挂链二维码"></button></div><small class="product-id">TK Product ID：1729483061000987654</small></div></div></td>
-                <td><span class="status success">已挂链</span></td><td><span class="preparing-value">正在生成…</span></td>
+                <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="preparing-value">正在生成…</span></td>
                 <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="missing" data-country="英国" id="missing-product-row">
                 <td><span class="status-mark missing" id="missing-product-status" role="img" aria-label="物料缺失" title="物料缺失">!</span></td>
                 <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Minimal Travel Backpack</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Minimal Travel Backpack"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Minimal Travel Backpack 的挂链二维码"></button></div></div></div></td>
-                <td><span class="status success">已挂链</span></td><td><span class="missing-value">缺失</span></td>
+                <td>英国</td><td><span class="status success">已挂链</span></td><td><span class="missing-value">缺失</span></td>
                 <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing" data-country="" data-created="false" id="new-product-row" hidden>
                 <td><span class="status-mark preparing" role="img" aria-label="准备中" title="准备中">…</span></td>
                 <td><div class="product-info"><span class="asset-thumb">读取中</span><div class="product-copy"><div class="product-name-line"><strong id="new-product-name">新导入商品</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制商品名称"><span aria-hidden="true">⧉</span></button></div><small class="product-id" id="new-product-id" hidden></small></div></div></td>
-                <td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td>
+                <td><span class="preparing-value">识别中</span></td><td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td>
                 <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
             </tbody>
@@ -346,11 +349,13 @@
     const productTableBody = document.querySelector(".product-table tbody");
     const emptyProducts = document.querySelector("#empty-products");
     const productSearch = document.querySelector("#product-search");
+    const countryFilter = document.querySelector("#country-filter");
     const missingProductRow = document.querySelector("#missing-product-row");
     const newProductRow = document.querySelector("#new-product-row");
     let source = "tk";
     let activeMethod = "tk-csv";
     let activeStatusFilter = "all";
+    let activeCountry = "all";
     let productSearchQuery = "";
     let whiteImageSelected = false;
     let productToDelete = null;
@@ -515,10 +520,11 @@
       document.querySelectorAll("[data-product-row]").forEach(row => {
         const notCreated = row.dataset.created === "false";
         const statusMismatch = status !== "all" && row.dataset.status !== status;
+        const countryMismatch = activeCountry !== "all" && row.dataset.country !== activeCountry;
         const productName = row.querySelector(".product-copy strong").textContent.trim().toLocaleLowerCase();
         const productId = (row.dataset.productId || "").toLocaleLowerCase();
         const searchMismatch = productSearchQuery && !productName.includes(productSearchQuery) && !productId.includes(productSearchQuery);
-        row.hidden = notCreated || statusMismatch || searchMismatch;
+        row.hidden = notCreated || statusMismatch || countryMismatch || searchMismatch;
         if (!row.hidden) visibleCount += 1;
       });
       emptyProducts.hidden = visibleCount > 0;
@@ -547,6 +553,10 @@
     });
     productSearch.oninput = () => {
       productSearchQuery = productSearch.value.trim().toLocaleLowerCase();
+      filterProducts(activeStatusFilter);
+    };
+    countryFilter.onchange = () => {
+      activeCountry = countryFilter.value;
       filterProducts(activeStatusFilter);
     };
     document.querySelector("#close-drawer").onclick = closeDrawer;
@@ -615,7 +625,7 @@
       }
       missingProductRow.dataset.status = "available";
       missingProductRow.children[0].innerHTML = '<span class="status-mark available" id="missing-product-status" role="img" aria-label="可用" title="可用">✓</span>';
-      missingProductRow.children[3].innerHTML = '<span class="asset-thumb white">白底图</span>';
+      missingProductRow.children[4].innerHTML = '<span class="asset-thumb white">白底图</span>';
       updateTabCount("available", 1);
       updateTabCount("missing", -1);
       productDialog.close();

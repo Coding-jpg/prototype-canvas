@@ -1038,6 +1038,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
             </select>
             <button class="icon-button" type="button" data-rename title="重命名画框"><i data-lucide="pencil"></i></button>
             <button class="icon-button" type="button" data-reload title="重新加载组件"><i data-lucide="refresh-cw"></i></button>
+            <button class="icon-button" type="button" data-download title="下载 HTML" aria-label="下载${escapeHtml(item.title)}"><i data-lucide="download"></i></button>
             <button class="icon-button" type="button" data-duplicate title="复制画框"><i data-lucide="copy"></i></button>
             <button class="icon-button" type="button" data-delete title="删除画框"><i data-lucide="trash-2"></i></button>
           </header>
@@ -1085,6 +1086,10 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
             iframe.srcdoc = item.html || blankTemplate;
           }
         });
+        element.querySelector("[data-download]").addEventListener("click", async event => {
+          event.stopPropagation();
+          await downloadFrame(item);
+        });
         element.querySelector("[data-duplicate]").addEventListener("click", event => {
           event.stopPropagation();
           const copy = { ...item, id: uid("frame"), x: item.x + 48, y: item.y + 48, title: item.title + " 副本" };
@@ -1109,8 +1114,43 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         item.title = name;
         element.querySelector(".frame-title").textContent = name;
         element.querySelector("iframe").title = name;
+        element.querySelector("[data-download]").setAttribute("aria-label", `下载${name}`);
         queueSave();
         showToast("画框已重命名");
+      }
+
+      function downloadFileName(title) {
+        const safeName = String(title || "")
+          .trim()
+          .replace(/[<>:"/\\|?*]/g, "-")
+          .replace(/[. ]+$/g, "")
+          .slice(0, 120) || "component";
+        return safeName.toLowerCase().endsWith(".html") ? safeName : `${safeName}.html`;
+      }
+
+      async function downloadFrame(item) {
+        try {
+          let html = item.html;
+          if (item.componentPath) {
+            const response = await fetch(componentUrl(item.componentPath), { cache: "no-store" });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            html = await response.text();
+          }
+          if (!html) throw new Error("Component HTML is empty");
+
+          const blobUrl = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
+          const link = document.createElement("a");
+          link.href = blobUrl;
+          link.download = downloadFileName(item.title);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+          showToast("HTML 已下载");
+        } catch (error) {
+          console.warn("Could not download component", error);
+          showToast("下载失败，请稍后重试");
+        }
       }
 
       function renderNote(item) {

@@ -60,6 +60,26 @@ test("frame toolbar controls do not start frame dragging", () => {
   assert.match(renderFrame, /data-rename/);
 });
 
+test("each frame can download its standalone HTML", () => {
+  const renderFrame = section("function renderFrame(item)", "function renameFrame(item, element)");
+  const downloadFrame = section("async function downloadFrame(item)", "function renderNote(item)");
+  assert.match(renderFrame, /data-download/);
+  assert.match(renderFrame, /await downloadFrame\(item\)/);
+  assert.match(downloadFrame, /fetch\(componentUrl\(item\.componentPath\)/);
+  assert.match(downloadFrame, /new Blob\(\[html\], \{ type: "text\/html;charset=utf-8" \}\)/);
+  assert.match(downloadFrame, /URL\.createObjectURL/);
+  assert.match(downloadFrame, /URL\.revokeObjectURL/);
+  assert.match(downloadFrame, /link\.download = downloadFileName\(item\.title\)/);
+});
+
+test("download filenames are safe and keep the html extension", () => {
+  const fileNameSource = section("function downloadFileName(title)", "async function downloadFrame(item)");
+  const downloadFileName = new Function(`${fileNameSource}; return downloadFileName;`)();
+  assert.equal(downloadFileName("商品导入流程 · 桌面"), "商品导入流程 · 桌面.html");
+  assert.equal(downloadFileName("流程:/测试?.html"), "流程--测试-.html");
+  assert.equal(downloadFileName("   "), "component.html");
+});
+
 test("the default board showcases the product import flow", () => {
   const defaultState = section("function defaultState()", "function migrateState");
   assert.match(defaultState, /version: 6/);

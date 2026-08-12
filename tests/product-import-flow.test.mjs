@@ -4,8 +4,10 @@ import test from "node:test";
 
 const html = await readFile(new URL("../components/product-import-flow/index.html", import.meta.url), "utf8");
 
-test("product library uses the required material columns without time metadata", () => {
-  assert.match(html, /商品名称<\/th><th>国家<\/th><th>挂链状态<\/th><th>挂链二维码<\/th><th>类目<\/th><th>商品卖点<\/th><th>商品图<\/th><th>商品白底图<\/th><th>商品状态<\/th><th>操作/);
+test("product library keeps only quick-check fields and a leading status marker", () => {
+  assert.match(html, /visually-hidden">商品状态<\/span><\/th><th>商品信息<\/th><th>挂链状态<\/th><th>商品白底图<\/th><th>操作/);
+  assert.doesNotMatch(html, /<th>(?:商品图|商品名称|国家|类目|商品卖点|挂链二维码|商品状态)<\/th>/);
+  assert.ok((html.match(/class="product-info"/g) || []).length >= 4);
   assert.doesNotMatch(html, /更新时间/);
 });
 
@@ -16,6 +18,9 @@ test("product preparation has three exhaustive library states", () => {
   assert.match(html, /data-status="available"/);
   assert.match(html, /data-status="preparing"/);
   assert.match(html, /data-status="missing"/);
+  assert.match(html, /status-mark available[^>]*aria-label="可用"/);
+  assert.match(html, /status-mark preparing[^>]*aria-label="准备中"/);
+  assert.match(html, /status-mark missing[^>]*aria-label="物料缺失"/);
 });
 
 test("the component has no import task queue", () => {
@@ -49,24 +54,48 @@ test("every product state supports confirmed deletion", () => {
 test("product actions use edit consistently and missing status has no field count", () => {
   assert.ok((html.match(/data-edit-product/g) || []).length >= 4);
   assert.doesNotMatch(html, /<button[^>]*>(?:查看|去完善)<\/button>/);
-  assert.match(html, /id="missing-product-status">物料缺失<\/span>/);
-  assert.doesNotMatch(html, /id="missing-product-status">物料缺失\s*·/);
+  assert.match(html, /id="missing-product-status"[^>]*aria-label="物料缺失"/);
+  assert.doesNotMatch(html, /aria-label="物料缺失[^"·]*·/);
 });
 
-test("product names can be copied without showing ids or source links", () => {
+test("product names can be copied without showing source links", () => {
   assert.ok((html.match(/data-copy-name/g) || []).length >= 4);
   assert.match(html, /async function copyProductName/);
   assert.match(html, /navigator\.clipboard\?\.writeText/);
   assert.match(html, /document\.execCommand\("copy"\)/);
-  assert.doesNotMatch(html, /商品 ID · 1729483061|来源链接 · shop\.example\.com|SKU · BP-2026-08/);
+  assert.doesNotMatch(html, /来源链接 · shop\.example\.com|SKU · BP-2026-08/);
   assert.doesNotMatch(html, /id="new-product-source"/);
 });
 
-test("toolbar keeps product name and country queries on one row", () => {
-  assert.match(html, /id="product-search" placeholder="搜索商品名称"/);
-  assert.match(html, /id="country-filter" aria-label="国家"/);
+test("toolbar uses one query for product names and TK product IDs", () => {
+  assert.match(html, /id="product-search"[^>]*placeholder="搜索商品名称 \/ TK Product ID"/);
+  assert.doesNotMatch(html, /id="product-id-search"/);
+  assert.doesNotMatch(html, /id="country-filter"|全部国家/);
   assert.doesNotMatch(html, /aria-label="商品来源"|全部来源/);
   assert.doesNotMatch(html, /aria-label="市场"|全部市场/);
-  assert.match(html, /countryMismatch = activeCountry !== "all"/);
-  assert.match(html, /nameMismatch = productSearchQuery/);
+  assert.match(html, /searchMismatch = productSearchQuery/);
+  assert.match(html, /!productName\.includes\(productSearchQuery\) && !productId\.includes\(productSearchQuery\)/);
+});
+
+test("TK product IDs appear under product names and drive ID filtering", () => {
+  assert.ok((html.match(/data-product-id="\d+"/g) || []).length >= 2);
+  assert.ok((html.match(/class="product-id">TK Product ID：\d+/g) || []).length >= 2);
+  assert.match(html, /const productId = \(row\.dataset\.productId \|\| ""\)/);
+  assert.match(html, /productSearch\.oninput/);
+  assert.match(html, /delete newProductRow\.dataset\.productId/);
+});
+
+test("linked product QR codes appear as icons beside product names", () => {
+  assert.ok((html.match(/data-show-qr/g) || []).length >= 3);
+  assert.match(html, /class="qr-icon"[^>]*title="查看挂链二维码"/);
+  assert.match(html, /showToast\("已打开挂链二维码"\)/);
+});
+
+test("TK import opens with upload spreadsheet as the first and default method", () => {
+  const csvMethod = html.indexOf('id: "tk-csv"');
+  const linkMethod = html.indexOf('id: "tk-link"');
+
+  assert.ok(csvMethod >= 0 && csvMethod < linkMethod);
+  assert.match(html, /let activeMethod = "tk-csv"/);
+  assert.match(html, /source === "tk" \? "tk-csv" : "site-link"/);
 });

@@ -21,6 +21,7 @@
       --success: #198754;
     }
     * { box-sizing: border-box; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     body { margin: 0; min-width: 320px; background: #fff; color: var(--ink); font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
     button, input, textarea, select { font: inherit; }
     button { cursor: pointer; }
@@ -55,7 +56,7 @@
     .plus { font-size: 18px; font-weight: 400; line-height: 1; }
     .panel { overflow: hidden; border: 1px solid #e9ebee; border-radius: 6px; background: #fff; }
     .table-scroll { overflow-x: auto; }
-    .product-table { width: 100%; min-width: 1500px; border-collapse: collapse; table-layout: fixed; }
+    .product-table { width: 100%; min-width: 900px; border-collapse: collapse; table-layout: fixed; }
     th { height: 42px; padding: 0 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f7f7f8; color: #5d6169; font-size: 12px; font-weight: 600; text-align: left; }
     td { height: 62px; padding: 10px 18px; border-bottom: 1px solid var(--line); vertical-align: middle; }
     .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; }
@@ -69,33 +70,36 @@
     .table-actions { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
     .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: #fff; }
     .toolbar-actions { display: flex; gap: 10px; margin-left: auto; }
-    .search { width: 280px; height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
-    .select-compact { width: 150px; height: 36px; padding: 0 30px 0 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; }
-    .product-table th:nth-child(1) { width: 220px; }
-    .product-table th:nth-child(2) { width: 90px; }
-    .product-table th:nth-child(3) { width: 100px; }
-    .product-table th:nth-child(4) { width: 110px; }
-    .product-table th:nth-child(5) { width: 120px; }
-    .product-table th:nth-child(6) { width: 235px; }
-    .product-table th:nth-child(7), .product-table th:nth-child(8) { width: 112px; }
-    .product-table th:nth-child(9) { width: 150px; }
-    .product-table th:nth-child(10) { width: 130px; }
-    .product-table th:nth-child(9), .product-table td:nth-child(9) { position: sticky; right: 130px; z-index: 2; background: #fff; box-shadow: -8px 0 12px -12px rgba(25, 29, 38, .45); }
-    .product-table th:nth-child(10), .product-table td:nth-child(10) { position: sticky; right: 0; z-index: 2; background: #fff; }
-    .product-table th:nth-child(9), .product-table th:nth-child(10) { z-index: 3; background: #f7f7f8; }
+    .search { width: 360px; height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: 5px; }
+    .product-table th:nth-child(1) { width: 52px; padding-right: 0; }
+    .product-table th:nth-child(2) { width: 464px; }
+    .product-table th:nth-child(3) { width: 120px; }
+    .product-table th:nth-child(4) { width: 130px; }
+    .product-table th:nth-child(5) { width: 130px; }
+    .product-table td:first-child { padding-right: 0; }
+    .product-table th:nth-child(5), .product-table td:nth-child(5) { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -8px 0 12px -12px rgba(25, 29, 38, .45); }
+    .product-table th:nth-child(5) { z-index: 3; background: #f7f7f8; }
     .product-table tbody tr[hidden] { display: none; }
-    .product { display: flex; align-items: center; gap: 12px; }
+    .product-info { display: flex; align-items: center; gap: 12px; }
+    .product-copy { min-width: 0; }
     .thumb { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f4f5f6; color: #8a909a; font-size: 11px; }
     .asset-thumb { width: 58px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: #f4f5f6; color: #8a909a; font-size: 10px; }
     .asset-thumb.white { background: #fff; }
     .product-name-line { min-width: 0; display: flex; align-items: center; gap: 6px; }
-    .product strong { min-width: 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .product-copy strong { min-width: 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .product-id { display: block; margin-top: 3px; overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .status-mark { width: 22px; height: 22px; display: inline-grid; place-items: center; border-radius: 50%; font-size: 13px; font-weight: 750; line-height: 1; }
+    .status-mark.available { background: #eaf7f0; color: var(--success); }
+    .status-mark.preparing { background: var(--blue-soft); color: var(--blue); }
+    .status-mark.missing { background: #fff3df; color: var(--warning); }
     .copy-name { width: 26px; height: 26px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #7a7f88; font-size: 16px; line-height: 1; }
     .copy-name:hover { background: #eef0f3; color: #30343a; }
     .cell-copy { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: #52565f; font-size: 12px; }
     .missing-value { color: var(--danger); font-size: 12px; font-weight: 600; }
     .preparing-value { color: var(--blue); font-size: 12px; }
-    .qr { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #d5d8dd; background: repeating-conic-gradient(#333 0 25%, #fff 0 50%) 50% / 8px 8px; color: transparent; }
+    .qr-icon { width: 26px; height: 26px; flex: 0 0 auto; padding: 5px; border: 0; border-radius: 4px; background: transparent; }
+    .qr-icon::before { content: ""; display: block; width: 16px; height: 16px; border: 1px solid #737983; background: repeating-conic-gradient(#4d525a 0 25%, #fff 0 50%) 50% / 5px 5px; }
+    .qr-icon:hover { background: #eef0f3; }
     .empty-products { padding: 32px 0; text-align: center; color: var(--muted); }
 
     .product-dialog { width: min(760px, calc(100vw - 48px)); padding: 0; border: 0; border-radius: 7px; background: #fff; box-shadow: 0 24px 70px rgba(25, 29, 38, .22); }
@@ -230,8 +234,7 @@
       </div>
       <section class="panel">
         <div class="toolbar">
-          <input class="search" id="product-search" placeholder="搜索商品名称">
-          <select class="select-compact" id="country-filter" aria-label="国家"><option value="all">全部国家</option><option value="美国">美国</option><option value="英国">英国</option></select>
+          <input class="search" id="product-search" aria-label="商品名称或 TK Product ID" placeholder="搜索商品名称 / TK Product ID">
           <div class="toolbar-actions">
             <button class="button" data-open="tk"><span class="plus">＋</span>导入 TK 商品</button>
             <button class="button" data-open="site"><span class="plus">＋</span>导入独立站商品</button>
@@ -239,31 +242,31 @@
         </div>
         <div class="table-scroll">
           <table class="product-table">
-            <thead><tr><th>商品名称</th><th>国家</th><th>挂链状态</th><th>挂链二维码</th><th>类目</th><th>商品卖点</th><th>商品图</th><th>商品白底图</th><th>商品状态</th><th>操作</th></tr></thead>
+            <thead><tr><th><span class="visually-hidden">商品状态</span></th><th>商品信息</th><th>挂链状态</th><th>商品白底图</th><th>操作</th></tr></thead>
             <tbody>
-              <tr data-product-row data-status="available" data-country="美国">
-                <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Portable Blender Cup</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Portable Blender Cup"><span aria-hidden="true">⧉</span></button></div></div></td>
-                <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>厨房电器</td>
-                <td><span class="cell-copy">便携榨汁、USB 充电、随时制作新鲜饮品</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="asset-thumb white">白底图</span></td>
-                <td><span class="status success">可用</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
+              <tr data-product-row data-status="available" data-country="美国" data-product-id="1729483061000123456">
+                <td><span class="status-mark available" role="img" aria-label="可用" title="可用">✓</span></td>
+                <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Portable Blender Cup</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Portable Blender Cup"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Portable Blender Cup 的挂链二维码"></button></div><small class="product-id">TK Product ID：1729483061000123456</small></div></div></td>
+                <td><span class="status success">已挂链</span></td><td><span class="asset-thumb white">白底图</span></td>
+                <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
-              <tr data-product-row data-status="preparing" data-country="美国">
-                <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Wireless Lavalier Microphone</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Wireless Lavalier Microphone"><span aria-hidden="true">⧉</span></button></div></div></td>
-                <td>美国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>数码配件</td>
-                <td><span class="preparing-value">正在分析商品卖点…</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="preparing-value">正在生成…</span></td>
-                <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
+              <tr data-product-row data-status="preparing" data-country="美国" data-product-id="1729483061000987654">
+                <td><span class="status-mark preparing" role="img" aria-label="准备中" title="准备中">…</span></td>
+                <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Wireless Lavalier Microphone</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Wireless Lavalier Microphone"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Wireless Lavalier Microphone 的挂链二维码"></button></div><small class="product-id">TK Product ID：1729483061000987654</small></div></div></td>
+                <td><span class="status success">已挂链</span></td><td><span class="preparing-value">正在生成…</span></td>
+                <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="missing" data-country="英国" id="missing-product-row">
-                <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong>Minimal Travel Backpack</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Minimal Travel Backpack"><span aria-hidden="true">⧉</span></button></div></div></td>
-                <td>英国</td><td><span class="status success">已挂链</span></td><td><span class="qr">QR</span></td><td>箱包</td>
-                <td><span class="missing-value">缺失</span></td><td><span class="asset-thumb">商品图</span></td><td><span class="missing-value">缺失</span></td>
-                <td><span class="status missing" id="missing-product-status">物料缺失</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
+                <td><span class="status-mark missing" id="missing-product-status" role="img" aria-label="物料缺失" title="物料缺失">!</span></td>
+                <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Minimal Travel Backpack</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Minimal Travel Backpack"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Minimal Travel Backpack 的挂链二维码"></button></div></div></div></td>
+                <td><span class="status success">已挂链</span></td><td><span class="missing-value">缺失</span></td>
+                <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
               <tr data-product-row data-status="preparing" data-country="" data-created="false" id="new-product-row" hidden>
-                <td><div class="product"><span class="thumb">IMG</span><div class="product-name-line"><strong id="new-product-name">新导入商品</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制商品名称"><span aria-hidden="true">⧉</span></button></div></div></td>
-                <td><span class="preparing-value">识别中</span></td><td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td><td><span class="preparing-value">识别中</span></td>
-                <td><span class="preparing-value">正在分析…</span></td><td><span class="asset-thumb">读取中</span></td><td><span class="preparing-value">生成中</span></td>
-                <td><span class="status preparing">准备中</span></td><td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
+                <td><span class="status-mark preparing" role="img" aria-label="准备中" title="准备中">…</span></td>
+                <td><div class="product-info"><span class="asset-thumb">读取中</span><div class="product-copy"><div class="product-name-line"><strong id="new-product-name">新导入商品</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制商品名称"><span aria-hidden="true">⧉</span></button></div><small class="product-id" id="new-product-id" hidden></small></div></div></td>
+                <td><span class="preparing-value">检查中</span></td><td><span class="preparing-value">生成中</span></td>
+                <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
             </tbody>
           </table>
@@ -320,9 +323,9 @@
   <script>
     const methods = {
       tk: [
+        { group: "一次性导入", id: "tk-csv", icon: "CSV", name: "上传表格", detail: "最多 1,000 行" },
         { group: "一次性导入", id: "tk-link", icon: "链", name: "商品链接", detail: "FastMoss / Kalodata" },
         { group: "一次性导入", id: "tk-sheet", icon: "表", name: "在线表格", detail: "飞书 / Lark" },
-        { group: "一次性导入", id: "tk-csv", icon: "CSV", name: "上传表格", detail: "最多 1,000 行" },
         { group: "持续同步", id: "tk-shop", icon: "店", name: "TikTok Shop 店铺", detail: "自动同步商品" }
       ],
       site: [
@@ -343,13 +346,11 @@
     const productTableBody = document.querySelector(".product-table tbody");
     const emptyProducts = document.querySelector("#empty-products");
     const productSearch = document.querySelector("#product-search");
-    const countryFilter = document.querySelector("#country-filter");
     const missingProductRow = document.querySelector("#missing-product-row");
     const newProductRow = document.querySelector("#new-product-row");
     let source = "tk";
-    let activeMethod = "tk-link";
+    let activeMethod = "tk-csv";
     let activeStatusFilter = "all";
-    let activeCountry = "all";
     let productSearchQuery = "";
     let whiteImageSelected = false;
     let productToDelete = null;
@@ -405,7 +406,7 @@
 
     function openDrawer(nextSource, method) {
       source = nextSource;
-      activeMethod = method || (source === "tk" ? "tk-link" : "site-link");
+      activeMethod = method || (source === "tk" ? "tk-csv" : "site-link");
       document.querySelector("#drawer-title").textContent = source === "tk" ? "导入 TK 商品" : "导入独立站商品";
       renderNav();
       renderForm();
@@ -488,7 +489,7 @@
     }
 
     async function copyProductName(button) {
-      const name = button.closest(".product").querySelector("strong").textContent.trim();
+      const name = button.closest("[data-product-row]").querySelector(".product-copy strong").textContent.trim();
       let copied = false;
       try {
         if (navigator.clipboard?.writeText) {
@@ -514,10 +515,10 @@
       document.querySelectorAll("[data-product-row]").forEach(row => {
         const notCreated = row.dataset.created === "false";
         const statusMismatch = status !== "all" && row.dataset.status !== status;
-        const countryMismatch = activeCountry !== "all" && row.dataset.country !== activeCountry;
-        const productName = row.querySelector(".product strong").textContent.trim().toLocaleLowerCase();
-        const nameMismatch = productSearchQuery && !productName.includes(productSearchQuery);
-        row.hidden = notCreated || statusMismatch || countryMismatch || nameMismatch;
+        const productName = row.querySelector(".product-copy strong").textContent.trim().toLocaleLowerCase();
+        const productId = (row.dataset.productId || "").toLocaleLowerCase();
+        const searchMismatch = productSearchQuery && !productName.includes(productSearchQuery) && !productId.includes(productSearchQuery);
+        row.hidden = notCreated || statusMismatch || searchMismatch;
         if (!row.hidden) visibleCount += 1;
       });
       emptyProducts.hidden = visibleCount > 0;
@@ -535,7 +536,7 @@
 
     function openDeleteProduct(row) {
       productToDelete = row;
-      document.querySelector("#delete-product-name").textContent = row.querySelector(".product strong").textContent;
+      document.querySelector("#delete-product-name").textContent = row.querySelector(".product-copy strong").textContent;
       deleteProductDialog.showModal();
     }
 
@@ -544,10 +545,6 @@
       document.querySelectorAll(".page-tab").forEach(item => item.classList.toggle("active", item === tab));
       filterProducts(tab.dataset.statusFilter);
     });
-    countryFilter.onchange = () => {
-      activeCountry = countryFilter.value;
-      filterProducts(activeStatusFilter);
-    };
     productSearch.oninput = () => {
       productSearchQuery = productSearch.value.trim().toLocaleLowerCase();
       filterProducts(activeStatusFilter);
@@ -561,6 +558,11 @@
       const copyButton = event.target.closest("[data-copy-name]");
       if (copyButton) {
         copyProductName(copyButton);
+        return;
+      }
+      const qrButton = event.target.closest("[data-show-qr]");
+      if (qrButton) {
+        showToast("已打开挂链二维码");
         return;
       }
       const editButton = event.target.closest("[data-edit-product]");
@@ -578,7 +580,7 @@
     };
     document.querySelector("#confirm-delete").onclick = () => {
       if (!productToDelete) return;
-      const deletedName = productToDelete.querySelector(".product strong").textContent;
+      const deletedName = productToDelete.querySelector(".product-copy strong").textContent;
       const deletedStatus = productToDelete.dataset.status;
       if (productToDelete === newProductRow) {
         newProductRow.dataset.created = "false";
@@ -612,10 +614,8 @@
         return;
       }
       missingProductRow.dataset.status = "available";
-      missingProductRow.children[5].innerHTML = `<span class="cell-copy">${sellingPoint}</span>`;
-      missingProductRow.children[7].innerHTML = '<span class="asset-thumb white">白底图</span>';
-      missingProductRow.children[8].innerHTML = '<span class="status success">可用</span>';
-      missingProductRow.children[9].innerHTML = '<div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div>';
+      missingProductRow.children[0].innerHTML = '<span class="status-mark available" id="missing-product-status" role="img" aria-label="可用" title="可用">✓</span>';
+      missingProductRow.children[3].innerHTML = '<span class="asset-thumb white">白底图</span>';
       updateTabCount("available", 1);
       updateTabCount("missing", -1);
       productDialog.close();
@@ -633,6 +633,16 @@
       }
       const newProductName = manualName || "新导入商品";
       document.querySelector("#new-product-name").textContent = newProductName;
+      const newProductId = document.querySelector("#new-product-id");
+      if (source === "tk") {
+        newProductRow.dataset.productId = "1729483061000234567";
+        newProductId.textContent = `TK Product ID：${newProductRow.dataset.productId}`;
+        newProductId.hidden = false;
+      } else {
+        delete newProductRow.dataset.productId;
+        newProductId.textContent = "";
+        newProductId.hidden = true;
+      }
       newProductRow.querySelector("[data-copy-name]").setAttribute("aria-label", `复制 ${newProductName}`);
       filterProducts(activeStatusFilter);
       closeDrawer();

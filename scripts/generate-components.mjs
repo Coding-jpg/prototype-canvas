@@ -42,6 +42,7 @@ for (const directory of directories) {
   }
 
   ids.add(metadata.id);
+  if (metadata.published !== true) continue;
   components.push({
     id: metadata.id,
     name: metadata.name,

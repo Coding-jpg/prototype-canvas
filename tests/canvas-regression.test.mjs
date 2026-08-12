@@ -62,7 +62,7 @@ test("frame toolbar controls do not start frame dragging", () => {
 
 test("the default board showcases the product import flow", () => {
   const defaultState = section("function defaultState()", "function migrateState");
-  assert.match(defaultState, /version: 5/);
+  assert.match(defaultState, /version: 6/);
   assert.match(defaultState, /componentId: "product-import-flow"/);
   assert.match(defaultState, /components\/product-import-flow\/index\.html/);
   assert.match(defaultState, /product-import-entry-arrow/);
@@ -98,7 +98,7 @@ test("product import annotations are added once to a version 2 board", () => {
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 5);
+  assert.equal(board.version, 6);
   assert.equal(board.items.length, itemCount);
   assert.equal(board.items.filter(item => item.annotationKey?.startsWith("product-import-")).length, 4);
   assert.equal(board.items.filter(item => item.type === "note" && item.annotationKey?.startsWith("product-import-")).length, 2);
@@ -119,7 +119,7 @@ test("version 3 boards replace the task-center annotation with product readiness
 
   migrateState(board);
 
-  assert.equal(board.version, 5);
+  assert.equal(board.version, 6);
   assert.match(board.items.find(item => item.annotationKey === "product-import-failure").text, /准备中.*可用.*物料缺失/);
   assert.doesNotMatch(board.items.find(item => item.annotationKey === "product-import-failure").text, /任务中心/);
 });
@@ -142,11 +142,60 @@ test("version 4 boards receive the conditional detail fields annotation once", (
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 5);
+  assert.equal(board.version, 6);
   assert.equal(board.items.length, itemCount);
   assert.equal(board.items.filter(item => item.annotationKey === "product-detail-conditional-fields").length, 1);
   assert.equal(board.items.filter(item => item.annotationKey === "product-detail-conditional-fields-arrow").length, 1);
   assert.match(board.items.find(item => item.annotationKey === "product-detail-conditional-fields").text, /商品 ID、国家固定显示/);
   assert.equal(board.items.find(item => item.annotationKey === "product-import-entry").text, "已有入口说明");
   assert.ok(board.items.includes(userNote));
+});
+
+test("version 5 boards remove only the retired showcase components", () => {
+  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-new`);
+  const productFrame = { id: "frame-product", type: "frame", title: "商品导入流程 · 桌面", componentId: "product-import-flow" };
+  const userFrame = { id: "frame-user", type: "frame", title: "我的组件", componentId: "custom-component" };
+  const userNote = { id: "note-user", type: "note", text: "保留我的说明" };
+  const productNote = { id: "note-product", type: "note", annotationKey: "product-import-entry", text: "商品说明" };
+  const board = {
+    version: 5,
+    items: [
+      { id: "frame-filter", type: "frame", title: "项目筛选 · 桌面", componentId: "filter-panel" },
+      { id: "frame-release", type: "frame", title: "发布确认 · 手机", componentId: "release-confirm" },
+      { id: "note-release", type: "note", text: "确认按钮需要在勾选后启用。" },
+      { id: "arrow-release", type: "arrow", x: 1180, y: 840, x2: 1330, y2: 940 },
+      productFrame,
+      userFrame,
+      userNote,
+      productNote
+    ]
+  };
+
+  migrateState(board);
+  const itemCount = board.items.length;
+  migrateState(board);
+
+  assert.equal(board.version, 6);
+  assert.equal(board.items.length, itemCount);
+  assert.deepEqual(board.items, [productFrame, userFrame, userNote, productNote]);
+});
+
+test("legacy embedded showcase frames are removed by their exact titles", () => {
+  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-new`);
+  const similarlyNamedUserFrame = { id: "frame-similar", type: "frame", title: "项目筛选 · 自定义" };
+  const board = {
+    version: 5,
+    items: [
+      { id: "frame-filter", type: "frame", title: "项目筛选 · 桌面", html: "legacy" },
+      { id: "frame-release", type: "frame", title: "发布确认 · 手机", html: "legacy" },
+      similarlyNamedUserFrame
+    ]
+  };
+
+  migrateState(board);
+
+  assert.equal(board.version, 6);
+  assert.deepEqual(board.items, [similarlyNamedUserFrame]);
 });

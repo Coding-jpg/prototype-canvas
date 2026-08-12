@@ -1,8 +1,8 @@
 {
   "id": "release-confirm",
   "name": "发布确认",
+  "published": false,
   "device": "mobile",
   "category": "发布流程",
   "description": "确认影响范围后提交发布，并展示进行中和成功状态。"
 }
-

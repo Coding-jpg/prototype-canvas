@@ -17,11 +17,14 @@ Required `meta.json` fields:
 {
   "id": "refund-confirm",
   "name": "Refund confirmation",
+  "published": false,
   "device": "mobile",
   "category": "Refund flow",
   "description": "Confirm a refund and show pending and success states."
 }
 ```
+
+Set `published` to `true` only after the component has been deliberately placed on the shared board. Components without `published: true` remain in the repository but do not appear in the public component library.
 
 Allowed `device` values: `desktop`, `tablet`, `mobile`.
 
@@ -30,4 +33,3 @@ Before committing:
 - Verify the component has no console errors.
 - Verify its primary interaction.
 - Verify `node scripts/generate-components.mjs` succeeds.
-

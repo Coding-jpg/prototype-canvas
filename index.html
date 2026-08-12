@@ -802,7 +802,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       function defaultState() {
         return {
-          version: 5,
+          version: 6,
           camera: { x: 76, y: 64, zoom: 0.72 },
           items: [
             { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" },
@@ -819,7 +819,29 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       function migrateState(savedState) {
         if (!savedState || !Array.isArray(savedState.items)) return defaultState();
         const savedVersion = savedState.version || 1;
-        if (savedVersion >= 5) return savedState;
+        if (savedVersion >= 6) return savedState;
+
+        const legacyFrameIds = new Set();
+        savedState.items.forEach(item => {
+          if (item.type !== "frame") return;
+          const isLegacyComponent = item.componentId === "filter-panel" || item.componentId === "release-confirm";
+          const isLegacyEmbeddedFrame = !item.componentId && (item.title === "项目筛选 · 桌面" || item.title === "发布确认 · 手机");
+          if (isLegacyComponent || isLegacyEmbeddedFrame) legacyFrameIds.add(item.id);
+        });
+        if (legacyFrameIds.size) {
+          for (let index = savedState.items.length - 1; index >= 0; index -= 1) {
+            const item = savedState.items[index];
+            const isLegacyFrame = legacyFrameIds.has(item.id);
+            const isLegacyNote = item.type === "note" && !item.annotationKey && item.text === "确认按钮需要在勾选后启用。";
+            const isLegacyArrow = item.type === "arrow" && !item.annotationKey && item.x === 1180 && item.y === 840 && item.x2 === 1330 && item.y2 === 940;
+            if (isLegacyFrame || isLegacyNote || isLegacyArrow) savedState.items.splice(index, 1);
+          }
+        }
+
+        if (savedVersion >= 5) {
+          savedState.version = 6;
+          return savedState;
+        }
         let frame = savedState.items.find(item => item.componentId === "product-import-flow");
         if (!frame) {
           frame = { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" };
@@ -861,7 +883,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         if (!savedState.items.some(item => item.annotationKey === "product-detail-conditional-fields-arrow")) {
           savedState.items.push({ id: uid("arrow"), type: "arrow", annotationKey: "product-detail-conditional-fields-arrow", x: frame.x + 1180, y: frame.y + 570, x2: frame.x + 1260, y2: frame.y + 610 });
         }
-        savedState.version = 5;
+        savedState.version = 6;
         return savedState;
       }
 

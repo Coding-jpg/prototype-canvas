@@ -17,11 +17,14 @@ Example metadata:
 {
   "id": "refund-confirm",
   "name": "Refund confirmation",
+  "published": false,
   "device": "mobile",
   "category": "Refund flow",
   "description": "Confirm a refund and show pending and success states."
 }
 ```
+
+Components are private to the repository by default. Set `published` to `true` only when the component should appear in the shared component library and be available for placement on the public board.
 
 The component must be a complete native HTML document. See [AGENTS.md](./AGENTS.md) for the authoring contract.
 
@@ -37,4 +40,3 @@ Open `http://127.0.0.1:8765`.
 ## Deploy
 
 Push to `main`. GitHub Actions validates the component metadata, generates `components.json`, and deploys the site to GitHub Pages.
-

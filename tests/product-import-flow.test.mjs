@@ -32,8 +32,41 @@ test("missing materials are repaired in product details and become available", (
   assert.match(html, /id="product-dialog"/);
   assert.match(html, /id="selling-point-field"/);
   assert.match(html, /id="white-image-field"/);
-  assert.match(html, /missingProductRow\.dataset\.status = "available"/);
-  assert.match(html, /商品物料已完整，状态已更新为可用/);
+  assert.match(html, /activeProductRow\.dataset\.status = "available"/);
+  assert.match(html, /updateTabCount\("available", 1\)/);
+  assert.match(html, /商品信息已保存/);
+});
+
+test("the detail view contains complete product materials and one common product ID", () => {
+  assert.match(html, /<h3>商品图片<\/h3>/);
+  assert.match(html, />商品主图<\/strong>/);
+  assert.match(html, />商品白底图<\/strong>/);
+  assert.match(html, />商品名称<\/span>/);
+  assert.match(html, /<span>商品描述<\/span><textarea[^>]*placeholder="输入商品描述（选填）"/);
+  assert.doesNotMatch(html, /<span class="required">商品描述<\/span>/);
+  assert.match(html, /<h3>商品卖点<\/h3>/);
+  assert.doesNotMatch(html, /<h3>生成约束<\/h3>|商品细节约束|constraint-category/);
+  assert.match(html, /<dt>商品 ID<\/dt>/);
+  assert.match(html, /id="detail-country"/);
+  assert.match(html, /id="detail-category"/);
+  assert.match(html, /id="detail-link-status"/);
+  assert.match(html, /id="detail-qr-section"/);
+  assert.doesNotMatch(html, /<dt>(?:product_id|product_run_id|产品网址|商品 ID)<\/dt>[\s\S]*<dt>(?:product_id|product_run_id|产品网址|商品 ID)<\/dt>/);
+  assert.doesNotMatch(html, /<dt>(?:product_id|product_run_id|产品网址)<\/dt>/);
+});
+
+test("promotion site name is shown only for independent-site products", () => {
+  assert.match(html, /id="promotion-site-field" hidden/);
+  assert.match(html, /isIndependentSite = row\.dataset\.source === "site"/);
+  assert.match(html, /promotion-site-field"\)\.hidden = !isIndependentSite/);
+  assert.match(html, /data-source="tk"/);
+  assert.match(html, /data-source="site"/);
+});
+
+test("every edit action opens the shared product detail view", () => {
+  assert.match(html, /function openProductDetail\(row\)/);
+  assert.match(html, /if \(editButton\) \{[\s\S]*openProductDetail\(row\)/);
+  assert.doesNotMatch(html, /openMissingProduct/);
 });
 
 test("new imports appear in the product library as preparing", () => {

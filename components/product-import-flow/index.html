@@ -100,18 +100,46 @@
     .qr-icon:hover { background: #eef0f3; }
     .empty-products { padding: 32px 0; text-align: center; color: var(--muted); }
 
-    .product-dialog { width: min(760px, calc(100vw - 48px)); padding: 0; border: 0; border-radius: 7px; background: #fff; box-shadow: 0 24px 70px rgba(25, 29, 38, .22); }
+    .product-dialog { width: min(1180px, calc(100vw - 48px)); height: min(820px, calc(100vh - 48px)); padding: 0; border: 0; border-radius: 7px; background: #fff; box-shadow: 0 24px 70px rgba(25, 29, 38, .22); }
     .product-dialog::backdrop { background: rgba(28, 30, 35, .4); }
-    .product-dialog-head { display: flex; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .product-dialog form { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+    .product-dialog-head { display: flex; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--line); }
     .product-dialog-head h2 { margin: 0; font-size: 18px; }
-    .product-dialog-body { max-height: min(620px, calc(100vh - 170px)); padding: 22px; overflow: auto; }
+    .product-dialog-head p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .product-dialog-body { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px; padding: 0; overflow: hidden; }
+    .detail-main { min-width: 0; padding: 22px 24px 36px; overflow: auto; }
+    .detail-side { padding: 22px; border-left: 1px solid var(--line); background: #fafbfc; overflow: auto; }
+    .detail-section + .detail-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .detail-section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .detail-section-head h3, .detail-side h3 { margin: 0; font-size: 14px; }
+    .detail-section-head small { color: var(--muted); }
     .issue-summary { margin-bottom: 20px; padding: 12px 14px; border: 1px solid #f0d8ad; border-radius: 5px; background: #fff9ee; color: #775117; }
-    .material-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    .image-manager { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 14px; }
+    .image-panel { min-height: 154px; padding: 14px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    .image-panel.invalid { border-color: var(--danger); background: #fffafa; }
+    .image-panel:not(.invalid) .field-error { display: none; }
+    .image-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .image-panel-head strong { font-size: 13px; }
+    .image-panel-head small { color: var(--muted); }
+    .image-list { display: flex; gap: 10px; }
+    .image-tile { width: 76px; height: 76px; display: grid; place-items: center; border: 1px solid var(--line-strong); border-radius: 5px; background: #f2f3f5; color: #8b9099; font-size: 11px; }
+    button.image-tile { border-style: dashed; background: #fff; color: #59606c; font-size: 22px; }
+    .white-image-preview { width: 76px; height: 76px; display: grid; place-items: center; margin-bottom: 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; color: #8b9099; font-size: 11px; }
+    .detail-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    .detail-form-grid .full { grid-column: 1 / -1; }
+    .side-list { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px 10px; margin: 16px 0 22px; }
+    .side-list dt { color: var(--muted); font-size: 12px; }
+    .side-list dd { min-width: 0; margin: 0; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+    .id-line { display: flex; align-items: center; gap: 5px; }
+    .id-line code { min-width: 0; overflow: hidden; color: var(--blue); font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
+    .copy-id { width: 24px; height: 24px; flex: 0 0 auto; border: 0; border-radius: 4px; background: transparent; color: var(--muted); }
+    .copy-id:hover { background: #eceef1; }
+    .detail-qr { width: 92px; height: 92px; display: grid; place-items: center; margin-top: 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: repeating-conic-gradient(#333 0 25%, #fff 0 50%) 50% / 12px 12px; color: transparent; }
     .field.invalid input, .field.invalid textarea { border-color: var(--danger); box-shadow: 0 0 0 1px rgba(216, 59, 59, .08); }
     .field.invalid .upload { border-color: var(--danger); background: #fffafa; }
     .field-error { color: var(--danger); font-size: 12px; }
     .field:not(.invalid) .field-error { display: none; }
-    .product-dialog-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--line); }
+    .product-dialog-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--line); }
     .confirm-dialog { width: min(440px, calc(100vw - 48px)); padding: 0; border: 0; border-radius: 7px; background: #fff; box-shadow: 0 24px 70px rgba(25, 29, 38, .22); }
     .confirm-dialog::backdrop { background: rgba(28, 30, 35, .4); }
     .confirm-body { padding: 22px; }
@@ -243,25 +271,25 @@
           <table class="product-table">
             <thead><tr><th><span class="visually-hidden">商品状态</span></th><th>商品信息</th><th>国家</th><th>操作</th></tr></thead>
             <tbody>
-              <tr data-product-row data-status="available" data-country="美国" data-product-id="1729483061000123456">
+              <tr data-product-row data-status="available" data-country="美国" data-product-id="1729483061000123456" data-item-id="prd_8f12c7a9" data-source="tk" data-category="厨房电器">
                 <td><span class="status-mark available" role="img" aria-label="可用" title="可用">✓</span></td>
                 <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Portable Blender Cup</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Portable Blender Cup"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Portable Blender Cup 的挂链二维码"></button></div><small class="product-id">TK Product ID：1729483061000123456</small></div></div></td>
                 <td>美国</td>
                 <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
-              <tr data-product-row data-status="preparing" data-country="美国" data-product-id="1729483061000987654">
+              <tr data-product-row data-status="preparing" data-country="美国" data-product-id="1729483061000987654" data-item-id="prd_45d9b20e" data-source="tk" data-category="数码配件">
                 <td><span class="status-mark preparing" role="img" aria-label="准备中" title="准备中">…</span></td>
                 <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Wireless Lavalier Microphone</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Wireless Lavalier Microphone"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Wireless Lavalier Microphone 的挂链二维码"></button></div><small class="product-id">TK Product ID：1729483061000987654</small></div></div></td>
                 <td>美国</td>
                 <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
-              <tr data-product-row data-status="missing" data-country="英国" id="missing-product-row">
+              <tr data-product-row data-status="missing" data-country="英国" data-item-id="prd_b17e3064" data-source="site" data-category="箱包" id="missing-product-row">
                 <td><span class="status-mark missing" id="missing-product-status" role="img" aria-label="物料缺失" title="物料缺失">!</span></td>
                 <td><div class="product-info"><span class="asset-thumb">商品图</span><div class="product-copy"><div class="product-name-line"><strong>Minimal Travel Backpack</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制 Minimal Travel Backpack"><span aria-hidden="true">⧉</span></button><button class="qr-icon" type="button" data-show-qr title="查看挂链二维码" aria-label="查看 Minimal Travel Backpack 的挂链二维码"></button></div></div></div></td>
                 <td>英国</td>
                 <td><div class="table-actions"><button class="link-button" data-edit-product>编辑</button><button class="link-button danger" data-delete-product>删除</button></div></td>
               </tr>
-              <tr data-product-row data-status="preparing" data-country="" data-created="false" id="new-product-row" hidden>
+              <tr data-product-row data-status="preparing" data-country="" data-created="false" data-item-id="prd_new_2026" data-source="tk" data-category="识别中" id="new-product-row" hidden>
                 <td><span class="status-mark preparing" role="img" aria-label="准备中" title="准备中">…</span></td>
                 <td><div class="product-info"><span class="asset-thumb">读取中</span><div class="product-copy"><div class="product-name-line"><strong id="new-product-name">新导入商品</strong><button class="copy-name" type="button" data-copy-name title="复制商品名称" aria-label="复制商品名称"><span aria-hidden="true">⧉</span></button></div><small class="product-id" id="new-product-id" hidden></small></div></div></td>
                 <td><span class="preparing-value">识别中</span></td>
@@ -277,19 +305,40 @@
 
   <dialog class="product-dialog" id="product-dialog" aria-labelledby="product-detail-title">
     <form method="dialog" id="product-detail-form">
-      <header class="product-dialog-head"><h2 id="product-detail-title">商品详情</h2><button class="close" value="cancel" aria-label="关闭">×</button></header>
+      <header class="product-dialog-head"><div><h2 id="product-detail-title">商品详情</h2><p id="product-detail-subtitle">查看并维护商品制作视频所需的完整信息</p></div><button class="close" value="cancel" aria-label="关闭">×</button></header>
       <div class="product-dialog-body">
-        <div class="issue-summary" id="issue-summary">缺少 2 项必要物料，补充完整后商品将自动变为可用。</div>
-        <div class="material-grid">
-          <label class="field"><span class="required">商品名称</span><input value="Minimal Travel Backpack"></label>
-          <label class="field"><span class="required">国家</span><select><option>英国</option><option>美国</option></select></label>
-          <label class="field"><span class="required">挂链状态</span><select><option>已挂链</option><option>未挂链</option></select></label>
-          <label class="field"><span class="required">挂链二维码</span><input value="QR-BP-2026-08"></label>
-          <label class="field"><span class="required">类目</span><input value="箱包"></label>
-          <label class="field invalid" id="selling-point-field"><span class="required">商品卖点</span><textarea id="selling-point-input" style="min-height:88px" placeholder="输入商品卖点"></textarea><small class="field-error">缺少商品卖点</small></label>
-          <label class="field"><span class="required">商品图</span><div class="upload" style="min-height:112px"><div><p>已上传 3 张商品图</p><small>点击查看或替换</small></div></div></label>
-          <label class="field invalid" id="white-image-field"><span class="required">商品白底图</span><div class="upload" id="white-image-upload" style="min-height:112px"><div><div class="upload-icon">＋</div><p id="white-image-label">上传商品白底图</p></div></div><small class="field-error">缺少商品白底图</small></label>
+        <div class="detail-main">
+          <div class="issue-summary" id="issue-summary" hidden></div>
+          <section class="detail-section">
+            <div class="detail-section-head"><h3>商品图片</h3><small>管理商品主图与白底图</small></div>
+            <div class="image-manager">
+              <div class="image-panel"><div class="image-panel-head"><strong>商品主图</strong><small>3 张</small></div><div class="image-list"><button class="image-tile" type="button" id="add-product-image" title="添加商品图片">＋</button><span class="image-tile">商品图 1</span><span class="image-tile">商品图 2</span><span class="image-tile">商品图 3</span></div></div>
+              <div class="image-panel" id="white-image-field"><div class="image-panel-head"><strong>商品白底图</strong><small>用于视频生成</small></div><div class="white-image-preview" id="white-image-label">白底图</div><button class="button small" type="button" id="white-image-upload">重新生成</button><small class="field-error">缺少商品白底图</small></div>
+            </div>
+          </section>
+          <section class="detail-section">
+            <div class="detail-section-head"><h3>商品信息</h3><small>名称与描述</small></div>
+            <div class="detail-form-grid">
+              <label class="field full"><span class="required">商品名称</span><input id="detail-product-name"></label>
+              <label class="field full" id="promotion-site-field" hidden><span class="required">推广站点名称</span><input id="promotion-site-name" placeholder="用于视频 CTA，例如 LitBuy"></label>
+              <label class="field full"><span>商品描述</span><textarea id="product-description" style="min-height:96px" placeholder="输入商品描述（选填）"></textarea></label>
+            </div>
+          </section>
+          <section class="detail-section">
+            <div class="detail-section-head"><h3>商品卖点</h3><small>AI 提炼，可直接编辑</small></div>
+            <label class="field invalid" id="selling-point-field"><textarea id="selling-point-input" style="min-height:110px" placeholder="输入商品卖点"></textarea><small class="field-error">缺少商品卖点</small></label>
+          </section>
         </div>
+        <aside class="detail-side">
+          <h3>基础信息</h3>
+          <dl class="side-list">
+            <dt>商品 ID</dt><dd><span class="id-line"><code id="detail-product-id">prd_b17e3064</code><button class="copy-id" type="button" id="copy-product-id" title="复制商品 ID" aria-label="复制商品 ID">⧉</button></span></dd>
+            <dt>国家</dt><dd id="detail-country">英国</dd>
+            <dt>类目</dt><dd id="detail-category">箱包</dd>
+            <dt>挂链状态</dt><dd id="detail-link-status">已挂链</dd>
+          </dl>
+          <section id="detail-qr-section"><h3>挂链二维码</h3><div class="detail-qr" aria-label="挂链二维码">QR</div></section>
+        </aside>
       </div>
       <footer class="product-dialog-foot"><button class="button" value="cancel">取消</button><button class="button primary" type="button" id="save-product">保存商品</button></footer>
     </form>
@@ -354,6 +403,7 @@
     let activeCountry = "all";
     let productSearchQuery = "";
     let whiteImageSelected = false;
+    let activeProductRow = null;
     let productToDelete = null;
     let toastTimer;
 
@@ -526,9 +576,38 @@
       emptyProducts.hidden = visibleCount > 0;
     }
 
-    function openMissingProduct() {
+    function openProductDetail(row) {
+      activeProductRow = row;
+      const isMissing = row.dataset.status === "missing";
+      const isIndependentSite = row.dataset.source === "site";
+      const name = row.querySelector(".product-copy strong").textContent.trim();
+      const country = row.dataset.country || "识别中";
+      const category = row.dataset.category || "未分类";
+      const sellingPoint = isMissing ? "" : "轻便易用 / 核心功能突出 / 适合日常场景";
+
+      document.querySelector("#product-detail-title").textContent = name;
+      document.querySelector("#product-detail-subtitle").textContent = isIndependentSite ? "独立站商品详情" : "TK 商品详情";
+      document.querySelector("#detail-product-name").value = name;
+      document.querySelector("#product-description").value = `${name} 的商品描述，可根据实际商品资料进行编辑。`;
+      document.querySelector("#selling-point-input").value = sellingPoint;
+      document.querySelector("#selling-point-field").classList.toggle("invalid", isMissing);
+      document.querySelector("#promotion-site-field").hidden = !isIndependentSite;
+      document.querySelector("#promotion-site-name").value = isIndependentSite ? "LitBuy" : "";
+      document.querySelector("#detail-product-id").textContent = row.dataset.itemId;
+      document.querySelector("#detail-country").textContent = country;
+      document.querySelector("#detail-category").textContent = category;
+      document.querySelector("#detail-link-status").textContent = "已挂链";
+      document.querySelector("#detail-qr-section").hidden = false;
+
+      whiteImageSelected = !isMissing;
+      document.querySelector("#white-image-field").classList.toggle("invalid", isMissing);
+      document.querySelector("#white-image-label").textContent = isMissing ? "缺失" : "白底图";
+      const issueSummary = document.querySelector("#issue-summary");
+      issueSummary.hidden = !isMissing;
+      issueSummary.textContent = isMissing ? "必要物料存在缺失，补充标红字段后商品将自动变为可用。" : "";
+
       productDialog.showModal();
-      setTimeout(() => document.querySelector("#selling-point-input").focus(), 0);
+      setTimeout(() => document.querySelector("#detail-product-name").focus(), 0);
     }
 
     function updateTabCount(status, change) {
@@ -574,8 +653,7 @@
       const editButton = event.target.closest("[data-edit-product]");
       if (editButton) {
         const row = editButton.closest("[data-product-row]");
-        if (row.dataset.status === "missing") openMissingProduct();
-        else showToast(row.dataset.status === "preparing" ? "商品物料正在准备，可编辑已获取的字段" : "已打开商品编辑");
+        openProductDetail(row);
       }
       const deleteButton = event.target.closest("[data-delete-product]");
       if (deleteButton) openDeleteProduct(deleteButton.closest("[data-product-row]"));
@@ -607,9 +685,17 @@
     document.querySelector("#white-image-upload").onclick = () => {
       whiteImageSelected = true;
       document.querySelector("#white-image-field").classList.remove("invalid");
-      document.querySelector("#white-image-label").textContent = "已选择 backpack-white.jpg";
+      document.querySelector("#white-image-label").textContent = "白底图";
+      showToast("白底图已重新生成");
+    };
+    document.querySelector("#add-product-image").onclick = () => showToast("已添加商品图片");
+    document.querySelector("#copy-product-id").onclick = async () => {
+      const id = document.querySelector("#detail-product-id").textContent;
+      try { await navigator.clipboard.writeText(id); showToast("商品 ID 已复制"); }
+      catch { showToast("复制失败，请手动复制商品 ID"); }
     };
     document.querySelector("#save-product").onclick = () => {
+      if (!activeProductRow) return;
       const sellingPoint = document.querySelector("#selling-point-input").value.trim();
       document.querySelector("#selling-point-field").classList.toggle("invalid", !sellingPoint);
       document.querySelector("#white-image-field").classList.toggle("invalid", !whiteImageSelected);
@@ -619,13 +705,19 @@
         showToast("请补充标红的必要字段");
         return;
       }
-      missingProductRow.dataset.status = "available";
-      missingProductRow.children[0].innerHTML = '<span class="status-mark available" id="missing-product-status" role="img" aria-label="可用" title="可用">✓</span>';
-      updateTabCount("available", 1);
-      updateTabCount("missing", -1);
+      const newName = document.querySelector("#detail-product-name").value.trim();
+      if (!newName) { showToast("请输入商品名称"); return; }
+      activeProductRow.querySelector(".product-copy strong").textContent = newName;
+      activeProductRow.querySelector("[data-copy-name]").setAttribute("aria-label", `复制 ${newName}`);
+      if (activeProductRow.dataset.status === "missing") {
+        activeProductRow.dataset.status = "available";
+        activeProductRow.children[0].innerHTML = '<span class="status-mark available" id="missing-product-status" role="img" aria-label="可用" title="可用">✓</span>';
+        updateTabCount("available", 1);
+        updateTabCount("missing", -1);
+      }
       productDialog.close();
       filterProducts(activeStatusFilter);
-      showToast("商品物料已完整，状态已更新为可用");
+      showToast("商品信息已保存");
     };
     submitButton.onclick = () => {
       if (activeMethod === "tk-shop") { closeDrawer(); showToast("店铺同步设置已保存"); return; }
@@ -640,10 +732,12 @@
       document.querySelector("#new-product-name").textContent = newProductName;
       const newProductId = document.querySelector("#new-product-id");
       if (source === "tk") {
+        newProductRow.dataset.source = "tk";
         newProductRow.dataset.productId = "1729483061000234567";
         newProductId.textContent = `TK Product ID：${newProductRow.dataset.productId}`;
         newProductId.hidden = false;
       } else {
+        newProductRow.dataset.source = "site";
         delete newProductRow.dataset.productId;
         newProductId.textContent = "";
         newProductId.hidden = true;

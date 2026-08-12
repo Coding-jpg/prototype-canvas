@@ -62,11 +62,13 @@ test("frame toolbar controls do not start frame dragging", () => {
 
 test("the default board showcases the product import flow", () => {
   const defaultState = section("function defaultState()", "function migrateState");
-  assert.match(defaultState, /version: 4/);
+  assert.match(defaultState, /version: 5/);
   assert.match(defaultState, /componentId: "product-import-flow"/);
   assert.match(defaultState, /components\/product-import-flow\/index\.html/);
   assert.match(defaultState, /product-import-entry-arrow/);
   assert.match(defaultState, /product-import-failure-arrow/);
+  assert.match(defaultState, /product-detail-conditional-fields/);
+  assert.match(defaultState, /类目有识别结果时显示/);
 });
 
 test("legacy boards receive the product import frame without replacing their items", () => {
@@ -96,7 +98,7 @@ test("product import annotations are added once to a version 2 board", () => {
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 4);
+  assert.equal(board.version, 5);
   assert.equal(board.items.length, itemCount);
   assert.equal(board.items.filter(item => item.annotationKey?.startsWith("product-import-")).length, 4);
   assert.equal(board.items.filter(item => item.type === "note" && item.annotationKey?.startsWith("product-import-")).length, 2);
@@ -117,7 +119,34 @@ test("version 3 boards replace the task-center annotation with product readiness
 
   migrateState(board);
 
-  assert.equal(board.version, 4);
+  assert.equal(board.version, 5);
   assert.match(board.items.find(item => item.annotationKey === "product-import-failure").text, /准备中.*可用.*物料缺失/);
   assert.doesNotMatch(board.items.find(item => item.annotationKey === "product-import-failure").text, /任务中心/);
+});
+
+test("version 4 boards receive the conditional detail fields annotation once", () => {
+  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  let sequence = 0;
+  const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-${++sequence}`);
+  const userNote = { id: "user-note", type: "note", text: "保留我的说明" };
+  const board = {
+    version: 4,
+    items: [
+      { id: "frame-product", type: "frame", x: 100, y: 200, componentId: "product-import-flow" },
+      { id: "existing-note", type: "note", annotationKey: "product-import-entry", text: "已有入口说明" },
+      userNote
+    ]
+  };
+
+  migrateState(board);
+  const itemCount = board.items.length;
+  migrateState(board);
+
+  assert.equal(board.version, 5);
+  assert.equal(board.items.length, itemCount);
+  assert.equal(board.items.filter(item => item.annotationKey === "product-detail-conditional-fields").length, 1);
+  assert.equal(board.items.filter(item => item.annotationKey === "product-detail-conditional-fields-arrow").length, 1);
+  assert.match(board.items.find(item => item.annotationKey === "product-detail-conditional-fields").text, /商品 ID、国家固定显示/);
+  assert.equal(board.items.find(item => item.annotationKey === "product-import-entry").text, "已有入口说明");
+  assert.ok(board.items.includes(userNote));
 });

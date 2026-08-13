@@ -802,10 +802,11 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       function defaultState() {
         return {
-          version: 6,
+          version: 7,
           camera: { x: 76, y: 64, zoom: 0.72 },
           items: [
             { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" },
+            { id: uid("frame"), type: "frame", title: "帐号管理流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, componentId: "account-management-flow", componentPath: "./components/account-management-flow/index.html" },
             { id: uid("note"), type: "note", annotationKey: "product-import-entry", x: 1260, y: 40, width: 250, height: 168, text: "主入口只保留两类商品来源；具体导入方式在抽屉内选择。" },
             { id: uid("note"), type: "note", annotationKey: "product-import-failure", x: 1260, y: 260, width: 250, height: 184, text: "商品先进入准备中；系统处理完成后转为可用或物料缺失，缺失字段可在商品详情中补充。" },
             { id: uid("note"), type: "note", annotationKey: "product-detail-conditional-fields", x: 1260, y: 500, width: 280, height: 220, text: "详情基础信息按适用性展示：商品 ID、国家固定显示；类目有识别结果时显示；挂链状态仅适用商品显示，二维码仅生成后显示。独立站另显示推广站点名称。" },
@@ -819,7 +820,13 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       function migrateState(savedState) {
         if (!savedState || !Array.isArray(savedState.items)) return defaultState();
         const savedVersion = savedState.version || 1;
-        if (savedVersion >= 6) return savedState;
+        if (savedVersion >= 7) return savedState;
+
+        function ensureAccountManagementFrame() {
+          if (savedState.items.some(item => item.componentId === "account-management-flow")) return;
+          const frameBottom = savedState.items.reduce((bottom, item) => item.type === "frame" ? Math.max(bottom, (Number.isFinite(item.y) ? item.y : 0) + (item.height || 800)) : bottom, 0);
+          savedState.items.push({ id: uid("frame"), type: "frame", title: "帐号管理流程 · 桌面", device: "desktop", x: 0, y: frameBottom + 240, width: 1200, height: 800, componentId: "account-management-flow", componentPath: "./components/account-management-flow/index.html" });
+        }
 
         const legacyFrameIds = new Set();
         savedState.items.forEach(item => {
@@ -839,7 +846,8 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         }
 
         if (savedVersion >= 5) {
-          savedState.version = 6;
+          ensureAccountManagementFrame();
+          savedState.version = 7;
           return savedState;
         }
         let frame = savedState.items.find(item => item.componentId === "product-import-flow");
@@ -883,7 +891,8 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         if (!savedState.items.some(item => item.annotationKey === "product-detail-conditional-fields-arrow")) {
           savedState.items.push({ id: uid("arrow"), type: "arrow", annotationKey: "product-detail-conditional-fields-arrow", x: frame.x + 1180, y: frame.y + 570, x2: frame.x + 1260, y2: frame.y + 610 });
         }
-        savedState.version = 6;
+        ensureAccountManagementFrame();
+        savedState.version = 7;
         return savedState;
       }
 

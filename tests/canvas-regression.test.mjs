@@ -80,13 +80,15 @@ test("download filenames are safe and keep the html extension", () => {
   assert.equal(downloadFileName("   "), "component.html");
 });
 
-test("the default board showcases the product and account management flows", () => {
+test("the default board showcases the three published flows", () => {
   const defaultState = section("function defaultState()", "function migrateState");
-  assert.match(defaultState, /version: 7/);
+  assert.match(defaultState, /version: 8/);
   assert.match(defaultState, /componentId: "product-import-flow"/);
   assert.match(defaultState, /components\/product-import-flow\/index\.html/);
   assert.match(defaultState, /componentId: "account-management-flow"/);
   assert.match(defaultState, /components\/account-management-flow\/index\.html/);
+  assert.match(defaultState, /componentId: "matrix-video-creation"/);
+  assert.match(defaultState, /components\/matrix-video-creation\/index\.html/);
   assert.match(defaultState, /product-import-entry-arrow/);
   assert.match(defaultState, /product-import-failure-arrow/);
   assert.match(defaultState, /product-detail-conditional-fields/);
@@ -120,7 +122,7 @@ test("product import annotations are added once to a version 2 board", () => {
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 7);
+  assert.equal(board.version, 8);
   assert.equal(board.items.length, itemCount);
   assert.equal(board.items.filter(item => item.annotationKey?.startsWith("product-import-")).length, 4);
   assert.equal(board.items.filter(item => item.type === "note" && item.annotationKey?.startsWith("product-import-")).length, 2);
@@ -141,7 +143,7 @@ test("version 3 boards replace the task-center annotation with product readiness
 
   migrateState(board);
 
-  assert.equal(board.version, 7);
+  assert.equal(board.version, 8);
   assert.match(board.items.find(item => item.annotationKey === "product-import-failure").text, /准备中.*可用.*物料缺失/);
   assert.doesNotMatch(board.items.find(item => item.annotationKey === "product-import-failure").text, /任务中心/);
 });
@@ -164,7 +166,7 @@ test("version 4 boards receive the conditional detail fields annotation once", (
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 7);
+  assert.equal(board.version, 8);
   assert.equal(board.items.length, itemCount);
   assert.equal(board.items.filter(item => item.annotationKey === "product-detail-conditional-fields").length, 1);
   assert.equal(board.items.filter(item => item.annotationKey === "product-detail-conditional-fields-arrow").length, 1);
@@ -198,10 +200,11 @@ test("version 5 boards remove only the retired showcase components", () => {
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 7);
+  assert.equal(board.version, 8);
   assert.equal(board.items.length, itemCount);
   assert.deepEqual(board.items.slice(0, 4), [productFrame, userFrame, userNote, productNote]);
   assert.equal(board.items.filter(item => item.componentId === "account-management-flow").length, 1);
+  assert.equal(board.items.filter(item => item.componentId === "matrix-video-creation").length, 1);
   assert.ok(Number.isFinite(board.items.find(item => item.componentId === "account-management-flow").y));
 });
 
@@ -220,9 +223,10 @@ test("legacy embedded showcase frames are removed by their exact titles", () => 
 
   migrateState(board);
 
-  assert.equal(board.version, 7);
+  assert.equal(board.version, 8);
   assert.equal(board.items[0], similarlyNamedUserFrame);
   assert.equal(board.items.filter(item => item.componentId === "account-management-flow").length, 1);
+  assert.equal(board.items.filter(item => item.componentId === "matrix-video-creation").length, 1);
   assert.ok(Number.isFinite(board.items.find(item => item.componentId === "account-management-flow").y));
 });
 
@@ -240,12 +244,34 @@ test("version 6 boards receive the account management frame once", () => {
   migrateState(board);
 
   const accountFrames = board.items.filter(item => item.componentId === "account-management-flow");
-  assert.equal(board.version, 7);
+  assert.equal(board.version, 8);
   assert.equal(board.items.length, itemCount);
   assert.equal(accountFrames.length, 1);
   assert.equal(accountFrames[0].componentPath, "./components/account-management-flow/index.html");
   assert.ok(accountFrames[0].y >= 1040);
   assert.ok(board.items.includes(productFrame));
   assert.ok(board.items.includes(userFrame));
+  assert.ok(board.items.includes(userNote));
+});
+
+test("version 7 boards receive the matrix video creation frame once", () => {
+  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  let sequence = 0;
+  const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-${++sequence}`);
+  const accountFrame = { id: "frame-account", type: "frame", x: 0, y: 1040, width: 1200, height: 800, componentId: "account-management-flow" };
+  const userNote = { id: "note-user", type: "note", x: 100, y: 2000, text: "保留我的说明" };
+  const board = { version: 7, items: [accountFrame, userNote] };
+
+  migrateState(board);
+  const itemCount = board.items.length;
+  migrateState(board);
+
+  const matrixFrames = board.items.filter(item => item.componentId === "matrix-video-creation");
+  assert.equal(board.version, 8);
+  assert.equal(board.items.length, itemCount);
+  assert.equal(matrixFrames.length, 1);
+  assert.equal(matrixFrames[0].componentPath, "./components/matrix-video-creation/index.html");
+  assert.ok(matrixFrames[0].y >= 2080);
+  assert.ok(board.items.includes(accountFrame));
   assert.ok(board.items.includes(userNote));
 });

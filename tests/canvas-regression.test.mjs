@@ -60,6 +60,17 @@ test("frame toolbar controls do not start frame dragging", () => {
   assert.match(renderFrame, /data-rename/);
 });
 
+test("frame toolbars keep a fixed screen size while the canvas zooms", () => {
+  assert.match(html, /grid-template-rows: var\(--frame-toolbar-row-height, 40px\) 1fr/);
+  assert.match(html, /transform: scale\(var\(--frame-toolbar-scale, 1\)\)/);
+  const syncFrameChrome = section("function syncFrameChrome(element, item)", "function syncItemElement");
+  assert.match(syncFrameChrome, /1 \/ zoom/);
+  assert.match(syncFrameChrome, /40 \/ zoom/);
+  assert.match(syncFrameChrome, /Math\.max\(item\.width \* zoom, 390\)/);
+  const renderCamera = section("function renderCamera()", "function renderItems");
+  assert.match(renderCamera, /syncFrameChrome\(element, item\)/);
+});
+
 test("each frame can download its standalone HTML", () => {
   const renderFrame = section("function renderFrame(item)", "function renameFrame(item, element)");
   const downloadFrame = section("async function downloadFrame(item)", "function renderNote(item)");

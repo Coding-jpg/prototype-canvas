@@ -118,9 +118,14 @@ test("manual assignment completes every required video configuration field", () 
   assert.match(html, /class="product-nav/);
   assert.match(html, /data-manual-product="\$\{product\.id\}"/);
   assert.doesNotMatch(html, /条任务完整/);
-  assert.match(html, /class="task-card" data-task-card="\$\{task\.id\}"/);
+  assert.match(html, /class="task-card \$\{expanded \? "expanded" : ""\}" data-task-card="\$\{task\.id\}"/);
   assert.match(html, /class="task-card-list"/);
   assert.match(html, /const cards = activeTasks\.map\(manualTaskCardMarkup\)\.join\(""\)/);
+  assert.match(html, /data-task-toggle="\$\{task\.id\}" aria-expanded="\$\{expanded\}"/);
+  assert.match(html, /class="task-summary"/);
+  assert.match(html, /data-toggle-all-tasks/);
+  assert.match(html, /expandedManualTaskIds\.clear\(\)/);
+  assert.doesNotMatch(html, /已完成 \$\{completeCount\} \/ \$\{allTasks\.length\} 条手动视频任务/);
   assert.doesNotMatch(html, /data-task-id=/);
   assert.match(html, /data-manual-action="copy"/);
   assert.match(html, /data-manual-action="delete"/);

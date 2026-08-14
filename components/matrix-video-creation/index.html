@@ -141,12 +141,18 @@
     .task-card-list { min-height:0; overflow-y:auto; padding:14px; background:#f7f8f9; }
     .task-card { margin-bottom:12px; overflow:hidden; border:1px solid var(--line); border-radius:6px; background:#fff; }
     .task-card:last-child { margin-bottom:0; }
-    .task-editor-toolbar { display:flex; align-items:center; gap:7px; padding:10px 14px; border-bottom:1px solid var(--line); }
-    .task-editor-toolbar h4 { margin:0 auto 0 0; font-size:14px; }
+    .task-editor-toolbar { display:flex; align-items:center; gap:7px; min-height:54px; padding:0 10px; }
+    .task-toggle { min-width:0; flex:1; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; align-self:stretch; padding:0 4px; border:0; background:transparent; color:#30353b; text-align:left; }
+    .task-toggle-copy { min-width:0; }
+    .task-toggle-copy strong,.task-toggle-copy span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .task-toggle-copy strong { font-size:13px; }
+    .task-toggle-copy span { margin-top:2px; color:#858b93; font-size:10px; }
+    .task-chevron { color:#7f858d; font-size:15px; transition:transform .15s; }
+    .task-card.expanded .task-chevron { transform:rotate(180deg); }
     .tool-button { height:30px; padding:0 10px; border:1px solid var(--line); border-radius:5px; background:#fff; color:#555b64; font-size:11px; }
     .tool-button:hover { background:#f5f6f7; }
     .tool-button.danger { color:#b74646; }
-    .task-card-body { padding:14px; }
+    .task-card-body { padding:14px; border-top:1px solid var(--line); }
     .form-section { margin-bottom:16px; }
     .form-section:last-child { margin-bottom:0; }
     .form-section h5 { margin:0 0 10px; padding-left:8px; border-left:3px solid var(--blue); font-size:12px; }
@@ -233,6 +239,7 @@
     let creationMode = "auto";
     let quantityMode = "product";
     let activeManualProductId = "";
+    const expandedManualTaskIds = new Set();
     let manualTaskSequence = 0;
     let toastTimer;
 
@@ -242,6 +249,7 @@
       handleAmounts.clear();
       manualTasks.clear();
       activeManualProductId = "";
+      expandedManualTaskIds.clear();
       manualTaskSequence = 0;
       creationMode = "auto";
       quantityMode = "product";
@@ -362,10 +370,15 @@
       return ["productId", "handle", "script", "title", "model", "duration", "ratio", "reference", "generation"].every(field => String(task[field] || "").trim());
     }
 
+    function taskSummary(task) {
+      return [task.handle, task.script, task.model, task.duration].filter(Boolean).join(" · ");
+    }
+
     function manualTaskCardMarkup(task, index) {
       const product = products.find(item => item.id === task.productId);
-      return `<article class="task-card" data-task-card="${task.id}"><div class="task-editor-toolbar"><span class="task-state ${taskIsComplete(task) ? "complete" : ""}">✓</span><h4>视频任务 ${index + 1}</h4><button class="tool-button" type="button" data-manual-action="copy">复制</button><button class="tool-button danger" type="button" data-manual-action="delete">删除</button></div>
-        <div class="task-card-body">
+      const expanded = expandedManualTaskIds.has(task.id);
+      return `<article class="task-card ${expanded ? "expanded" : ""}" data-task-card="${task.id}"><div class="task-editor-toolbar"><button class="task-toggle" type="button" data-task-toggle="${task.id}" aria-expanded="${expanded}"><span class="task-state ${taskIsComplete(task) ? "complete" : ""}">✓</span><span class="task-toggle-copy"><strong>视频任务 ${index + 1}</strong><span class="task-summary">${escapeMarkup(taskSummary(task))}</span></span><span class="task-chevron">⌄</span></button><button class="tool-button" type="button" data-manual-action="copy">复制</button><button class="tool-button danger" type="button" data-manual-action="delete">删除</button></div>
+        <div class="task-card-body" ${expanded ? "" : "hidden"}>
           <section class="form-section"><h5>基础信息</h5><div class="manual-form-grid">
             <label class="manual-field product-field"><span>商品</span><input value="${escapeMarkup(product.name)}" readonly aria-label="当前任务商品"></label>
             <label class="manual-field"><span>Handle / 发布帐号</span><select data-task-field="handle" aria-label="当前任务 Handle / 发布帐号">${selectOptions(handles, task.handle)}</select></label>
@@ -393,8 +406,8 @@
         return `<button class="product-nav ${product.id === activeProduct.id ? "active" : ""}" type="button" data-manual-product="${product.id}"><img src="${product.image}" alt=""><div><strong>${product.name}</strong></div></button>`;
       }).join("");
       const cards = activeTasks.map(manualTaskCardMarkup).join("");
-      list.innerHTML = `<div class="manual-workbench"><aside class="task-sidebar"><div class="task-sidebar-head"><strong>商品</strong></div>${sidebar}</aside><section class="task-editor"><header class="task-list-head"><div><strong>${activeProduct.name}</strong><span>${activeTasks.length} 条视频任务</span></div><button class="tool-button" type="button" data-add-task-product="${activeProduct.id}">+ 新建任务</button></header><div class="task-card-list">${cards}</div></section></div>`;
-      document.querySelector("#page-info").textContent = `已完成 ${completeCount} / ${allTasks.length} 条手动视频任务`;
+      const allExpanded = activeTasks.length > 0 && activeTasks.every(task => expandedManualTaskIds.has(task.id));
+      list.innerHTML = `<div class="manual-workbench"><aside class="task-sidebar"><div class="task-sidebar-head"><strong>商品</strong></div>${sidebar}</aside><section class="task-editor"><header class="task-list-head"><div><strong>${activeProduct.name}</strong><span>${activeTasks.length} 条视频任务</span></div><button class="tool-button" type="button" data-toggle-all-tasks>${allExpanded ? "收起全部" : "展开全部"}</button><button class="tool-button" type="button" data-add-task-product="${activeProduct.id}">+ 新建任务</button></header><div class="task-card-list">${cards}</div></section></div>`;
       document.querySelector("#continue").disabled = completeCount !== allTasks.length;
     }
 
@@ -414,8 +427,8 @@
         if (!card) return;
         const complete = taskIsComplete(task);
         card.querySelector(".task-state").classList.toggle("complete", complete);
+        card.querySelector(".task-summary").textContent = taskSummary(task);
       });
-      document.querySelector("#page-info").textContent = `已完成 ${completeCount} / ${allTasks.length} 条手动视频任务`;
       document.querySelector("#continue").disabled = completeCount !== allTasks.length;
     }
 
@@ -476,7 +489,8 @@
       document.querySelector("#product-table-shell").hidden = step !== 1;
       document.querySelector("#assignment-panel").hidden = step !== 2;
       document.querySelector("#pagination").hidden = step !== 1;
-      document.querySelector("#page-info").textContent = step === 1 ? `共 ${filteredProducts().length} 个商品` : `已选择 ${selected.size} 个商品`;
+      document.querySelector("#page-info").hidden = step !== 1;
+      if (step === 1) document.querySelector("#page-info").textContent = `共 ${filteredProducts().length} 个商品`;
       document.querySelector("#cancel").textContent = step === 1 ? "退出创建" : "上一步";
       if (step === 1) document.querySelector("#continue").textContent = "继续";
       else renderAssignmentMode();
@@ -569,6 +583,15 @@
       updateManualCompletion();
     };
     document.querySelector("#product-config-list").onclick = event => {
+      const toggleAllButton = event.target.closest("[data-toggle-all-tasks]");
+      if (toggleAllButton) {
+        const product = products.find(item => item.id === activeManualProductId);
+        const tasks = tasksForProduct(product);
+        const allExpanded = tasks.length > 0 && tasks.every(task => expandedManualTaskIds.has(task.id));
+        tasks.forEach(task => allExpanded ? expandedManualTaskIds.delete(task.id) : expandedManualTaskIds.add(task.id));
+        renderAssignmentProducts();
+        return;
+      }
       const addTaskButton = event.target.closest("[data-add-task-product]");
       if (addTaskButton) {
         const product = products.find(item => item.id === addTaskButton.dataset.addTaskProduct);
@@ -577,12 +600,26 @@
         tasks.push(newTask);
         productAmounts.set(product.id, tasks.length);
         activeManualProductId = product.id;
+        expandedManualTaskIds.clear();
+        expandedManualTaskIds.add(newTask.id);
         renderAssignmentProducts();
+        requestAnimationFrame(() => document.querySelector(`[data-task-card="${newTask.id}"]`)?.scrollIntoView({ block:"nearest" }));
         return;
       }
       const productButton = event.target.closest("[data-manual-product]");
       if (productButton) {
         activeManualProductId = productButton.dataset.manualProduct;
+        renderAssignmentProducts();
+        return;
+      }
+      const taskToggle = event.target.closest("[data-task-toggle]");
+      if (taskToggle) {
+        const taskId = taskToggle.dataset.taskToggle;
+        if (expandedManualTaskIds.has(taskId)) expandedManualTaskIds.delete(taskId);
+        else {
+          expandedManualTaskIds.clear();
+          expandedManualTaskIds.add(taskId);
+        }
         renderAssignmentProducts();
         return;
       }
@@ -597,14 +634,20 @@
       if (action === "copy") {
         const copy = createManualTask(product, task);
         tasks.splice(index + 1, 0, copy);
+        expandedManualTaskIds.clear();
+        expandedManualTaskIds.add(copy.id);
       }
       if (action === "delete") {
         const total = selectedProducts().flatMap(tasksForProduct).length;
         if (total === 1) return;
         tasks.splice(index, 1);
+        expandedManualTaskIds.delete(task.id);
+        const nextTask = tasks[index] || tasks[index - 1];
+        if (nextTask) expandedManualTaskIds.add(nextTask.id);
       }
       productAmounts.set(product.id, tasks.length);
       renderAssignmentProducts();
+      if (action === "copy") requestAnimationFrame(() => document.querySelector(`[data-task-card="${tasks[index + 1].id}"]`)?.scrollIntoView({ block:"nearest" }));
     };
     document.querySelector("#continue").onclick = () => {
       if (step === 1 && selected.size) {

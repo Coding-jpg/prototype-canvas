@@ -62,6 +62,7 @@ test("frame toolbar controls do not start frame dragging", () => {
 
 test("the main canvas tools stay fixed outside the zooming stage", () => {
   assert.match(html, /\.tools \{[\s\S]*?position: fixed;[\s\S]*?top: 8px;[\s\S]*?left: 50%;[\s\S]*?transform: translateX\(-50%\)/);
+  assert.match(html, /\.actions \{[\s\S]*?grid-column: 3;[\s\S]*?justify-self: end;/);
   const viewportMarkup = section('<section id="viewport"', '<footer class="statusbar"');
   assert.doesNotMatch(viewportMarkup, /class="tools"/);
   const toolbarMarkup = section('<nav class="tools"', '</nav>');

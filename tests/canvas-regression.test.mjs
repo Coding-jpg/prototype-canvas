@@ -60,15 +60,15 @@ test("frame toolbar controls do not start frame dragging", () => {
   assert.match(renderFrame, /data-rename/);
 });
 
-test("frame toolbars keep a fixed screen size while the canvas zooms", () => {
-  assert.match(html, /grid-template-rows: var\(--frame-toolbar-row-height, 40px\) 1fr/);
-  assert.match(html, /transform: scale\(var\(--frame-toolbar-scale, 1\)\)/);
-  const syncFrameChrome = section("function syncFrameChrome(element, item)", "function syncItemElement");
-  assert.match(syncFrameChrome, /1 \/ zoom/);
-  assert.match(syncFrameChrome, /40 \/ zoom/);
-  assert.match(syncFrameChrome, /Math\.max\(item\.width \* zoom, 390\)/);
-  const renderCamera = section("function renderCamera()", "function renderItems");
-  assert.match(renderCamera, /syncFrameChrome\(element, item\)/);
+test("the main canvas tools stay fixed outside the zooming stage", () => {
+  assert.match(html, /\.tools \{[\s\S]*?position: fixed;[\s\S]*?top: 8px;[\s\S]*?left: 50%;[\s\S]*?transform: translateX\(-50%\)/);
+  const viewportMarkup = section('<section id="viewport"', '<footer class="statusbar"');
+  assert.doesNotMatch(viewportMarkup, /class="tools"/);
+  const toolbarMarkup = section('<nav class="tools"', '</nav>');
+  assert.match(toolbarMarkup, /id="add-component"/);
+  assert.match(toolbarMarkup, /data-tool-button="text"/);
+  assert.match(toolbarMarkup, /data-tool-button="note"/);
+  assert.match(toolbarMarkup, /data-tool-button="arrow"/);
 });
 
 test("each frame can download its standalone HTML", () => {

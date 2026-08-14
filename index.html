@@ -99,10 +99,15 @@
     }
 
     .tools {
+      position: fixed;
+      z-index: 40;
+      top: 8px;
+      left: 50%;
       padding: 3px;
       background: var(--panel-2);
       border: 1px solid var(--border);
       border-radius: 7px;
+      transform: translateX(-50%);
     }
 
     .actions { justify-content: flex-end; }
@@ -202,8 +207,8 @@
 
     .board-frame {
       display: grid;
-      grid-template-rows: var(--frame-toolbar-row-height, 40px) 1fr;
-      overflow: visible;
+      grid-template-rows: 40px 1fr;
+      overflow: hidden;
       background: var(--panel);
       border: 1px solid var(--border-strong);
       border-radius: 7px;
@@ -214,17 +219,11 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      width: var(--frame-toolbar-width, 100%);
-      height: 40px;
       min-width: 0;
       padding: 0 8px 0 11px;
       background: var(--panel-2);
       border-bottom: 1px solid var(--border);
-      border-radius: 6px 6px 0 0;
       cursor: grab;
-      transform: scale(var(--frame-toolbar-scale, 1));
-      transform-origin: top left;
-      will-change: transform;
     }
 
     .frame-bar:active { cursor: grabbing; }
@@ -260,7 +259,6 @@
       position: relative;
       overflow: hidden;
       background: white;
-      border-radius: 0 0 6px 6px;
     }
 
     .frame-content iframe {
@@ -628,8 +626,12 @@
       .tools {
         grid-column: 1 / -1;
         grid-row: 2;
+        top: 58px;
+        right: 8px;
+        left: 8px;
         justify-content: center;
         overflow-x: auto;
+        transform: none;
       }
 
       .command-button span { display: none; }
@@ -974,11 +976,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       function renderCamera() {
         const { x, y, zoom } = state.camera;
         stage.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
-        state.items.forEach(item => {
-          if (item.type !== "frame") return;
-          const element = stage.querySelector(`[data-id="${CSS.escape(item.id)}"]`);
-          if (element) syncFrameChrome(element, item);
-        });
         viewport.style.backgroundPosition = `${x % (20 * zoom)}px ${y % (20 * zoom)}px`;
         viewport.style.backgroundSize = `${20 * zoom}px ${20 * zoom}px`;
         zoomLabel.textContent = Math.round(zoom * 100) + "%";
@@ -1016,13 +1013,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         return renderArrow(item);
       }
 
-      function syncFrameChrome(element, item) {
-        const zoom = state.camera.zoom || 1;
-        element.style.setProperty("--frame-toolbar-scale", String(1 / zoom));
-        element.style.setProperty("--frame-toolbar-row-height", `${40 / zoom}px`);
-        element.style.setProperty("--frame-toolbar-width", `${Math.max(item.width * zoom, 390)}px`);
-      }
-
       function syncItemElement(element, item) {
         if (item.type === "arrow") {
           const replacement = renderArrow(item);
@@ -1037,7 +1027,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         if (item.type === "frame") {
           element.style.width = item.width + "px";
           element.style.height = item.height + "px";
-          syncFrameChrome(element, item);
           element.querySelector(".frame-title").textContent = item.title;
           element.querySelector(".device-select").value = item.device;
           const iframe = element.querySelector("iframe");
@@ -1066,7 +1055,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         const element = baseItemElement(item, "board-frame");
         element.style.width = item.width + "px";
         element.style.height = item.height + "px";
-        syncFrameChrome(element, item);
         element.innerHTML = `
           <header class="frame-bar" data-drag-handle>
             <span class="frame-title"></span>

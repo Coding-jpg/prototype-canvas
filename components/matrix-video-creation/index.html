@@ -35,6 +35,31 @@
     .entry-action { color:var(--blue); font-weight:650; }
     .entry-icon { width:34px; height:34px; display:grid; place-items:center; margin:0 auto 7px; border-radius:5px; background:#111318; color:#fff; font-size:20px; }
     .entry p { margin:3px 0 0; color:#8d929a; font-size:12px; }
+    .upload-shortcut { min-height:48px; display:flex; align-items:center; justify-content:flex-end; gap:10px; color:#858a92; font-size:12px; }
+    .upload-shortcut button { height:32px; padding:0 11px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#555b64; font-size:12px; font-weight:600; }
+    .upload-shortcut button:hover { background:#f5f6f7; color:#292d32; }
+    .upload-dialog { width:min(680px,calc(100vw - 48px)); padding:0; border:0; border-radius:7px; background:#fff; box-shadow:0 24px 70px rgba(20,24,32,.24); }
+    .upload-dialog::backdrop { background:rgba(25,28,34,.44); }
+    .upload-dialog-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:19px 22px 15px; border-bottom:1px solid var(--line); }
+    .upload-dialog-head h2 { margin:0; font-size:18px; }
+    .upload-dialog-head p { margin:4px 0 0; color:#858a92; font-size:11px; }
+    .dialog-close { width:30px; height:30px; display:grid; place-items:center; padding:0; border:0; border-radius:5px; background:transparent; color:#626872; font-size:20px; }
+    .dialog-close:hover { background:#f1f2f4; }
+    .upload-content { padding:18px 22px 22px; }
+    .upload-content > h3 { margin:0; font-size:18px; }
+    .upload-content > p { margin:5px 0 22px; color:#777d86; font-size:12px; }
+    .upload-form { display:block; }
+    .upload-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .upload-field { display:grid; gap:6px; color:#555b64; font-size:12px; font-weight:650; }
+    .upload-field.full { grid-column:1 / -1; }
+    .upload-field input,.upload-field select { width:100%; height:38px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#30353b; }
+    .file-drop { min-height:126px; display:grid; place-items:center; padding:18px; border:1px dashed #c8cdd4; border-radius:6px; background:#f7f8f9; color:#545b65; text-align:center; cursor:pointer; }
+    .file-drop:hover { border-color:#9fa7b2; background:#f3f5f7; }
+    .file-drop input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+    .file-drop strong,.file-drop span { display:block; }
+    .file-drop span { margin-top:5px; color:#858b94; font-size:11px; font-weight:500; }
+    .file-help { margin:-9px 0 0; color:#8a8f97; font-size:11px; font-weight:500; }
+    .upload-form-actions { display:flex; justify-content:flex-end; gap:10px; padding-top:16px; border-top:1px solid var(--line); }
     .creation-page { min-height:100vh; background:#fff; }
     .creation-shell { width:min(1240px,100%); height:100vh; display:grid; grid-template-rows:auto auto auto minmax(0,1fr) auto; margin:0 auto; }
     .creation-head { grid-row:1; display:grid; grid-template-columns:220px minmax(0,1fr) 220px; align-items:center; min-height:64px; padding:0 20px; border-bottom:1px solid var(--line); }
@@ -179,7 +204,8 @@
     <section class="workspace">
       <header class="topbar"><span>◇ 工作台</span><span class="profile">人</span></header>
       <section class="hero"><h1>你的 7/24 小时自动运行的内容团队</h1><p>自动完成创作、发布、复盘和下一轮优化，持续推进内容增长。</p><div class="mode-switch"><button class="active">矩阵视频</button><button>视频生成</button></div></section>
-      <section class="entry" id="open-batch" role="button" tabindex="0" aria-label="选择商品创建矩阵视频"><div><div class="entry-icon">▣</div><span class="entry-action">选择商品创建矩阵视频</span><p>从商品库中选择商品，再完成任务分配。</p></div></section>
+      <section class="entry" id="open-batch" role="button" tabindex="0" aria-label="选择商品创建矩阵视频"><div><div class="entry-icon">▣</div><span class="entry-action">AI 制作视频</span><p>选择商品并完成自动或手动任务分配。</p></div></section>
+      <div class="upload-shortcut"><span>已有制作完成的视频？</span><button id="open-upload" type="button">上传成片发布</button></div>
     </section>
   </main>
 
@@ -209,6 +235,20 @@
       <footer class="creation-foot"><span class="page-info" id="page-info">共 8 个商品</span><nav class="pagination" id="pagination" aria-label="商品分页"></nav><div class="footer-actions"><button class="button" id="cancel">退出创建</button><button class="button primary" id="continue" disabled>继续</button></div></footer>
     </section>
   </section>
+  <dialog class="upload-dialog" id="upload-dialog">
+    <form class="upload-form" id="upload-form">
+      <header class="upload-dialog-head"><div><h2>上传成片发布</h2><p>上传成功后进入待发布队列，再设置发布时间。</p></div><button class="dialog-close" type="button" id="close-upload" aria-label="关闭">×</button></header>
+      <div class="upload-content">
+          <div class="upload-form-grid">
+            <label class="upload-field"><span>发布帐号 / Handle</span><select id="upload-handle" required><option value="">请选择帐号</option><option>@user167630490</option><option>@dailyhome.us</option><option>@smartfinds.lab</option></select></label>
+            <label class="upload-field"><span>挂链商品（选填）</span><select id="upload-product"><option value="">不挂链商品</option><option>Portable Blender Cup</option><option>Ergonomic Office Chair with Lumbar Support</option></select></label>
+            <label class="upload-field full"><span>视频标题</span><input id="upload-title" required placeholder="填写发布时使用的视频标题"></label>
+            <label class="upload-field full"><span>成片文件</span><span class="file-drop"><input type="file" id="upload-file" accept="video/mp4,video/quicktime" required><strong id="upload-file-name">选择视频文件</strong><span>点击选择 MP4 或 MOV 文件</span></span><small class="file-help">最大 100MB，最长 2 分钟；上传后由服务端校验文件。</small></label>
+          </div>
+          <div class="upload-form-actions"><button class="button" type="button" id="cancel-upload">取消</button><button class="button primary" type="submit">加入发布队列</button></div>
+      </div>
+    </form>
+  </dialog>
   <section class="exit-confirm" id="exit-confirm" hidden role="dialog" aria-modal="true" aria-labelledby="exit-confirm-title"><div class="exit-confirm-panel"><h3 id="exit-confirm-title">退出创建？</h3><p>退出后，当前商品选择和任务配置将丢失。</p><div class="exit-confirm-actions"><button class="button" id="continue-editing">继续编辑</button><button class="button primary" id="confirm-exit">确认退出</button></div></div></section>
   <div class="toast" id="toast" role="status"></div>
 
@@ -496,6 +536,8 @@
       else renderAssignmentMode();
     }
 
+    const uploadDialog = document.querySelector("#upload-dialog");
+
     function enterCreation(updateLocation = true) {
       app.hidden = true;
       creationPage.hidden = false;
@@ -508,6 +550,16 @@
       creationPage.hidden = true;
       app.hidden = false;
       if (updateLocation && location.hash === "#/matrix-video/create") location.hash = "";
+    }
+
+    function openUpload(updateLocation = true) {
+      if (!uploadDialog.open) uploadDialog.showModal();
+      if (updateLocation && location.hash !== "#/matrix-video/upload") location.hash = "/matrix-video/upload";
+    }
+
+    function closeUpload(updateLocation = true) {
+      if (uploadDialog.open) uploadDialog.close();
+      if (updateLocation && location.hash === "#/matrix-video/upload") location.hash = "";
     }
 
     function requestExit() {
@@ -524,6 +576,17 @@
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
       openBatch();
+    };
+    document.querySelector("#open-upload").onclick = () => openUpload();
+    document.querySelector("#close-upload").onclick = () => closeUpload();
+    document.querySelector("#cancel-upload").onclick = () => closeUpload();
+    document.querySelector("#upload-file").onchange = event => { document.querySelector("#upload-file-name").textContent = event.target.files[0]?.name || "选择视频文件"; };
+    document.querySelector("#upload-form").onsubmit = event => {
+      event.preventDefault();
+      const toast = document.querySelector("#toast");
+      toast.textContent = "成片已上传，正在进入待发布队列";
+      toast.classList.add("show");
+      setTimeout(() => { location.href = "../task-management/index.html#/publish"; }, 900);
     };
     document.querySelector("#close-creation").onclick = requestExit;
     document.querySelector("#back-workspace").onclick = requestExit;
@@ -667,8 +730,16 @@
         showStep(1);
       }
     };
-    window.addEventListener("hashchange", () => location.hash === "#/matrix-video/create" ? enterCreation(false) : exitCreation(false));
-    if (location.hash === "#/matrix-video/create") enterCreation(false);
+    function syncRoute() {
+      if (location.hash === "#/matrix-video/create") enterCreation(false);
+      else {
+        exitCreation(false);
+        if (location.hash === "#/matrix-video/upload") openUpload(false);
+        else closeUpload(false);
+      }
+    }
+    window.addEventListener("hashchange", syncRoute);
+    syncRoute();
     renderProducts();
   </script>
 </body>

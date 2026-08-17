@@ -1,0 +1,8 @@
+{
+  "id": "task-management",
+  "name": "视频任务管理",
+  "published": true,
+  "device": "desktop",
+  "category": "视频任务",
+  "description": "矩阵视频的人工审核、生成进度、发布设置与异常任务管理。"
+}

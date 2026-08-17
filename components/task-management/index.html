@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>视频任务管理</title>
+  <style>
+    :root {
+      --ink:#23262b; --muted:#727780; --line:#e5e7ea; --line-strong:#d7d9de;
+      --canvas:#f4f5f7; --panel:#fff; --blue:#1769e0; --blue-soft:#edf4ff;
+      --green:#18865f; --green-soft:#edf8f3; --orange:#ba6819; --orange-soft:#fff6e9;
+      --red:#c94343; --red-soft:#fff1f0; --dark:#151923;
+    }
+    * { box-sizing:border-box; }
+    [hidden] { display:none!important; }
+    html,body { margin:0; min-width:1180px; min-height:100%; color:var(--ink); background:#fff; font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; letter-spacing:0; }
+    button,input,select,textarea { font:inherit; }
+    button { color:inherit; cursor:pointer; }
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:3px solid rgba(23,105,224,.18); outline-offset:1px; }
+    .app { min-height:100vh; display:grid; grid-template-columns:58px minmax(0,1fr); }
+    .rail { min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:18px 7px 12px; background:#f0f1f3; }
+    .brand { width:32px; height:32px; display:grid; place-items:center; margin-bottom:22px; border-radius:5px; background:#101114; color:#fff; font-size:12px; font-weight:800; }
+    .rail-nav { width:100%; display:grid; gap:7px; }
+    .rail-item { width:100%; min-height:47px; display:grid; place-items:center; gap:1px; padding:6px 0; border:0; border-radius:5px; background:transparent; color:#858a92; font-size:11px; }
+    .rail-item:hover { background:#e6e7e9; }
+    .rail-item.active { background:#fff; color:#202328; font-weight:650; box-shadow:0 1px 3px rgba(25,30,38,.08); }
+    .rail-icon { font-size:16px; font-weight:500; }
+    .user-dot { width:30px; height:30px; display:grid; place-items:center; margin-top:auto; border-radius:50%; background:#d6ed3d; color:#111; font-size:11px; font-weight:800; }
+    .workspace { min-width:0; min-height:calc(100vh - 20px); margin:10px 10px 10px 0; padding:25px 20px 34px; border-radius:10px; background:var(--canvas); }
+    .crumb { margin-bottom:18px; color:#8a8f97; font-size:12px; }
+    .page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:16px; }
+    .page-head h1 { margin:0; font-size:21px; }
+    .page-head p { margin:4px 0 0; color:var(--muted); font-size:12px; }
+    .summary { color:#666c75; font-size:12px; }
+    .summary strong { color:var(--ink); }
+    .panel { overflow:hidden; border:1px solid var(--line); border-radius:7px; background:var(--panel); }
+    .tabs { display:flex; gap:25px; padding:0 16px; border-bottom:1px solid var(--line); }
+    .tab { position:relative; height:48px; display:flex; align-items:center; gap:7px; padding:0; border:0; background:transparent; color:#626873; font-size:13px; font-weight:600; }
+    .tab.active { color:#1f2329; }
+    .tab.active::after { content:""; position:absolute; right:0; bottom:-1px; left:0; height:2px; background:#1f2329; }
+    .count { min-width:21px; height:20px; display:inline-grid; place-items:center; padding:0 6px; border-radius:10px; background:#eff0f2; color:#6d737c; font-size:10px; }
+    .tab.active .count { background:#e4e6e9; color:#30343a; }
+    .toolbar { min-height:59px; display:flex; align-items:center; gap:9px; padding:11px 14px; border-bottom:1px solid var(--line); }
+    .search-wrap { position:relative; }
+    .search-wrap::before { content:"⌕"; position:absolute; left:11px; top:6px; color:#8a9098; }
+    .search { width:330px; height:36px; padding:0 12px 0 31px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; }
+    .select { height:36px; padding:0 30px 0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#4f555e; }
+    .button { min-height:34px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 13px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#34383f; font-weight:600; }
+    .button:hover { background:#f5f6f7; }
+    .button.primary { border-color:var(--dark); background:var(--dark); color:#fff; }
+    .button.primary:hover { background:#292e3a; }
+    .button.danger { border-color:#efaaaa; background:#fff8f7; color:var(--red); }
+    .button.small { min-height:30px; padding:0 10px; font-size:12px; }
+    .button:disabled { border-color:#e0e2e5; background:#f1f2f3; color:#a0a5ad; cursor:not-allowed; }
+    .toolbar-actions { display:flex; align-items:center; gap:8px; margin-left:auto; }
+    .upload-entry { text-decoration:none; }
+    .batch-bar { display:flex; align-items:center; gap:9px; }
+    .selected-copy { color:#7a8089; font-size:12px; }
+    .selected-copy strong { color:#343941; }
+    .table-scroll { overflow:auto; }
+    table { width:100%; min-width:1080px; border-collapse:collapse; table-layout:fixed; }
+    th { height:42px; padding:0 13px; border-bottom:1px solid var(--line); background:#f7f8f9; color:#5b626c; font-size:12px; text-align:left; }
+    td { height:92px; padding:12px 13px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:0; }
+    tbody tr:hover { background:#fcfcfd; }
+    .check-col { display:none; width:42px; padding-right:0; text-align:center; }
+    .selection-mode .check-col { display:table-cell; }
+    .product-col { width:250px; }
+    .handle-col { width:135px; }
+    .title-col { width:220px; }
+    .preview-col { width:115px; }
+    .publish-col { width:145px; }
+    .action-col { width:190px; }
+    input[type="checkbox"] { width:15px; height:15px; margin:0; accent-color:#20242b; }
+    .product-name-row { display:flex; align-items:flex-start; gap:6px; }
+    .product-name { min-width:0; max-width:190px; display:-webkit-box; overflow:hidden; font-weight:650; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+    .copy-button { width:25px; height:25px; flex:0 0 auto; display:grid; place-items:center; padding:0; border:0; border-radius:4px; background:transparent; color:#727984; font-size:15px; }
+    .copy-button:hover { background:#eceef1; color:#2c3138; }
+    .task-meta { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .task-id { color:#9297a0; font-size:10px; }
+    .handle { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:650; }
+    .video-title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+    .preview { width:52px; height:68px; position:relative; display:grid; place-items:center; overflow:hidden; border:1px solid var(--line); border-radius:5px; background:#eef0f2 center/cover no-repeat; color:#fff; }
+    .preview.ready::after { content:"▶"; width:25px; height:25px; display:grid; place-items:center; padding-left:2px; border-radius:50%; background:rgba(16,19,24,.78); font-size:10px; }
+    .preview.processing { color:#737982; background:#f0f1f3; font-size:10px; text-align:center; }
+    .preview.failed { color:var(--red); background:var(--red-soft); font-size:10px; }
+    .publish-time { color:#454b54; font-size:12px; }
+    .placeholder { color:#a0a5ad; }
+    .status-badge { height:22px; display:inline-flex; align-items:center; gap:5px; padding:0 7px; border:1px solid transparent; border-radius:4px; font-size:10px; font-weight:700; white-space:nowrap; }
+    .status-badge::before { width:6px; height:6px; border-radius:50%; background:currentColor; content:""; }
+    .status-badge.generating { border-color:#bdd2f5; background:var(--blue-soft); color:#2867b4; }
+    .status-badge.generation_failed,.status-badge.publish_failed { border-color:#efb6b3; background:var(--red-soft); color:#bc3e3e; }
+    .status-badge.pending_review { border-color:#efcfab; background:var(--orange-soft); color:#a55d18; }
+    .status-badge.pending_publish { border-color:#d2c6ee; background:#f3effc; color:#6a50a8; }
+    .status-badge.published { border-color:#b9dece; background:var(--green-soft); color:#187653; }
+    .row-actions { display:flex; align-items:center; gap:6px; }
+    .row-primary { min-width:92px; height:32px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#343941; font-size:12px; font-weight:650; white-space:nowrap; }
+    .row-primary.retry { border-color:#e8a6a3; background:var(--red-soft); color:#b63c3c; }
+    .row-primary.retry:hover { background:#ffe7e5; }
+    .row-primary.review { border-color:var(--dark); background:var(--dark); color:#fff; }
+    .row-primary.review:hover { background:#292e3a; }
+    .row-primary.publish { border-color:#c2b2e5; background:#f3effc; color:#654b9f; }
+    .row-primary.publish:hover { background:#eae2fb; }
+    .row-detail { min-width:76px; height:32px; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#626973; font-size:12px; font-weight:600; white-space:nowrap; }
+    .row-detail:hover { border-color:#b8bdc5; background:#f1f2f4; color:#252a31; }
+    .empty { padding:70px 20px; color:#8b9098; text-align:center; }
+    .pagination { min-height:51px; display:flex; align-items:center; padding:0 14px; border-top:1px solid var(--line); color:#7c828b; font-size:12px; }
+    .pagination-buttons { display:flex; gap:5px; margin-left:auto; }
+    .page-button { width:29px; height:29px; border:1px solid var(--line); border-radius:4px; background:#fff; color:#646a73; }
+    .page-button.active { background:#eceef0; color:#22262b; font-weight:700; }
+
+    dialog { padding:0; border:0; border-radius:7px; background:#fff; color:var(--ink); box-shadow:0 24px 70px rgba(20,24,32,.24); }
+    dialog::backdrop { background:rgba(25,28,34,.44); }
+    .dialog-form { max-height:calc(100vh - 48px); display:grid; grid-template-rows:auto minmax(0,1fr) auto; }
+    .dialog-head { display:flex; align-items:flex-start; gap:16px; padding:19px 22px 15px; border-bottom:1px solid var(--line); }
+    .dialog-head h2 { margin:0; font-size:18px; }
+    .eyebrow { display:block; margin-bottom:2px; color:#737983; font-size:11px; font-weight:650; }
+    .dialog-head p { margin:4px 0 0; color:var(--muted); font-size:12px; }
+    .icon-button { width:32px; height:32px; display:grid; place-items:center; margin-left:auto; padding:0; border:0; border-radius:50%; background:#f1f2f3; font-size:20px; }
+    .dialog-body { min-height:0; padding:18px 22px 23px; overflow:auto; }
+    .dialog-foot { display:flex; justify-content:flex-end; gap:9px; padding:13px 22px; border-top:1px solid var(--line); }
+    .detail-dialog { width:min(980px,calc(100vw - 48px)); height:min(760px,calc(100vh - 48px)); }
+    .detail-dialog .dialog-form { height:100%; }
+    .detail-overview { display:grid; grid-template-columns:180px minmax(0,1fr); gap:14px; padding:12px; border:1px solid var(--line); border-radius:6px; }
+    .detail-preview { height:220px; display:grid; place-items:center; border-radius:5px; background:var(--dark); color:#fff; font-weight:650; }
+    .detail-copy h3 { margin:2px 0 3px; font-size:14px; }
+    .detail-copy p { margin:0 0 14px; color:var(--muted); font-size:12px; }
+    .progress-track { height:7px; overflow:hidden; border-radius:4px; background:#ebedf0; }
+    .progress-track span { display:block; height:100%; border-radius:4px; background:var(--blue); }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+    .detail-section { padding-top:12px; border-top:1px solid var(--line); }
+    .detail-section h4 { margin:0 0 11px; font-size:13px; }
+    .kv { display:grid; grid-template-columns:92px minmax(0,1fr); gap:9px 12px; margin:0; font-size:12px; }
+    .kv dt { color:#777e88; }
+    .kv dd { margin:0; color:#4a5059; font-weight:550; }
+    .log-list { display:grid; gap:8px; }
+    .log-item { display:grid; grid-template-columns:60px minmax(0,1fr); gap:10px; color:#69707a; font-size:11px; }
+
+    .review-dialog { width:min(1100px,calc(100vw - 48px)); height:min(800px,calc(100vh - 48px)); }
+    .review-dialog .dialog-form { height:100%; }
+    .review-body { min-height:0; display:grid; grid-template-rows:minmax(0,1fr) auto; gap:14px; padding:18px; overflow:hidden; }
+    .review-material { min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr); gap:9px; }
+    .review-section-title { margin:0; font-size:13px; }
+    .review-content { min-height:0; display:grid; grid-template-columns:360px minmax(0,1fr); gap:16px; }
+    .video-player { position:relative; min-height:0; overflow:hidden; border-radius:6px; background:#121722 center/cover no-repeat; }
+    .video-player::after { content:"▶"; position:absolute; top:50%; left:50%; width:48px; height:48px; display:grid; place-items:center; padding-left:3px; border-radius:50%; transform:translate(-50%,-50%); background:rgba(13,17,23,.76); color:#fff; font-size:18px; }
+    .script-panel { min-height:0; overflow:auto; padding:14px; border:1px solid var(--line); border-radius:6px; }
+    .script-head { display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid var(--line); }
+    .script-head strong,.script-head span { display:block; }
+    .script-head strong { font-size:12px; }
+    .script-head div span,.script-head > span { margin-top:2px; color:#7b8189; font-size:11px; font-weight:500; }
+    .script-segment { padding:11px 0; border-bottom:1px solid var(--line); }
+    .script-segment:last-child { border-bottom:0; }
+    .segment-meta { margin-bottom:5px; color:#6e747d; font-size:11px; }
+    .script-row { display:grid; grid-template-columns:72px minmax(0,1fr); gap:10px; margin-top:5px; color:#58606b; font-size:12px; }
+    .script-row strong { color:#737a84; font-size:11px; }
+    .review-decision { display:grid; grid-template-columns:170px minmax(0,1fr); gap:18px; padding:13px 14px; border:1px solid var(--line); border-radius:6px; background:#f8f9fa; }
+    .decision-copy h3 { margin:0; font-size:13px; }
+    .decision-copy p { margin:3px 0 0; color:#7b8189; font-size:11px; }
+    .decision-control { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:12px; }
+    .decision-actions { display:flex; gap:8px; padding-bottom:1px; }
+    .reject-reason-field { display:grid; gap:6px; }
+    .reject-reason-field > span { color:#5f6670; font-size:11px; font-weight:650; }
+    .reject-reason { width:100%; min-height:64px; padding:8px 9px; resize:vertical; border:1px solid var(--line-strong); border-radius:5px; background:#fff; }
+    .review-note { margin:6px 0 0; color:#858b94; font-size:11px; }
+
+    .publish-dialog { width:min(520px,calc(100vw - 48px)); }
+    .publish-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .publish-option { position:relative; min-height:80px; padding:13px; border:1px solid var(--line-strong); border-radius:6px; background:#fff; text-align:left; }
+    .publish-option.active { border-color:#838a94; background:#f6f7f8; box-shadow:inset 0 0 0 1px #d5d8dc; }
+    .publish-option strong,.publish-option span { display:block; }
+    .publish-option span { margin-top:4px; color:#7a8088; font-size:11px; }
+    .schedule-field { display:grid; gap:6px; margin-top:15px; }
+    .schedule-field span { color:#616873; font-size:12px; font-weight:650; }
+    .schedule-field input { height:38px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; }
+    .toast { position:fixed; z-index:50; left:50%; bottom:28px; transform:translate(-50%,10px); padding:9px 14px; border-radius:5px; background:#22262c; color:#fff; opacity:0; pointer-events:none; transition:.16s; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="rail" aria-label="主导航">
+      <div class="brand">RF</div>
+      <nav class="rail-nav">
+        <button class="rail-item"><span class="rail-icon">◇</span><span>工作台</span></button>
+        <button class="rail-item"><span class="rail-icon">▱</span><span>创作</span></button>
+        <button class="rail-item active" aria-current="page"><span class="rail-icon">☷</span><span>任务</span></button>
+        <button class="rail-item"><span class="rail-icon">□</span><span>资产</span></button>
+        <button class="rail-item"><span class="rail-icon">▥</span><span>数据</span></button>
+      </nav>
+      <div class="user-dot">人</div>
+    </aside>
+
+    <section class="workspace">
+      <div class="crumb">任务 / <strong>矩阵视频</strong></div>
+      <header class="page-head">
+        <div><h1>视频任务</h1><p>审核矩阵视频，查看生成与发布进度</p></div>
+        <div class="summary">共 <strong id="total-count">0</strong> 条任务</div>
+      </header>
+
+      <section class="panel">
+        <nav class="tabs" id="status-tabs" aria-label="任务状态"></nav>
+        <div class="toolbar">
+          <select class="select" id="time-filter" aria-label="阶段时间">
+            <option value="all">全部时间</option><option value="today">今天</option><option value="7d">近 7 天</option><option value="30d">近 30 天</option>
+          </select>
+          <select class="select" id="handle-filter" aria-label="Handle">
+            <option value="all">全部 Handle</option>
+          </select>
+          <select class="select" id="stage-status-filter" aria-label="阶段状态" hidden></select>
+          <div class="search-wrap"><input class="search" id="task-search" placeholder="搜索商品、任务 ID、Handle、视频标题"></div>
+          <div class="toolbar-actions">
+            <a class="button small upload-entry" id="upload-video-entry" href="../matrix-video-creation/index.html#/matrix-video/upload" hidden>上传成片</a>
+            <button class="button danger small" id="enter-batch-retry" type="button" hidden>批量重试失败任务</button>
+            <div class="batch-bar" id="batch-bar" hidden>
+              <span class="selected-copy">已选择 <strong id="selected-count">0</strong> 项</span>
+              <button class="button small" id="exit-batch-retry">退出批量操作</button>
+              <button class="button primary small" id="batch-retry" disabled>批量重试</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th class="check-col"><input type="checkbox" id="select-all-failed" aria-label="选择当前页全部生成失败任务"></th><th class="product-col">商品名称</th><th class="handle-col">Handle</th><th class="title-col">视频标题</th><th class="preview-col">生成视频预览</th><th class="publish-col">发布时间</th><th class="action-col">操作</th></tr></thead>
+            <tbody id="task-list"></tbody>
+          </table>
+          <div class="empty" id="empty-state" hidden>没有匹配的任务</div>
+        </div>
+        <footer class="pagination"><span id="result-summary"></span><div class="pagination-buttons"><button class="page-button active">1</button></div></footer>
+      </section>
+    </section>
+  </main>
+
+  <dialog class="detail-dialog" id="detail-dialog">
+    <form class="dialog-form" method="dialog">
+      <header class="dialog-head"><div><span class="eyebrow" id="detail-status">生成中</span><h2 id="detail-title">视频任务详情</h2><p id="detail-meta"></p></div><button class="icon-button" value="cancel" aria-label="关闭">×</button></header>
+      <div class="dialog-body" id="detail-body"></div>
+      <footer class="dialog-foot"><button class="button" value="cancel">关闭</button><button class="button danger" type="button" id="detail-cancel">取消任务</button></footer>
+    </form>
+  </dialog>
+
+  <dialog class="review-dialog" id="review-dialog">
+    <form class="dialog-form" id="review-form">
+      <header class="dialog-head"><div><span class="eyebrow">生成视频</span><h2>视频审核</h2><p id="review-product"></p></div><button class="icon-button" type="button" data-close="review" aria-label="关闭">×</button></header>
+      <div class="review-body">
+        <section class="review-material"><h3 class="review-section-title">审核内容</h3><div class="review-content"><div class="video-player" id="review-player" aria-label="视频播放预览"></div><section class="script-panel"><div class="script-head"><div><strong>分镜脚本</strong><span>口播内容与中文翻译</span></div><span>英语（美国）</span></div><div id="script-content"></div></section></div></section>
+        <section class="review-decision"><div class="decision-copy"><h3>审核结论</h3><p>点击后立即进入下一步</p></div><div class="decision-control"><label class="reject-reason-field"><span>拒绝原因（选填）</span><textarea class="reject-reason" id="reject-reason" placeholder="仅拒绝时生效；填写后 AI 将按原因定向重做"></textarea><small class="review-note">不填写原因也可以直接拒绝。</small></label><div class="decision-actions"><button class="button danger" type="button" id="review-reject">拒绝</button><button class="button primary" type="button" id="review-approve">通过</button></div></div></section>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="publish-dialog" id="publish-dialog">
+    <form class="dialog-form" id="publish-form">
+      <header class="dialog-head"><div><span class="eyebrow">待发布</span><h2>设置发布时间</h2><p id="publish-product"></p></div><button class="icon-button" type="button" data-close="publish" aria-label="关闭">×</button></header>
+      <div class="dialog-body">
+        <div class="publish-options" role="radiogroup" aria-label="发布方式"><button class="publish-option active" type="button" data-publish-mode="now" role="radio" aria-checked="true"><strong>立即发布</strong><span>保存后通过浏览器插件执行发布</span></button><button class="publish-option" type="button" data-publish-mode="schedule" role="radio" aria-checked="false"><strong>定时发布</strong><span>到达设置时间后进入发布流程</span></button></div>
+        <label class="schedule-field" id="schedule-field" hidden><span>发布时间</span><input type="datetime-local" id="schedule-time"></label>
+      </div>
+      <footer class="dialog-foot"><button class="button" type="button" data-close="publish">取消</button><button class="button primary" type="submit">确认发布设置</button></footer>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const statuses = [
+      { id:"generating", label:"生成中" }, { id:"generation_failed", label:"生成失败" }, { id:"pending_review", label:"待审核" },
+      { id:"pending_publish", label:"待发布" }, { id:"published", label:"已发布" }, { id:"publish_failed", label:"发布失败" }
+    ];
+    const statusLabels = Object.fromEntries(statuses.map(item => [item.id, item.label]));
+    const stages = [
+      { id:"all", label:"全部", statuses:statuses.map(status => status.id) },
+      { id:"generation", label:"生成", statuses:["generating","generation_failed"] },
+      { id:"review", label:"审核", statuses:["pending_review"] },
+      { id:"publish", label:"发布", statuses:["pending_publish","publish_failed"] },
+      { id:"completed", label:"已完成", statuses:["published"] }
+    ];
+    const stageStatusOptions = {
+      generation:[{ id:"all", label:"全部生成状态" },{ id:"generating", label:"生成中" },{ id:"generation_failed", label:"生成失败" }],
+      publish:[{ id:"all", label:"全部发布状态" },{ id:"pending_publish", label:"待发布" },{ id:"publish_failed", label:"发布失败" }]
+    };
+    const assets = { jacket:"./assets/product-jacket.png", tree:"./assets/product-tree.png", chair:"./assets/product-chair.png", tool:"./assets/product-tool.png" };
+    const tasks = [
+      { id:"VT-20154FAF", product:"American Retro Patch Embroidered Hooded Sweatshirt", handle:"@user167630490", title:"Come closer, let’s get a photo before we go.", status:"generating", preview:"jacket", progress:62, created:"2026-08-17 14:55", country:"巴西", model:"OmniFlash", script:"测试独立站" },
+      { id:"VT-34AA55BB", product:"Portable Electric Mini Food Chopper", handle:"@dailyhome.us", title:"Dinner prep gets easier in ten seconds", status:"generation_failed", preview:"tool", progress:38, created:"2026-08-17 13:24", country:"美国", model:"OmniFlash", script:"厨房实测" },
+      { id:"VT-FAA74420", product:"Ins Fresh and Sweet Plaid Floral Dress", handle:"@test-mx-01", title:"La gorra que terminó todos mis looks", status:"generation_failed", preview:"tree", progress:71, created:"2026-08-17 12:40", country:"墨西哥", model:"Seedance 2.0", script:"合照C位2" },
+      { id:"VT-12813FE4", product:"Ins Fresh and Sweet Plaid Floral Dress", handle:"@user167630490", title:"They gave her the middle, then she changed the frame", status:"pending_review", preview:"tree", progress:100, created:"2026-08-17 11:35", country:"美国", model:"OmniFlash", script:"合照C位2" },
+      { id:"VT-430EFAB5", product:"American Retro Patch Embroidered Hoodie", handle:"@user167630490", title:"They saved the middle seat for the best print", status:"pending_review", preview:"jacket", progress:100, created:"2026-08-17 10:50", country:"美国", model:"OmniFlash", script:"测试独立站" },
+      { id:"VT-779CAD30", product:"Artificial Olive Tree for Living Room", handle:"@dailyhome.us", title:"The corner that finally feels finished", status:"pending_publish", preview:"tree", progress:100, created:"2026-08-16 18:20", country:"美国", model:"OmniFlash", script:"家居布置", publishTime:"—" },
+      { id:"VT-UPLOAD8A", product:"未挂链商品", handle:"@user167630490", title:"My weekend kitchen setup", status:"pending_publish", preview:"tool", progress:100, created:"2026-08-17 15:20", country:"美国", model:"本地上传", script:"上传成片", publishTime:"—", manualUpload:true },
+      { id:"VT-26BA881D", product:"Ergonomic Office Chair with Lumbar Support", handle:"@smartfinds.lab", title:"Your back will notice this one change", status:"pending_publish", preview:"chair", progress:100, created:"2026-08-16 17:10", country:"英国", model:"Veo 3.1", script:"办公好物", publishTime:"2026-08-18 20:30" },
+      { id:"VT-009DC134", product:"Compact Air Compressor for Car", handle:"@garagekit.us", title:"Never wait for roadside help again", status:"published", preview:"tool", progress:100, created:"2026-08-15 16:48", country:"美国", model:"OmniFlash", script:"汽车工具", publishTime:"2026-08-16 09:00" },
+      { id:"VT-B4821DE9", product:"Minimal Travel Backpack", handle:"@everydayupgrade", title:"The one bag that keeps the airport simple", status:"publish_failed", preview:"jacket", progress:100, created:"2026-08-15 14:26", country:"美国", model:"Seedance 2.0", script:"旅行收纳", publishTime:"2026-08-16 21:00" }
+    ];
+    const selectedFailed = new Set();
+    let activeStage = location.hash === "#/publish" ? "publish" : "all";
+    let stageStatusFilter = "all";
+    let query = "";
+    let timeFilter = "all";
+    let handleFilter = "all";
+    let activeTask = null;
+    let publishMode = "now";
+    let toastTimer;
+
+    const taskList = document.querySelector("#task-list");
+    const emptyState = document.querySelector("#empty-state");
+    const uploadEntry = document.querySelector("#upload-video-entry");
+    const batchEntry = document.querySelector("#enter-batch-retry");
+    const batchBar = document.querySelector("#batch-bar");
+    const selectAll = document.querySelector("#select-all-failed");
+    const detailDialog = document.querySelector("#detail-dialog");
+    const reviewDialog = document.querySelector("#review-dialog");
+    const publishDialog = document.querySelector("#publish-dialog");
+
+    function escapeMarkup(value) {
+      return String(value).replace(/[&<>"']/g, character => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[character]));
+    }
+
+    function showToast(message) {
+      const toast = document.querySelector("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function renderHandleOptions() {
+      const handles = [...new Set(tasks.map(task => task.handle))].sort((a,b) => a.localeCompare(b));
+      document.querySelector("#handle-filter").innerHTML = `<option value="all">全部 Handle</option>${handles.map(handle => `<option value="${escapeMarkup(handle)}">${escapeMarkup(handle)}</option>`).join("")}`;
+    }
+
+    function renderStageStatusFilter() {
+      const select = document.querySelector("#stage-status-filter");
+      const options = stageStatusOptions[activeStage] || [];
+      select.hidden = options.length === 0;
+      select.innerHTML = options.map(option => `<option value="${option.id}">${option.label}</option>`).join("");
+      select.value = stageStatusFilter;
+    }
+
+    function filteredTasks() {
+      const normalized = query.trim().toLowerCase();
+      const cutoffs = { "7d":"2026-08-11", "30d":"2026-07-18" };
+      const stage = stages.find(item => item.id === activeStage);
+      return tasks.filter(task => {
+        const date = task.created.slice(0,10);
+        const matchesTime = timeFilter === "all" || (timeFilter === "today" ? date === "2026-08-17" : date >= cutoffs[timeFilter]);
+        const matchesHandle = handleFilter === "all" || task.handle === handleFilter;
+        const matchesStage = stage.statuses.includes(task.status);
+        const matchesStageStatus = stageStatusFilter === "all" || task.status === stageStatusFilter;
+        const matchesQuery = !normalized || [task.id,task.product,task.handle,task.title].some(value => value.toLowerCase().includes(normalized));
+        return matchesTime && matchesHandle && matchesStage && matchesStageStatus && matchesQuery;
+      });
+    }
+
+    function renderTabs() {
+      document.querySelector("#status-tabs").innerHTML = stages.map(stage => {
+        const count = tasks.filter(task => stage.statuses.includes(task.status)).length;
+        return `<button class="tab ${activeStage === stage.id ? "active" : ""}" data-stage="${stage.id}">${stage.label}<span class="count">${count}</span></button>`;
+      }).join("");
+      document.querySelector("#total-count").textContent = tasks.length;
+    }
+
+    function previewMarkup(task) {
+      if (task.status === "generating") return `<div class="preview processing">${task.progress}%<br>生成中</div>`;
+      if (task.status === "generation_failed") return `<div class="preview failed">生成<br>失败</div>`;
+      return `<button class="preview ready" data-preview="${task.id}" style="background-image:linear-gradient(rgba(15,18,24,.16),rgba(15,18,24,.16)),url('${assets[task.preview]}')" aria-label="播放 ${escapeMarkup(task.product)} 的视频"></button>`;
+    }
+
+    function actionMarkup(task) {
+      const configurations = {
+        generating:{ action:"detail", label:"查看进度", showDetail:false },
+        generation_failed:{ action:"retry", label:"重试生成", icon:"↻", tone:"retry", showDetail:true },
+        pending_review:{ action:"review", label:"审核", icon:"✓", tone:"review", showDetail:true },
+        pending_publish:{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showDetail:true },
+        published:{ action:"detail", label:"查看详情", showDetail:false },
+        publish_failed:{ action:"retry-publish", label:"重试发布", icon:"↻", tone:"retry", showDetail:true }
+      };
+      const configuration = configurations[task.status];
+      const detail = configuration.showDetail ? `<button class="row-detail" type="button" data-action="detail" data-id="${task.id}">查看详情</button>` : "";
+      const primaryClass = configuration.action === "detail" ? "row-detail" : `row-primary ${configuration.tone}`;
+      const primaryIcon = configuration.icon ? `<span aria-hidden="true">${configuration.icon}</span>` : "";
+      return `<div class="row-actions"><button class="${primaryClass}" type="button" data-action="${configuration.action}" data-id="${task.id}">${primaryIcon}${configuration.label}</button>${detail}</div>`;
+    }
+
+    function renderTasks() {
+      const visible = filteredTasks();
+      const failureMode = activeStage === "generation" && stageStatusFilter === "generation_failed";
+      document.querySelector("table").classList.toggle("selection-mode", failureMode);
+      document.querySelector(".check-col input").hidden = !failureMode;
+      document.querySelectorAll("th.check-col").forEach(cell => cell.classList.toggle("failure-mode", failureMode));
+      taskList.innerHTML = visible.map(task => `<tr>
+        <td class="check-col">${failureMode && task.status === "generation_failed" ? `<input type="checkbox" data-failed-select="${task.id}" ${selectedFailed.has(task.id) ? "checked" : ""} aria-label="选择任务 ${task.id}">` : ""}</td>
+        <td><div class="product-name-row"><span class="product-name">${escapeMarkup(task.product)}</span><button class="copy-button" data-copy="${escapeMarkup(task.product)}" title="复制商品名称" aria-label="复制商品名称">⧉</button></div><div class="task-meta"><span class="status-badge ${task.status}">${statusLabels[task.status]}</span><small class="task-id">任务 ID：${task.id}</small></div></td>
+        <td><div class="handle">${task.handle}</div></td>
+        <td><div class="video-title">${escapeMarkup(task.title)}</div></td>
+        <td>${previewMarkup(task)}</td>
+        <td><span class="publish-time ${task.publishTime && task.publishTime !== "—" ? "" : "placeholder"}">${task.publishTime || "—"}</span></td>
+        <td>${actionMarkup(task)}</td>
+      </tr>`).join("");
+      emptyState.hidden = visible.length > 0;
+      document.querySelector("table").hidden = visible.length === 0;
+      document.querySelector("#result-summary").textContent = `共 ${visible.length} 条任务`;
+      const failedCount = tasks.filter(task => task.status === "generation_failed").length;
+      uploadEntry.hidden = activeStage !== "publish";
+      batchEntry.hidden = failureMode || failedCount === 0;
+      batchBar.hidden = !failureMode;
+      updateBatchControls(visible);
+    }
+
+    function updateBatchControls(visible = filteredTasks()) {
+      const failedIds = visible.filter(task => task.status === "generation_failed").map(task => task.id);
+      document.querySelector("#selected-count").textContent = selectedFailed.size;
+      document.querySelector("#batch-retry").disabled = selectedFailed.size === 0;
+      selectAll.checked = failedIds.length > 0 && failedIds.every(id => selectedFailed.has(id));
+      selectAll.indeterminate = failedIds.some(id => selectedFailed.has(id)) && !selectAll.checked;
+    }
+
+    function updateTaskStatus(task, status, message) {
+      task.status = status;
+      if (status === "generating") { task.progress = 8; delete task.publishTime; }
+      selectedFailed.delete(task.id);
+      renderTabs();
+      renderTasks();
+      showToast(message);
+    }
+
+    function openDetail(task) {
+      activeTask = task;
+      document.querySelector("#detail-status").textContent = statusLabels[task.status];
+      document.querySelector("#detail-title").textContent = `${task.id} · 视频任务详情`;
+      document.querySelector("#detail-meta").textContent = `${task.created} · 商品国家 ${task.country} · 帐号语言 英语（美国）`;
+      const detailCancel = document.querySelector("#detail-cancel");
+      detailCancel.hidden = task.status !== "generating";
+      document.querySelector("#detail-body").innerHTML = `<section class="detail-overview"><div class="detail-preview">${task.status === "generating" ? `生成中 ${task.progress}%` : statusLabels[task.status]}</div><div class="detail-copy"><h3>成片预览</h3><p>${task.model} · AI 决策 · ${task.status === "generating" ? "处理中" : "已完成生成"}</p><div class="progress-track"><span style="width:${task.progress}%"></span></div><p style="margin-top:9px">当前进度 ${task.progress}%</p></div></section><div class="detail-grid"><section class="detail-section"><h4>任务基础</h4><dl class="kv"><dt>商品</dt><dd>${escapeMarkup(task.product)}</dd><dt>任务 ID</dt><dd>${task.id}</dd><dt>Handle</dt><dd>${task.handle}</dd><dt>状态</dt><dd>${statusLabels[task.status]}</dd></dl></section><section class="detail-section"><h4>创作配置</h4><dl class="kv"><dt>脚本类型</dt><dd>${task.script}</dd><dt>视频模型</dt><dd>${task.model}</dd><dt>视频标题</dt><dd>${escapeMarkup(task.title)}</dd><dt>发布时间</dt><dd>${task.publishTime || "—"}</dd></dl></section><section class="detail-section"><h4>素材与生成</h4><dl class="kv"><dt>素材状态</dt><dd>${task.status === "generation_failed" ? "生成失败" : task.progress < 100 ? "处理中" : "已完成"}</dd><dt>AI 质检</dt><dd>${task.progress < 100 ? "待检" : "已通过"}</dd></dl></section><section class="detail-section"><h4>运行记录</h4><div class="log-list"><div class="log-item"><span>${task.created.slice(11)}</span><span>任务已创建，配置校验通过</span></div><div class="log-item"><span>+ 1 min</span><span>${task.status === "generation_failed" ? "视频生成失败，可重试任务" : "生成服务正在处理视频片段"}</span></div></div></section></div>`;
+      detailDialog.showModal();
+    }
+
+    const scriptSegments = [
+      ["分镜1 · 朋友 · 对白","Come closer, let’s get a photo before we go.","大家靠近一点，我们走之前拍张照。"],
+      ["分镜2 · 朋友 · 对白","You take the middle—your hoodie pulls the photo together.","你站中间吧——你的卫衣让这张照片更协调。"],
+      ["分镜2 · 主角 · 对白","Me?","我？"],
+      ["分镜3 · 朋友 · 对白","That print looks so good in the shot.","这个印花在照片里真好看。"],
+      ["分镜1 · 朋友 · 对白","Okay, where did you get that hoodie?","好吧，你这件卫衣是在哪里买的？"]
+    ];
+
+    function openReview(task) {
+      activeTask = task;
+      document.querySelector("#review-product").textContent = `${task.product} · ${task.handle}`;
+      document.querySelector("#review-player").style.backgroundImage = `linear-gradient(rgba(18,23,34,.15),rgba(18,23,34,.15)),url('${assets[task.preview]}')`;
+      document.querySelector("#script-content").innerHTML = scriptSegments.map(segment => `<section class="script-segment"><div class="segment-meta">${segment[0]}</div><div class="script-row"><strong>原文</strong><span>${segment[1]}</span></div><div class="script-row"><strong>中文翻译</strong><span>${segment[2]}</span></div></section>`).join("");
+      document.querySelector("#reject-reason").value = "";
+      reviewDialog.showModal();
+    }
+
+    function openPublish(task) {
+      activeTask = task;
+      publishMode = task.publishTime && task.publishTime !== "—" ? "schedule" : "now";
+      document.querySelector("#publish-product").textContent = `${task.product} · ${task.handle}`;
+      document.querySelectorAll("[data-publish-mode]").forEach(button => { const active = button.dataset.publishMode === publishMode; button.classList.toggle("active",active); button.setAttribute("aria-checked",String(active)); });
+      document.querySelector("#schedule-field").hidden = publishMode !== "schedule";
+      document.querySelector("#schedule-time").value = task.publishTime && task.publishTime !== "—" ? task.publishTime.replace(" ","T") : "2026-08-18T20:30";
+      publishDialog.showModal();
+    }
+
+    document.querySelector("#status-tabs").addEventListener("click", event => {
+      const button = event.target.closest("[data-stage]");
+      if (!button) return;
+      activeStage = button.dataset.stage;
+      stageStatusFilter = "all";
+      selectedFailed.clear();
+      renderTabs(); renderStageStatusFilter(); renderTasks();
+    });
+
+    document.querySelector("#task-search").addEventListener("input", event => { query = event.target.value; renderTasks(); });
+    document.querySelector("#time-filter").addEventListener("change", event => { timeFilter = event.target.value; renderTasks(); });
+    document.querySelector("#handle-filter").addEventListener("change", event => { handleFilter = event.target.value; selectedFailed.clear(); renderTasks(); });
+    document.querySelector("#stage-status-filter").addEventListener("change", event => { stageStatusFilter = event.target.value; selectedFailed.clear(); renderTasks(); });
+    taskList.addEventListener("change", event => {
+      const checkbox = event.target.closest("[data-failed-select]");
+      if (!checkbox) return;
+      checkbox.checked ? selectedFailed.add(checkbox.dataset.failedSelect) : selectedFailed.delete(checkbox.dataset.failedSelect);
+      updateBatchControls();
+    });
+    selectAll.addEventListener("change", () => {
+      filteredTasks().filter(task => task.status === "generation_failed").forEach(task => selectAll.checked ? selectedFailed.add(task.id) : selectedFailed.delete(task.id));
+      renderTasks();
+    });
+    batchEntry.onclick = () => {
+      activeStage = "generation";
+      stageStatusFilter = "generation_failed";
+      selectedFailed.clear();
+      renderTabs(); renderStageStatusFilter(); renderTasks();
+    };
+    document.querySelector("#exit-batch-retry").onclick = () => {
+      stageStatusFilter = "all";
+      selectedFailed.clear();
+      renderStageStatusFilter(); renderTasks();
+    };
+    document.querySelector("#batch-retry").onclick = () => {
+      tasks.filter(task => selectedFailed.has(task.id)).forEach(task => { task.status = "generating"; task.progress = 8; });
+      const count = selectedFailed.size; selectedFailed.clear(); renderTabs(); renderTasks(); showToast(`已重试 ${count} 条任务`);
+    };
+
+    taskList.addEventListener("click", async event => {
+      const copy = event.target.closest("[data-copy]");
+      if (copy) { try { await navigator.clipboard.writeText(copy.dataset.copy); showToast("商品名称已复制"); } catch { showToast("浏览器阻止了复制"); } return; }
+      const preview = event.target.closest("[data-preview]");
+      if (preview) { const task = tasks.find(item => item.id === preview.dataset.preview); task.status === "pending_review" ? openReview(task) : openDetail(task); return; }
+      const action = event.target.closest("[data-action]");
+      if (!action) return;
+      const task = tasks.find(item => item.id === action.dataset.id);
+      if (action.dataset.action === "detail") openDetail(task);
+      if (action.dataset.action === "review") openReview(task);
+      if (action.dataset.action === "publish") openPublish(task);
+      if (action.dataset.action === "retry") updateTaskStatus(task,"generating","任务已重新进入生成中");
+      if (action.dataset.action === "retry-publish") { task.status = "pending_publish"; renderTabs(); renderTasks(); showToast("已重新进入待发布"); }
+    });
+
+    document.querySelector("#detail-cancel").onclick = () => {
+      if (!activeTask || !confirm(`取消任务 ${activeTask.id}？`)) return;
+      tasks.splice(tasks.indexOf(activeTask),1); detailDialog.close(); renderTabs(); renderTasks(); showToast("任务已取消");
+    };
+    document.querySelectorAll('[data-close="review"]').forEach(button => button.onclick = () => reviewDialog.close());
+    document.querySelector("#review-approve").onclick = () => {
+      reviewDialog.close();
+      updateTaskStatus(activeTask,"pending_publish","审核已通过，任务进入待发布");
+    };
+    document.querySelector("#review-reject").onclick = () => {
+      const reason = document.querySelector("#reject-reason").value.trim();
+      reviewDialog.close();
+      updateTaskStatus(activeTask,"generating",reason ? "已按拒绝原因重新生成" : "已拒绝，任务重新进入生成中");
+    };
+    document.querySelectorAll("[data-publish-mode]").forEach(button => button.onclick = () => {
+      publishMode = button.dataset.publishMode;
+      document.querySelectorAll("[data-publish-mode]").forEach(item => { const active = item === button; item.classList.toggle("active",active); item.setAttribute("aria-checked",String(active)); });
+      document.querySelector("#schedule-field").hidden = publishMode !== "schedule";
+    });
+    document.querySelectorAll('[data-close="publish"]').forEach(button => button.onclick = () => publishDialog.close());
+    document.querySelector("#publish-form").addEventListener("submit", event => {
+      event.preventDefault();
+      if (publishMode === "schedule") {
+        const value = document.querySelector("#schedule-time").value;
+        if (!value) { showToast("请选择发布时间"); return; }
+        activeTask.publishTime = value.replace("T"," ");
+        publishDialog.close(); renderTasks(); showToast("定时发布已设置");
+      } else {
+        activeTask.publishTime = "立即发布";
+        publishDialog.close(); renderTasks(); showToast("已加入立即发布流程");
+      }
+    });
+
+    renderHandleOptions();
+    renderTabs();
+    renderStageStatusFilter();
+    renderTasks();
+  </script>
+</body>
+</html>

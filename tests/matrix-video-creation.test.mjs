@@ -21,6 +21,20 @@ test("the existing matrix video entry and two-step shell are preserved", () => {
   assert.match(html, />任务分配</);
 });
 
+test("uploaded finished videos use a separate publishing workflow", () => {
+  assert.match(html, /class="upload-shortcut"[\s\S]*?<button id="open-upload" type="button">上传成片发布<\/button>/);
+  assert.doesNotMatch(html, /class="entry-grid"/);
+  assert.match(html, /class="upload-dialog" id="upload-dialog"/);
+  assert.match(html, /uploadDialog\.showModal\(\)/);
+  assert.match(html, /id="upload-handle" required/);
+  assert.match(html, /挂链商品（选填）/);
+  assert.match(html, /id="upload-title" required/);
+  assert.match(html, /type="file" id="upload-file"[^>]*required/);
+  assert.match(html, />加入发布队列<\/button>/);
+  assert.match(html, /location\.hash !== "#\/matrix-video\/upload"/);
+  assert.match(html, /location\.href = "\.\.\/task-management\/index\.html#\/publish"/);
+});
+
 test("the creation flow opens as a page with browser history support", () => {
   assert.match(html, /class="creation-page" id="creation-page" hidden/);
   assert.match(html, /<h2>创建矩阵视频<\/h2>/);
@@ -28,7 +42,7 @@ test("the creation flow opens as a page with browser history support", () => {
   assert.match(html, /creationPage\.hidden = false/);
   assert.match(html, /location\.hash = "\/matrix-video\/create"/);
   assert.match(html, /window\.addEventListener\("hashchange"/);
-  assert.doesNotMatch(html, /<dialog|showModal\(|dialog::backdrop/);
+  assert.doesNotMatch(html, /class="creation-page"[^>]*role="dialog"/);
 });
 
 test("the immersive header confirms destructive exits without drafts", () => {

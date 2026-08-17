@@ -1061,6 +1061,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
             <button class="icon-button" type="button" data-reload title="重新加载组件"><i data-lucide="refresh-cw"></i></button>
             <button class="icon-button" type="button" data-download title="下载 HTML" aria-label="下载${escapeHtml(item.title)}"><i data-lucide="download"></i></button>
             <button class="icon-button" type="button" data-duplicate title="复制画框"><i data-lucide="copy"></i></button>
+            <button class="icon-button" type="button" data-remove-from-board title="从画板移除" aria-label="从画板移除${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
           </header>
           <div class="frame-content"><iframe title="${escapeHtml(item.title)}" sandbox="allow-scripts allow-forms allow-modals"></iframe></div>`;
         const title = element.querySelector(".frame-title");
@@ -1117,6 +1118,10 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           selectedId = copy.id;
           renderItems();
           queueSave();
+        });
+        element.querySelector("[data-remove-from-board]").addEventListener("click", event => {
+          event.stopPropagation();
+          deleteSelected(item.id);
         });
         bindMove(element, item, element.querySelector("[data-drag-handle]"));
         return element;
@@ -1308,12 +1313,11 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       function deleteSelected(id = selectedId) {
         if (!id) return;
-        const selectedItem = state.items.find(item => item.id === id);
-        if (!selectedItem || selectedItem.type === "frame") return;
         state.items = state.items.filter(item => item.id !== id);
         if (selectedId === id) selectedId = null;
         renderItems();
         queueSave();
+        showToast("已从画板移除，组件库与仓库文件不受影响");
       }
 
       function addAtPoint(type, point) {

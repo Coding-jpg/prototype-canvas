@@ -57,12 +57,15 @@ test("frame toolbar controls do not start frame dragging", () => {
   assert.match(renderFrame, /querySelectorAll\("\.frame-bar button"\)/);
   assert.match(renderFrame, /button\.addEventListener\("pointerdown", event => event\.stopPropagation\(\)\)/);
   assert.match(renderFrame, /data-rename/);
-  assert.doesNotMatch(renderFrame, /data-delete|trash-2/);
+  assert.match(renderFrame, /data-remove-from-board/);
+  assert.match(renderFrame, /从画板移除/);
 });
 
-test("component frames cannot be deleted from the board", () => {
+test("component frames can be removed from the board without changing the repository", () => {
   const deleteItem = section("function deleteSelected(id = selectedId)", "function addAtPoint");
-  assert.match(deleteItem, /selectedItem\.type === "frame"/);
+  assert.match(deleteItem, /state\.items = state\.items\.filter/);
+  assert.match(deleteItem, /组件库与仓库文件不受影响/);
+  assert.doesNotMatch(deleteItem, /fetch|componentCatalog|componentPath/);
 });
 
 test("the main canvas tools stay fixed outside the zooming stage", () => {

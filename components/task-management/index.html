@@ -71,7 +71,7 @@
     .title-col { width:220px; }
     .preview-col { width:115px; }
     .publish-col { width:145px; }
-    .action-col { width:190px; }
+    .action-col { width:260px; }
     input[type="checkbox"] { width:15px; height:15px; margin:0; accent-color:#20242b; }
     .product-name-row { display:flex; align-items:flex-start; gap:6px; }
     .product-name { min-width:0; max-width:190px; display:-webkit-box; overflow:hidden; font-weight:650; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
@@ -89,6 +89,7 @@
     .placeholder { color:#a0a5ad; }
     .status-badge { height:22px; display:inline-flex; align-items:center; gap:5px; padding:0 7px; border:1px solid transparent; border-radius:4px; font-size:10px; font-weight:700; white-space:nowrap; }
     .status-badge::before { width:6px; height:6px; border-radius:50%; background:currentColor; content:""; }
+    .status-badge.pending_configuration { border-color:#c7ccd3; background:#f2f3f5; color:#59616b; }
     .status-badge.generating { border-color:#bdd2f5; background:var(--blue-soft); color:#2867b4; }
     .status-badge.generation_failed,.status-badge.publish_failed { border-color:#efb6b3; background:var(--red-soft); color:#bc3e3e; }
     .status-badge.pending_review { border-color:#efcfab; background:var(--orange-soft); color:#a55d18; }
@@ -96,6 +97,8 @@
     .status-badge.published { border-color:#b9dece; background:var(--green-soft); color:#187653; }
     .row-actions { display:flex; align-items:center; gap:6px; }
     .row-primary { min-width:92px; height:32px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#343941; font-size:12px; font-weight:650; white-space:nowrap; }
+    .row-primary.configure { border-color:var(--dark); background:var(--dark); color:#fff; }
+    .row-primary.configure:hover { background:#292e3a; }
     .row-primary.retry { border-color:#e8a6a3; background:var(--red-soft); color:#b63c3c; }
     .row-primary.retry:hover { background:#ffe7e5; }
     .row-primary.review { border-color:var(--dark); background:var(--dark); color:#fff; }
@@ -104,6 +107,8 @@
     .row-primary.publish:hover { background:#eae2fb; }
     .row-detail { min-width:76px; height:32px; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#626973; font-size:12px; font-weight:600; white-space:nowrap; }
     .row-detail:hover { border-color:#b8bdc5; background:#f1f2f4; color:#252a31; }
+    .row-delete { height:32px; padding:0 8px; border:0; border-radius:5px; background:transparent; color:#b54848; font-size:12px; font-weight:600; }
+    .row-delete:hover { background:var(--red-soft); }
     .empty { padding:70px 20px; color:#8b9098; text-align:center; }
     .pagination { min-height:51px; display:flex; align-items:center; padding:0 14px; border-top:1px solid var(--line); color:#7c828b; font-size:12px; }
     .pagination-buttons { display:flex; gap:5px; margin-left:auto; }
@@ -120,8 +125,8 @@
     .icon-button { width:32px; height:32px; display:grid; place-items:center; margin-left:auto; padding:0; border:0; border-radius:50%; background:#f1f2f3; font-size:20px; }
     .dialog-body { min-height:0; padding:18px 22px 23px; overflow:auto; }
     .dialog-foot { display:flex; justify-content:flex-end; gap:9px; padding:13px 22px; border-top:1px solid var(--line); }
-    .detail-dialog { width:min(980px,calc(100vw - 48px)); height:min(760px,calc(100vh - 48px)); }
-    .detail-dialog .dialog-form { height:100%; }
+    .detail-drawer { position:fixed; inset:0 0 0 auto; width:min(920px,calc(100vw - 48px)); max-width:none; height:100dvh; max-height:none; margin:0; border-radius:8px 0 0 8px; }
+    .detail-drawer .dialog-form { height:100%; max-height:none; }
     .detail-overview { display:grid; grid-template-columns:180px minmax(0,1fr); gap:14px; padding:12px; border:1px solid var(--line); border-radius:6px; }
     .detail-preview { height:220px; display:grid; place-items:center; border-radius:5px; background:var(--dark); color:#fff; font-weight:650; }
     .detail-copy h3 { margin:2px 0 3px; font-size:14px; }
@@ -136,6 +141,18 @@
     .kv dd { margin:0; color:#4a5059; font-weight:550; }
     .log-list { display:grid; gap:8px; }
     .log-item { display:grid; grid-template-columns:60px minmax(0,1fr); gap:10px; color:#69707a; font-size:11px; }
+
+    .configuration-dialog { width:min(1120px,calc(100vw - 48px)); }
+    .configuration-card { padding:16px; border:1px solid var(--line); border-radius:6px; }
+    .configuration-card-head { padding-bottom:13px; border-bottom:1px solid var(--line); }
+    .configuration-card-head strong,.configuration-card-head span { display:block; }
+    .configuration-card-head strong { font-size:13px; }
+    .configuration-card-head span { margin-top:2px; color:#7a8089; font-size:11px; }
+    .configuration-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .configuration-field { min-width:0; display:grid; gap:5px; color:#5f6670; font-size:11px; font-weight:650; }
+    .configuration-field input,.configuration-field select { width:100%; height:40px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#30353b; }
+    .configuration-field input[readonly] { background:#f5f6f7; color:#707681; }
+    .configuration-field.title { grid-column:span 2; }
 
     .review-dialog { width:min(1100px,calc(100vw - 48px)); height:min(800px,calc(100vh - 48px)); }
     .review-dialog .dialog-form { height:100%; }
@@ -232,11 +249,29 @@
     </section>
   </main>
 
-  <dialog class="detail-dialog" id="detail-dialog">
+  <dialog class="detail-drawer" id="task-editor-drawer">
     <form class="dialog-form" method="dialog">
-      <header class="dialog-head"><div><span class="eyebrow" id="detail-status">生成中</span><h2 id="detail-title">视频任务详情</h2><p id="detail-meta"></p></div><button class="icon-button" value="cancel" aria-label="关闭">×</button></header>
+      <header class="dialog-head"><div><span class="eyebrow" id="detail-status">生成中</span><h2 id="detail-title">编辑视频任务</h2><p id="detail-meta"></p></div><button class="icon-button" value="cancel" aria-label="关闭">×</button></header>
       <div class="dialog-body" id="detail-body"></div>
       <footer class="dialog-foot"><button class="button" value="cancel">关闭</button><button class="button danger" type="button" id="detail-cancel">取消任务</button></footer>
+    </form>
+  </dialog>
+
+  <dialog class="configuration-dialog" id="configuration-dialog">
+    <form class="dialog-form" id="configuration-form">
+      <header class="dialog-head"><div><span class="eyebrow">手动配置</span><h2 id="configuration-title">配置视频任务</h2><p id="configuration-meta">配置提交后自动生成视频提示词并进入生成流程</p></div><button class="icon-button" type="button" data-close="configuration" aria-label="关闭">×</button></header>
+      <div class="dialog-body"><section class="configuration-card"><div class="configuration-card-head"><strong id="configuration-id"></strong><span>所有带 * 的字段由用户手动指定</span></div><div class="configuration-grid">
+        <label class="configuration-field product"><span>商品 *</span><input id="configuration-product" readonly></label>
+        <label class="configuration-field"><span>Handle / 发布帐号 *</span><select id="configuration-handle" required><option>@user167630490</option><option>@dailyhome.us</option><option>@smartfinds.lab</option></select></label>
+        <label class="configuration-field script"><span>脚本 *</span><select id="configuration-script" required><option>合照c位2 · 独立站</option><option>产品卖点口播 · 通用</option><option>场景体验分享 · 通用</option></select></label>
+        <label class="configuration-field title"><span>视频标题 *</span><input id="configuration-video-title" required></label>
+        <label class="configuration-field"><span>视频模型 *</span><select id="configuration-model" required><option>OmniFlash</option><option>Seedance 2.0</option><option>Veo 3.1</option></select></label>
+        <label class="configuration-field"><span>成片时长 *</span><select id="configuration-duration" required><option>16 秒（2 × 8 秒）</option><option>24 秒（3 × 8 秒）</option><option>32 秒（4 × 8 秒）</option></select></label>
+        <label class="configuration-field"><span>画面比例 *</span><select id="configuration-ratio" required><option>9:16</option><option>1:1</option><option>16:9</option></select></label>
+        <label class="configuration-field"><span>参考模式 *</span><select id="configuration-reference" required><option>人物+商品</option><option>仅商品</option><option>人物形象</option></select></label>
+        <label class="configuration-field"><span>生成模式 *</span><select id="configuration-generation" required><option>独立模式</option><option>连续模式</option></select></label>
+      </div></section></div>
+      <footer class="dialog-foot"><button class="button" type="button" data-close="configuration">取消</button><button class="button primary" type="submit">保存配置并开始生成</button></footer>
     </form>
   </dialog>
 
@@ -264,14 +299,15 @@
 
   <script>
     const statuses = [
-      { id:"generating", label:"生成中" }, { id:"generation_failed", label:"生成失败" }, { id:"pending_review", label:"待审核" },
+      { id:"pending_configuration", label:"待配置" }, { id:"generating", label:"生成中" }, { id:"generation_failed", label:"生成失败" }, { id:"pending_review", label:"待审核" },
       { id:"pending_publish", label:"待发布" }, { id:"published", label:"已发布" }, { id:"publish_failed", label:"发布失败" }
     ];
     const statusLabels = Object.fromEntries(statuses.map(item => [item.id, item.label]));
     const stages = [
       { id:"all", label:"全部", statuses:statuses.map(status => status.id) },
+      { id:"configuration", label:"待配置", statuses:["pending_configuration"] },
       { id:"generation", label:"生成", statuses:["generating","generation_failed"] },
-      { id:"review", label:"审核", statuses:["pending_review"] },
+      { id:"review", label:"待审核", statuses:["pending_review"] },
       { id:"publish", label:"发布", statuses:["pending_publish","publish_failed"] },
       { id:"completed", label:"已完成", statuses:["published"] }
     ];
@@ -281,6 +317,8 @@
     };
     const assets = { jacket:"./assets/product-jacket.png", tree:"./assets/product-tree.png", chair:"./assets/product-chair.png", tool:"./assets/product-tool.png" };
     const tasks = [
+      { id:"VT-CFG0140", product:"Auxiliar de Partida de Bateria Portátil com Compressor de Ar", handle:"待配置", title:"待配置", status:"pending_configuration", preview:"tool", progress:0, created:"2026-08-17 15:42", country:"巴西", model:"待配置", script:"待配置", duration:"16 秒（2 × 8 秒）", ratio:"9:16", reference:"人物+商品", generation:"独立模式" },
+      { id:"VT-CFG2254", product:"American Retro Patch Embroidered Hooded Sweatshirt", handle:"待配置", title:"待配置", status:"pending_configuration", preview:"jacket", progress:0, created:"2026-08-17 15:40", country:"美国", model:"待配置", script:"待配置", duration:"16 秒（2 × 8 秒）", ratio:"9:16", reference:"人物+商品", generation:"独立模式" },
       { id:"VT-20154FAF", product:"American Retro Patch Embroidered Hooded Sweatshirt", handle:"@user167630490", title:"Come closer, let’s get a photo before we go.", status:"generating", preview:"jacket", progress:62, created:"2026-08-17 14:55", country:"巴西", model:"OmniFlash", script:"测试独立站" },
       { id:"VT-34AA55BB", product:"Portable Electric Mini Food Chopper", handle:"@dailyhome.us", title:"Dinner prep gets easier in ten seconds", status:"generation_failed", preview:"tool", progress:38, created:"2026-08-17 13:24", country:"美国", model:"OmniFlash", script:"厨房实测" },
       { id:"VT-FAA74420", product:"Ins Fresh and Sweet Plaid Floral Dress", handle:"@test-mx-01", title:"La gorra que terminó todos mis looks", status:"generation_failed", preview:"tree", progress:71, created:"2026-08-17 12:40", country:"墨西哥", model:"Seedance 2.0", script:"合照C位2" },
@@ -308,7 +346,8 @@
     const batchEntry = document.querySelector("#enter-batch-retry");
     const batchBar = document.querySelector("#batch-bar");
     const selectAll = document.querySelector("#select-all-failed");
-    const detailDialog = document.querySelector("#detail-dialog");
+    const editorDrawer = document.querySelector("#task-editor-drawer");
+    const configurationDialog = document.querySelector("#configuration-dialog");
     const reviewDialog = document.querySelector("#review-dialog");
     const publishDialog = document.querySelector("#publish-dialog");
 
@@ -361,6 +400,7 @@
     }
 
     function previewMarkup(task) {
+      if (task.status === "pending_configuration") return `<div class="preview processing">等待<br>配置</div>`;
       if (task.status === "generating") return `<div class="preview processing">${task.progress}%<br>生成中</div>`;
       if (task.status === "generation_failed") return `<div class="preview failed">生成<br>失败</div>`;
       return `<button class="preview ready" data-preview="${task.id}" style="background-image:linear-gradient(rgba(15,18,24,.16),rgba(15,18,24,.16)),url('${assets[task.preview]}')" aria-label="播放 ${escapeMarkup(task.product)} 的视频"></button>`;
@@ -368,18 +408,20 @@
 
     function actionMarkup(task) {
       const configurations = {
-        generating:{ action:"detail", label:"查看进度", showDetail:false },
-        generation_failed:{ action:"retry", label:"重试生成", icon:"↻", tone:"retry", showDetail:true },
-        pending_review:{ action:"review", label:"审核", icon:"✓", tone:"review", showDetail:true },
-        pending_publish:{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showDetail:true },
-        published:{ action:"detail", label:"查看详情", showDetail:false },
-        publish_failed:{ action:"retry-publish", label:"重试发布", icon:"↻", tone:"retry", showDetail:true }
+        pending_configuration:{ action:"configure", label:"配置", icon:"⚙", tone:"configure", showEdit:true, canDelete:true },
+        generating:{ action:"edit", label:"查看进度", showEdit:false },
+        generation_failed:{ action:"retry", label:"重试生成", icon:"↻", tone:"retry", showEdit:true },
+        pending_review:{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:true },
+        pending_publish:{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showEdit:true },
+        published:{ action:"edit", label:"编辑", showEdit:false },
+        publish_failed:{ action:"retry-publish", label:"重试发布", icon:"↻", tone:"retry", showEdit:true }
       };
       const configuration = configurations[task.status];
-      const detail = configuration.showDetail ? `<button class="row-detail" type="button" data-action="detail" data-id="${task.id}">查看详情</button>` : "";
-      const primaryClass = configuration.action === "detail" ? "row-detail" : `row-primary ${configuration.tone}`;
+      const edit = configuration.showEdit ? `<button class="row-detail" type="button" data-action="edit" data-id="${task.id}">编辑</button>` : "";
+      const remove = configuration.canDelete ? `<button class="row-delete" type="button" data-action="delete" data-id="${task.id}">删除</button>` : "";
+      const primaryClass = configuration.action === "edit" ? "row-detail" : `row-primary ${configuration.tone}`;
       const primaryIcon = configuration.icon ? `<span aria-hidden="true">${configuration.icon}</span>` : "";
-      return `<div class="row-actions"><button class="${primaryClass}" type="button" data-action="${configuration.action}" data-id="${task.id}">${primaryIcon}${configuration.label}</button>${detail}</div>`;
+      return `<div class="row-actions"><button class="${primaryClass}" type="button" data-action="${configuration.action}" data-id="${task.id}">${primaryIcon}${configuration.label}</button>${edit}${remove}</div>`;
     }
 
     function renderTasks() {
@@ -424,15 +466,40 @@
       showToast(message);
     }
 
-    function openDetail(task) {
+    function openTaskEditor(task) {
       activeTask = task;
       document.querySelector("#detail-status").textContent = statusLabels[task.status];
-      document.querySelector("#detail-title").textContent = `${task.id} · 视频任务详情`;
+      document.querySelector("#detail-title").textContent = `${task.id} · 编辑视频任务`;
       document.querySelector("#detail-meta").textContent = `${task.created} · 商品国家 ${task.country} · 帐号语言 英语（美国）`;
       const detailCancel = document.querySelector("#detail-cancel");
       detailCancel.hidden = task.status !== "generating";
-      document.querySelector("#detail-body").innerHTML = `<section class="detail-overview"><div class="detail-preview">${task.status === "generating" ? `生成中 ${task.progress}%` : statusLabels[task.status]}</div><div class="detail-copy"><h3>成片预览</h3><p>${task.model} · AI 决策 · ${task.status === "generating" ? "处理中" : "已完成生成"}</p><div class="progress-track"><span style="width:${task.progress}%"></span></div><p style="margin-top:9px">当前进度 ${task.progress}%</p></div></section><div class="detail-grid"><section class="detail-section"><h4>任务基础</h4><dl class="kv"><dt>商品</dt><dd>${escapeMarkup(task.product)}</dd><dt>任务 ID</dt><dd>${task.id}</dd><dt>Handle</dt><dd>${task.handle}</dd><dt>状态</dt><dd>${statusLabels[task.status]}</dd></dl></section><section class="detail-section"><h4>创作配置</h4><dl class="kv"><dt>脚本类型</dt><dd>${task.script}</dd><dt>视频模型</dt><dd>${task.model}</dd><dt>视频标题</dt><dd>${escapeMarkup(task.title)}</dd><dt>发布时间</dt><dd>${task.publishTime || "—"}</dd></dl></section><section class="detail-section"><h4>素材与生成</h4><dl class="kv"><dt>素材状态</dt><dd>${task.status === "generation_failed" ? "生成失败" : task.progress < 100 ? "处理中" : "已完成"}</dd><dt>AI 质检</dt><dd>${task.progress < 100 ? "待检" : "已通过"}</dd></dl></section><section class="detail-section"><h4>运行记录</h4><div class="log-list"><div class="log-item"><span>${task.created.slice(11)}</span><span>任务已创建，配置校验通过</span></div><div class="log-item"><span>+ 1 min</span><span>${task.status === "generation_failed" ? "视频生成失败，可重试任务" : "生成服务正在处理视频片段"}</span></div></div></section></div>`;
-      detailDialog.showModal();
+      const waitingConfiguration = task.status === "pending_configuration";
+      const generationCopy = waitingConfiguration ? "等待填写创作配置" : `${task.model} · AI 决策 · ${task.status === "generating" ? "处理中" : "已完成生成"}`;
+      const materialStatus = waitingConfiguration ? "等待配置" : task.status === "generation_failed" ? "生成失败" : task.progress < 100 ? "处理中" : "已完成";
+      document.querySelector("#detail-body").innerHTML = `<section class="detail-overview"><div class="detail-preview">${task.status === "generating" ? `生成中 ${task.progress}%` : statusLabels[task.status]}</div><div class="detail-copy"><h3>成片预览</h3><p>${generationCopy}</p><div class="progress-track"><span style="width:${task.progress}%"></span></div><p style="margin-top:9px">${waitingConfiguration ? "尚未开始生成" : `当前进度 ${task.progress}%`}</p></div></section><div class="detail-grid"><section class="detail-section"><h4>任务基础</h4><dl class="kv"><dt>商品</dt><dd>${escapeMarkup(task.product)}</dd><dt>任务 ID</dt><dd>${task.id}</dd><dt>Handle</dt><dd>${task.handle}</dd><dt>状态</dt><dd>${statusLabels[task.status]}</dd></dl></section><section class="detail-section"><h4>创作配置</h4><dl class="kv"><dt>脚本类型</dt><dd>${task.script}</dd><dt>视频模型</dt><dd>${task.model}</dd><dt>视频标题</dt><dd>${escapeMarkup(task.title)}</dd><dt>发布时间</dt><dd>${task.publishTime || "—"}</dd></dl></section><section class="detail-section"><h4>素材与生成</h4><dl class="kv"><dt>素材状态</dt><dd>${materialStatus}</dd><dt>AI 质检</dt><dd>${waitingConfiguration ? "未开始" : task.progress < 100 ? "待检" : "已通过"}</dd></dl></section><section class="detail-section"><h4>运行记录</h4><div class="log-list"><div class="log-item"><span>${task.created.slice(11)}</span><span>${waitingConfiguration ? "待配置视频任务已创建" : "任务已创建，配置校验通过"}</span></div>${waitingConfiguration ? "" : `<div class="log-item"><span>+ 1 min</span><span>${task.status === "generation_failed" ? "视频生成失败，可重试任务" : "生成服务正在处理视频片段"}</span></div>`}</div></section></div>`;
+      editorDrawer.showModal();
+    }
+
+    function setConfigurationSelect(id, value) {
+      const select = document.querySelector(id);
+      select.value = [...select.options].some(option => option.value === value) ? value : select.options[0].value;
+    }
+
+    function openConfiguration(task) {
+      activeTask = task;
+      document.querySelector("#configuration-title").textContent = task.product;
+      document.querySelector("#configuration-meta").textContent = `${task.id} · 配置提交后自动生成视频提示词并进入生成流程`;
+      document.querySelector("#configuration-id").textContent = `${task.id} · 手动配置`;
+      document.querySelector("#configuration-product").value = task.product;
+      document.querySelector("#configuration-video-title").value = task.title === "待配置" ? `${task.product} 视频` : task.title;
+      setConfigurationSelect("#configuration-handle", task.handle);
+      setConfigurationSelect("#configuration-script", task.script);
+      setConfigurationSelect("#configuration-model", task.model);
+      setConfigurationSelect("#configuration-duration", task.duration);
+      setConfigurationSelect("#configuration-ratio", task.ratio);
+      setConfigurationSelect("#configuration-reference", task.reference);
+      setConfigurationSelect("#configuration-generation", task.generation);
+      configurationDialog.showModal();
     }
 
     const scriptSegments = [
@@ -505,20 +572,45 @@
       const copy = event.target.closest("[data-copy]");
       if (copy) { try { await navigator.clipboard.writeText(copy.dataset.copy); showToast("商品名称已复制"); } catch { showToast("浏览器阻止了复制"); } return; }
       const preview = event.target.closest("[data-preview]");
-      if (preview) { const task = tasks.find(item => item.id === preview.dataset.preview); task.status === "pending_review" ? openReview(task) : openDetail(task); return; }
+      if (preview) { const task = tasks.find(item => item.id === preview.dataset.preview); task.status === "pending_review" ? openReview(task) : openTaskEditor(task); return; }
       const action = event.target.closest("[data-action]");
       if (!action) return;
       const task = tasks.find(item => item.id === action.dataset.id);
-      if (action.dataset.action === "detail") openDetail(task);
+      if (action.dataset.action === "edit") openTaskEditor(task);
+      if (action.dataset.action === "configure") openConfiguration(task);
       if (action.dataset.action === "review") openReview(task);
       if (action.dataset.action === "publish") openPublish(task);
       if (action.dataset.action === "retry") updateTaskStatus(task,"generating","任务已重新进入生成中");
       if (action.dataset.action === "retry-publish") { task.status = "pending_publish"; renderTabs(); renderTasks(); showToast("已重新进入待发布"); }
+      if (action.dataset.action === "delete" && confirm(`删除待配置任务 ${task.id}？`)) {
+        tasks.splice(tasks.indexOf(task), 1);
+        renderHandleOptions(); renderTabs(); renderTasks(); showToast("待配置任务已删除");
+      }
+    });
+
+    document.querySelectorAll('[data-close="configuration"]').forEach(button => button.onclick = () => configurationDialog.close());
+    document.querySelector("#configuration-form").addEventListener("submit", event => {
+      event.preventDefault();
+      activeTask.handle = document.querySelector("#configuration-handle").value;
+      activeTask.script = document.querySelector("#configuration-script").value;
+      activeTask.title = document.querySelector("#configuration-video-title").value.trim();
+      activeTask.model = document.querySelector("#configuration-model").value;
+      activeTask.duration = document.querySelector("#configuration-duration").value;
+      activeTask.ratio = document.querySelector("#configuration-ratio").value;
+      activeTask.reference = document.querySelector("#configuration-reference").value;
+      activeTask.generation = document.querySelector("#configuration-generation").value;
+      activeTask.status = "generating";
+      activeTask.progress = 8;
+      configurationDialog.close();
+      activeStage = "generation";
+      stageStatusFilter = "all";
+      renderHandleOptions(); renderTabs(); renderStageStatusFilter(); renderTasks();
+      showToast("配置已保存，任务进入生成中");
     });
 
     document.querySelector("#detail-cancel").onclick = () => {
       if (!activeTask || !confirm(`取消任务 ${activeTask.id}？`)) return;
-      tasks.splice(tasks.indexOf(activeTask),1); detailDialog.close(); renderTabs(); renderTasks(); showToast("任务已取消");
+      tasks.splice(tasks.indexOf(activeTask),1); editorDrawer.close(); renderTabs(); renderTasks(); showToast("任务已取消");
     };
     document.querySelectorAll('[data-close="review"]').forEach(button => button.onclick = () => reviewDialog.close());
     document.querySelector("#review-approve").onclick = () => {

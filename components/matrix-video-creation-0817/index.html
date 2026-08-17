@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>矩阵视频创作流程（0817）</title>
+  <style>
+    :root { --ink:#25282d; --muted:#7b8088; --line:#e7e9ec; --line-strong:#d9dce1; --canvas:#f4f5f7; --blue:#1769e0; --blue-soft:#eef4ff; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-width:1024px; color:var(--ink); background:#fff; font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    button,input,select { font:inherit; }
+    button { cursor:pointer; }
+    [hidden] { display:none!important; }
+    button:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid rgba(23,105,224,.18); outline-offset:1px; }
+    .app { min-height:100vh; display:grid; grid-template-columns:58px minmax(0,1fr); }
+    .rail { min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:10px 7px 12px; background:#eff0f2; }
+    .brand { width:30px; height:30px; display:grid; place-items:center; margin-bottom:16px; border-radius:5px; background:#111318; color:#fff; font-weight:800; }
+    .rail-nav { width:100%; display:grid; gap:7px; }
+    .rail-item { width:100%; display:grid; place-items:center; gap:2px; padding:7px 0; border:0; background:transparent; color:#858a92; font-size:11px; }
+    .rail-item.active { color:#22262b; }
+    .rail-item b { font-size:16px; font-weight:500; }
+    .workspace { min-width:0; min-height:100vh; padding:20px 16px; background:var(--canvas); }
+    .topbar { display:flex; align-items:center; justify-content:space-between; color:#666b73; font-size:12px; }
+    .profile { width:26px; height:26px; display:grid; place-items:center; border-radius:50%; background:#d6ed3d; color:#111; font-weight:800; }
+    .hero { padding:26px 0 22px; text-align:center; }
+    .hero h1 { margin:0; color:#5b5f66; font-size:26px; font-weight:450; letter-spacing:0; }
+    .hero p { margin:10px 0 16px; color:#a0a4aa; font-size:12px; }
+    .mode-switch { display:inline-flex; padding:3px; border-radius:5px; background:#e9eaec; }
+    .mode-switch button { height:30px; padding:0 14px; border:0; border-radius:4px; background:transparent; color:#858990; }
+    .mode-switch .active { background:#fff; color:#292d32; font-weight:650; box-shadow:0 1px 3px rgba(22,26,32,.1); }
+    .entry { min-height:180px; display:grid; place-items:center; border:1px dashed #cdd1d7; border-radius:7px; background:#fff; text-align:center; cursor:pointer; transition:border-color .15s,background .15s,box-shadow .15s; }
+    .entry:hover { border-color:#aeb8c6; background:#fbfcfe; }
+    .entry:focus-visible { outline:3px solid rgba(23,105,224,.18); outline-offset:2px; box-shadow:0 0 0 1px rgba(23,105,224,.28); }
+    .entry-action { color:var(--blue); font-weight:650; }
+    .entry-icon { width:34px; height:34px; display:grid; place-items:center; margin:0 auto 7px; border-radius:5px; background:#111318; color:#fff; font-size:20px; }
+    .entry p { margin:3px 0 0; color:#8d929a; font-size:12px; }
+    .upload-shortcut { min-height:48px; display:flex; align-items:center; justify-content:flex-end; gap:10px; color:#858a92; font-size:12px; }
+    .upload-shortcut button { height:32px; padding:0 11px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#555b64; font-size:12px; font-weight:600; }
+    .upload-shortcut button:hover { background:#f5f6f7; color:#292d32; }
+    .upload-dialog { width:min(680px,calc(100vw - 48px)); padding:0; border:0; border-radius:7px; background:#fff; box-shadow:0 24px 70px rgba(20,24,32,.24); }
+    .upload-dialog::backdrop { background:rgba(25,28,34,.44); }
+    .upload-dialog-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:19px 22px 15px; border-bottom:1px solid var(--line); }
+    .upload-dialog-head h2 { margin:0; font-size:18px; }
+    .upload-dialog-head p { margin:4px 0 0; color:#858a92; font-size:11px; }
+    .dialog-close { width:30px; height:30px; display:grid; place-items:center; padding:0; border:0; border-radius:5px; background:transparent; color:#626872; font-size:20px; }
+    .dialog-close:hover { background:#f1f2f4; }
+    .upload-content { padding:18px 22px 22px; }
+    .upload-content > h3 { margin:0; font-size:18px; }
+    .upload-content > p { margin:5px 0 22px; color:#777d86; font-size:12px; }
+    .upload-form { display:block; }
+    .upload-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .upload-field { display:grid; gap:6px; color:#555b64; font-size:12px; font-weight:650; }
+    .upload-field.full { grid-column:1 / -1; }
+    .upload-field input,.upload-field select { width:100%; height:38px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#30353b; }
+    .link-mode { height:38px; display:grid; grid-template-columns:1fr 1fr; padding:3px; border:1px solid var(--line-strong); border-radius:5px; background:#f1f2f4; }
+    .link-mode button { border:0; border-radius:3px; background:transparent; color:#727882; font-size:12px; }
+    .link-mode button.active { background:#fff; color:#292d32; font-weight:650; box-shadow:0 1px 3px rgba(22,26,32,.1); }
+    .file-drop { min-height:126px; display:grid; place-items:center; padding:18px; border:1px dashed #c8cdd4; border-radius:6px; background:#f7f8f9; color:#545b65; text-align:center; cursor:pointer; }
+    .file-drop:hover { border-color:#9fa7b2; background:#f3f5f7; }
+    .file-drop input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+    .file-drop strong,.file-drop span { display:block; }
+    .file-drop span { margin-top:5px; color:#858b94; font-size:11px; font-weight:500; }
+    .file-help { margin:-9px 0 0; color:#8a8f97; font-size:11px; font-weight:500; }
+    .upload-form-actions { display:flex; justify-content:flex-end; gap:10px; padding-top:16px; border-top:1px solid var(--line); }
+    .creation-page { min-height:100vh; background:#fff; }
+    .creation-shell { width:min(1240px,100%); height:100vh; display:grid; grid-template-rows:auto auto auto minmax(0,1fr) auto; margin:0 auto; }
+    .creation-head { grid-row:1; display:grid; grid-template-columns:220px minmax(0,1fr) 220px; align-items:center; min-height:64px; padding:0 20px; border-bottom:1px solid var(--line); }
+    .creation-brand { display:flex; align-items:center; gap:10px; }
+    .creation-logo { width:30px; height:30px; display:grid; place-items:center; border-radius:5px; background:#111318; color:#fff; font-size:12px; font-weight:800; }
+    .back-workspace { height:32px; padding:0 8px; border:0; border-radius:5px; background:transparent; color:#555b64; font-size:12px; }
+    .back-workspace:hover { background:#f1f2f4; }
+    .creation-title { text-align:center; }
+    .creation-title h2 { margin:0; font-size:16px; }
+    .creation-title p { margin:1px 0 0; color:#858a92; font-size:10px; }
+    .creation-head-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+    .close { width:32px; height:32px; display:grid; place-items:center; margin-left:auto; border:0; border-radius:5px; background:transparent; font-size:22px; }
+    .close:hover { background:#f1f2f4; }
+    .steps { grid-row:2; display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:0 20px 12px; }
+    .step { height:34px; display:flex; align-items:center; justify-content:center; gap:7px; border-radius:4px; background:#f1f2f4; color:#858a92; font-size:12px; }
+    .step.active { background:var(--blue-soft); color:#343943; }
+    .step b { width:17px; height:17px; display:grid; place-items:center; border-radius:50%; background:#fff; font-size:10px; }
+    .step.active b { background:#25292f; color:#fff; }
+    .filters { grid-row:3; display:flex; align-items:center; gap:10px; padding:0 20px 12px; }
+    .search-wrap { position:relative; }
+    .search-wrap::before { content:"⌕"; position:absolute; left:10px; top:6px; color:#89909a; }
+    .search { width:310px; height:34px; padding:0 11px 0 30px; border:1px solid var(--line-strong); border-radius:5px; }
+    .status-filter { width:132px; height:34px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#4e545d; }
+    .selected-summary { margin-left:auto; color:#777c85; font-size:12px; }
+    .selected-summary b { color:var(--blue); }
+    .clear { height:30px; padding:0 9px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#626871; font-size:12px; }
+    .table-shell { grid-row:4; min-height:0; margin:0 20px; overflow:auto; border:1px solid var(--line); border-radius:6px; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th { height:40px; padding:0 14px; border-bottom:1px solid var(--line); background:#f7f8f9; color:#59606a; font-size:12px; text-align:left; }
+    td { height:68px; padding:10px 14px; border-bottom:1px solid var(--line); }
+    tr:last-child td { border-bottom:0; }
+    th:first-child,td:first-child { width:42px; padding-right:0; text-align:center; }
+    th:last-child,td:last-child { width:112px; }
+    input[type="checkbox"] { width:15px; height:15px; margin:0; accent-color:#22262c; }
+    input[type="checkbox"]:disabled { cursor:not-allowed; opacity:.38; }
+    .product { display:flex; align-items:center; gap:12px; }
+    .product img { width:46px; height:46px; flex:0 0 auto; object-fit:cover; border:1px solid var(--line); border-radius:5px; background:#f3f4f5; }
+    .product strong { display:block; overflow:hidden; font-size:13px; font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
+    .product-id { display:block; margin-top:4px; color:#8a8f97; font-size:11px; }
+    .status { display:inline-flex; align-items:center; gap:6px; color:#626871; font-size:12px; white-space:nowrap; }
+    .status::before { width:7px; height:7px; border-radius:50%; background:#a2a7ae; content:""; }
+    .status.available::before { background:#2f9b62; }
+    .status.missing::before { background:#d34f4f; }
+    .status.preparing::before { background:#a2a7ae; }
+    .empty { padding:44px 20px; color:#8a8f97; text-align:center; }
+    .creation-foot { grid-row:5; display:flex; align-items:center; padding:12px 20px 16px; border-top:1px solid var(--line); background:#fff; }
+    .page-info { color:#737981; font-size:12px; }
+    .pagination { display:flex; gap:6px; margin-left:auto; margin-right:18px; }
+    .page { width:30px; height:30px; border:1px solid var(--line); border-radius:4px; background:#fff; color:#6f747c; }
+    .page.active { background:#f0f1f3; color:#22262b; font-weight:650; }
+    .button { height:34px; padding:0 16px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#34383e; font-weight:600; }
+    .button.primary { min-width:116px; border-color:#23262b; background:#23262b; color:#fff; }
+    .button.primary:disabled { border-color:#d3d6da; background:#d3d6da; cursor:not-allowed; }
+    .footer-actions { display:flex; gap:10px; margin-left:auto; }
+    .assignment-panel { grid-row:3 / 5; min-height:0; margin:0 20px; overflow:auto; }
+    .assignment-panel.manual-mode { display:block; overflow:auto; }
+    .assignment-intro { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:12px; }
+    .assignment-intro h3 { margin:0; font-size:15px; }
+    .assignment-intro p { margin:3px 0 0; color:var(--muted); font-size:12px; }
+    .model-field { display:flex; align-items:center; gap:8px; color:#666c75; font-size:12px; }
+    .model-field select { width:150px; height:34px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#30343a; }
+    .field-label { display:block; margin:0 0 6px; color:#666c75; font-size:11px; font-weight:650; }
+    .choice-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .choice-card { position:relative; min-height:62px; padding:11px 38px 10px 12px; border:1px solid var(--line-strong); border-radius:6px; background:#fff; text-align:left; }
+    .choice-card:hover { border-color:#afb4bc; }
+    .choice-card.active { border-color:#8e949d; background:#f5f5f3; box-shadow:inset 0 0 0 1px #d2d4d6; }
+    .choice-card strong { display:block; margin-bottom:2px; color:#22262b; font-size:13px; }
+    .choice-card span { display:block; color:#747a83; font-size:11px; }
+    .choice-check { position:absolute; top:12px; right:12px; width:16px; height:16px; display:none; place-items:center; border-radius:50%; background:#22262b; color:#fff; font-size:10px; }
+    .choice-card.active .choice-check { display:grid; }
+    .mode-note { display:flex; gap:8px; margin:-2px 0 12px; padding:9px 11px; border-radius:5px; background:#f5f7fa; color:#626975; font-size:11px; }
+    .mode-note b { color:#343a43; }
+    .product-config-list { display:grid; gap:9px; padding-bottom:4px; }
+    .product-config { padding:10px 12px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+    .config-head { display:flex; align-items:center; gap:10px; }
+    .config-head img { width:36px; height:36px; flex:0 0 auto; object-fit:cover; border:1px solid var(--line); border-radius:4px; }
+    .config-name { min-width:0; flex:1; }
+    .config-name strong { display:block; overflow:hidden; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+    .config-name span { display:block; margin-top:2px; color:#8b9098; font-size:10px; }
+    .amount-field { display:flex; align-items:center; gap:8px; color:#656b74; font-size:11px; }
+    .amount-field input,.handle-row input { width:68px; height:32px; padding:0 9px; border:1px solid var(--line-strong); border-radius:5px; }
+    .handle-list { display:grid; gap:6px; margin-top:9px; padding-top:9px; border-top:1px solid var(--line); }
+    .handle-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:10px; color:#555b64; font-size:11px; }
+    .handle-row strong { overflow:hidden; color:#30353b; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+    .handle-total { color:#7d838c; font-size:11px; }
+    .manual-count-intro { margin-bottom:12px; }
+    .manual-count-intro span { display:block; color:#626872; font-size:11px; font-weight:650; }
+    .manual-count-intro h4 { margin:1px 0 2px; color:#20242a; font-size:15px; }
+    .manual-count-intro p { margin:0; color:#7b818a; font-size:11px; }
+    .manual-count-list { display:grid; gap:12px; }
+    .manual-count-card { padding:16px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+    .manual-count-card-head { display:flex; align-items:flex-start; gap:14px; }
+    .manual-count-card-copy { min-width:0; flex:1; }
+    .manual-count-card-copy strong { display:block; overflow:hidden; color:#20242a; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
+    .manual-count-card-copy span { display:block; margin-top:2px; color:#858b93; font-size:10px; }
+    .manual-count-badge { flex:0 0 auto; color:#666d77; font-size:11px; }
+    .manual-count-control { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-top:16px; color:#373c44; font-size:12px; }
+    .manual-count-control input { width:92px; height:38px; padding:0 11px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; }
+    .manual-workbench { height:100%; min-height:430px; display:grid; grid-template-columns:230px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:6px; }
+    .task-sidebar { min-height:0; overflow:auto; border-right:1px solid var(--line); background:#f7f8f9; }
+    .task-sidebar-head { position:sticky; z-index:1; top:0; padding:12px; border-bottom:1px solid var(--line); background:#f7f8f9; }
+    .task-sidebar-head strong { display:block; font-size:12px; }
+    .product-nav { width:calc(100% - 16px); min-height:50px; display:flex; align-items:center; gap:8px; margin:8px; padding:8px; border:0; border-radius:5px; background:transparent; color:#555b63; text-align:left; }
+    .product-nav:hover { background:#eef0f2; }
+    .product-nav.active { background:#fff; color:#22262b; box-shadow:0 1px 3px rgba(25,30,38,.1); }
+    .product-nav img { width:34px; height:34px; flex:0 0 auto; object-fit:cover; border:1px solid var(--line); border-radius:4px; }
+    .product-nav div { min-width:0; flex:1; }
+    .product-nav strong { display:block; overflow:hidden; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+    .task-state { width:14px; height:14px; display:grid; place-items:center; flex:0 0 auto; border:1px solid #aeb3ba; border-radius:50%; color:transparent; font-size:9px; }
+    .task-state.complete { border-color:#2f9b62; background:#2f9b62; color:#fff; }
+    .task-editor { min-width:0; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr); background:#fff; }
+    .task-list-head { display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--line); }
+    .task-list-head div { min-width:0; margin-right:auto; }
+    .task-list-head strong { display:block; overflow:hidden; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
+    .task-list-head span { color:#858b93; font-size:10px; }
+    .task-card-list { min-height:0; overflow-y:auto; padding:14px; background:#f7f8f9; }
+    .task-card { margin-bottom:12px; overflow:hidden; border:1px solid var(--line); border-radius:6px; background:#fff; }
+    .task-card:last-child { margin-bottom:0; }
+    .task-editor-toolbar { display:flex; align-items:center; gap:7px; min-height:54px; padding:0 10px; }
+    .task-toggle { min-width:0; flex:1; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; align-self:stretch; padding:0 4px; border:0; background:transparent; color:#30353b; text-align:left; }
+    .task-toggle-copy { min-width:0; }
+    .task-toggle-copy strong,.task-toggle-copy span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .task-toggle-copy strong { font-size:13px; }
+    .task-toggle-copy span { margin-top:2px; color:#858b93; font-size:10px; }
+    .task-chevron { color:#7f858d; font-size:15px; transition:transform .15s; }
+    .task-card.expanded .task-chevron { transform:rotate(180deg); }
+    .tool-button { height:30px; padding:0 10px; border:1px solid var(--line); border-radius:5px; background:#fff; color:#555b64; font-size:11px; }
+    .tool-button:hover { background:#f5f6f7; }
+    .tool-button.danger { color:#b74646; }
+    .task-card-body { padding:14px; border-top:1px solid var(--line); }
+    .form-section { margin-bottom:16px; }
+    .form-section:last-child { margin-bottom:0; }
+    .form-section h5 { margin:0 0 10px; padding-left:8px; border-left:3px solid var(--blue); font-size:12px; }
+    .manual-form-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+    .manual-field { min-width:0; }
+    .manual-field span { display:block; margin-bottom:4px; color:#626872; font-size:10px; font-weight:650; }
+    .manual-field input,.manual-field select { width:100%; height:34px; padding:0 9px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#30353b; font-size:11px; }
+    .manual-field input[readonly] { background:#f6f7f8; color:#6f757d; }
+    .manual-field.product-field,.manual-field.script-field { grid-column:span 3; }
+    .manual-field.title-field { grid-column:1 / -1; }
+    .manual-summary { cursor:pointer; }
+    .exit-confirm { position:fixed; z-index:30; inset:0; display:grid; place-items:center; padding:24px; background:rgba(27,30,35,.42); }
+    .exit-confirm-panel { width:min(420px,100%); padding:20px; border-radius:7px; background:#fff; box-shadow:0 20px 60px rgba(20,24,32,.22); }
+    .exit-confirm-panel h3 { margin:0 0 6px; font-size:16px; }
+    .exit-confirm-panel p { margin:0 0 18px; color:#737981; font-size:12px; }
+    .exit-confirm-actions { display:flex; justify-content:flex-end; gap:8px; }
+    .toast { position:fixed; z-index:20; left:50%; bottom:28px; transform:translate(-50%,10px); padding:9px 14px; border-radius:5px; background:#22262c; color:#fff; opacity:0; pointer-events:none; transition:.15s; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="rail" aria-label="主导航"><div class="brand">RF</div><nav class="rail-nav"><button class="rail-item active"><b>◇</b>工作台</button><button class="rail-item"><b>▱</b>创作</button><button class="rail-item"><b>□</b>资产</button><button class="rail-item"><b>▥</b>数据</button></nav></aside>
+    <section class="workspace">
+      <header class="topbar"><span>◇ 工作台</span><span class="profile">人</span></header>
+      <section class="hero"><h1>你的 7/24 小时自动运行的内容团队</h1><p>自动完成创作、发布、复盘和下一轮优化，持续推进内容增长。</p><div class="mode-switch"><button class="active">矩阵视频</button><button>视频生成</button></div></section>
+      <section class="entry" id="open-batch" role="button" tabindex="0" aria-label="选择商品创建矩阵视频"><div><div class="entry-icon">▣</div><span class="entry-action">AI 制作视频</span><p>选择商品并完成自动或手动任务分配。</p></div></section>
+      <div class="upload-shortcut"><span>已有制作完成的视频？</span><button id="open-upload" type="button">上传成片发布</button></div>
+    </section>
+  </main>
+
+  <section class="creation-page" id="creation-page" hidden>
+    <section class="creation-shell">
+      <header class="creation-head"><div class="creation-brand"><span class="creation-logo">RF</span><button class="back-workspace" id="back-workspace">← 返回工作台</button></div><div class="creation-title"><h2>创建矩阵视频</h2><p>选择商品并完成视频任务安排</p></div><div class="creation-head-actions"><button class="close" id="close-creation" aria-label="退出创建">×</button></div></header>
+      <div class="steps"><div class="step active" id="step-product"><b>1</b>选择商品</div><div class="step" id="step-assignment"><b>2</b>任务分配</div></div>
+      <div class="filters" id="product-filters"><div class="search-wrap"><input class="search" id="product-search" placeholder="商品名称 / TK Product ID"></div><select class="status-filter" id="status-filter" aria-label="商品状态"><option value="all">全部状态</option><option value="available">可用</option><option value="missing">物料缺失</option><option value="preparing">准备中</option></select><span class="selected-summary">已选择 <b id="selected-count">0</b> 个商品</span><button class="clear" id="clear-selection">清空</button></div>
+      <div class="table-shell" id="product-table-shell"><table><thead><tr><th><input type="checkbox" id="select-page" aria-label="选择当前页全部可用商品"></th><th>商品信息</th><th>状态</th></tr></thead><tbody id="product-list"></tbody></table><div class="empty" id="empty-state" hidden>没有匹配的商品</div></div>
+      <section class="assignment-panel" id="assignment-panel" hidden>
+        <div class="assignment-intro"><div><h3>配置任务分配</h3><p id="assignment-description">AI 将自动分配帐号、生成脚本并开始制作视频。</p></div><label class="model-field" id="model-field">视频模型<select id="video-model"><option>OmniFlash</option><option>Veo 3.1</option></select></label></div>
+        <span class="field-label">配置方式</span>
+        <div class="choice-grid" id="creation-mode" role="radiogroup" aria-label="配置方式">
+          <button class="choice-card active" type="button" data-mode="auto" role="radio" aria-checked="true"><strong>自动模式</strong><span>AI 自动分配帐号、脚本并生成视频</span><i class="choice-check">✓</i></button>
+          <button class="choice-card" type="button" data-mode="manual" role="radio" aria-checked="false"><strong>手动模式</strong><span>逐条配置帐号、脚本和视频参数</span><i class="choice-check">✓</i></button>
+        </div>
+        <div id="automatic-settings">
+          <span class="field-label">数量模式</span>
+          <div class="choice-grid" id="quantity-mode" role="radiogroup" aria-label="数量模式">
+            <button class="choice-card active" type="button" data-quantity-mode="product" role="radio" aria-checked="true"><strong>每商品指定总数</strong><span>按总数均匀分配到多个可用帐号</span><i class="choice-check">✓</i></button>
+            <button class="choice-card" type="button" data-quantity-mode="handle" role="radio" aria-checked="false"><strong>按 Handle 指定数量</strong><span>以每个帐号的视频数作为分配约束</span><i class="choice-check">✓</i></button>
+          </div>
+        </div>
+        <div class="mode-note" id="mode-note"><b>自动执行</b><span>任务创建后，AI 会按当前约束选择参与自动化制作的帐号、生成脚本并开始制作视频。</span></div>
+        <div class="product-config-list" id="product-config-list"></div>
+      </section>
+      <footer class="creation-foot"><span class="page-info" id="page-info">共 8 个商品</span><nav class="pagination" id="pagination" aria-label="商品分页"></nav><div class="footer-actions"><button class="button" id="cancel">退出创建</button><button class="button primary" id="continue" disabled>继续</button></div></footer>
+    </section>
+  </section>
+  <dialog class="upload-dialog" id="upload-dialog">
+    <form class="upload-form" id="upload-form">
+      <header class="upload-dialog-head"><div><h2>上传成片发布</h2><p>上传成功后进入待发布队列，再设置发布时间。</p></div><button class="dialog-close" type="button" id="close-upload" aria-label="关闭">×</button></header>
+      <div class="upload-content">
+          <div class="upload-form-grid">
+            <label class="upload-field"><span>发布帐号 / Handle</span><select id="upload-handle" required><option value="">请选择帐号</option><option>@user167630490</option><option>@dailyhome.us</option><option>@smartfinds.lab</option></select></label>
+            <div class="upload-field"><span>挂链设置</span><div class="link-mode" id="upload-link-mode" role="radiogroup" aria-label="挂链设置"><button class="active" type="button" data-link-mode="none" role="radio" aria-checked="true">不挂链</button><button type="button" data-link-mode="product" role="radio" aria-checked="false">挂链商品</button></div></div>
+            <label class="upload-field full" id="upload-product-field" hidden><span>选择挂链商品</span><select id="upload-product"><option value="">请选择商品</option><option>Portable Blender Cup</option><option>Ergonomic Office Chair with Lumbar Support</option></select></label>
+            <label class="upload-field full"><span>视频标题</span><input id="upload-title" required placeholder="填写发布时使用的视频标题"></label>
+            <label class="upload-field full"><span>成片文件</span><span class="file-drop"><input type="file" id="upload-file" accept="video/mp4,video/quicktime" required><strong id="upload-file-name">选择视频文件</strong><span>点击选择 MP4 或 MOV 文件</span></span><small class="file-help">最大 100MB，最长 2 分钟；上传后由服务端校验文件。</small></label>
+          </div>
+          <div class="upload-form-actions"><button class="button" type="button" id="cancel-upload">取消</button><button class="button primary" type="submit">加入发布队列</button></div>
+      </div>
+    </form>
+  </dialog>
+  <section class="exit-confirm" id="exit-confirm" hidden role="dialog" aria-modal="true" aria-labelledby="exit-confirm-title"><div class="exit-confirm-panel"><h3 id="exit-confirm-title">退出创建？</h3><p>退出后，当前商品选择和任务配置将丢失。</p><div class="exit-confirm-actions"><button class="button" id="continue-editing">继续编辑</button><button class="button primary" id="confirm-exit">确认退出</button></div></div></section>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const products = [
+      { id:"p1", name:"Portable Blender Cup", productId:"1729483061000123456", image:"./assets/product-tree.png", status:"available" },
+      { id:"p2", name:"Wireless Lavalier Microphone", productId:"1729483061000987654", image:"./assets/product-tool.png", status:"missing" },
+      { id:"p3", name:"Minimal Travel Backpack", image:"./assets/product-dress.png", status:"available" },
+      { id:"p4", name:"Floral Bikini Swimsuit, Highlighted Ruffle Design", productId:"1729483061000765421", image:"./assets/product-jacket.png", status:"preparing" },
+      { id:"p5", name:"Ergonomic Office Chair with Lumbar Support", image:"./assets/product-chair.png", status:"available" },
+      { id:"p6", name:"Compact Air Compressor for Car", productId:"1729483061000432189", image:"./assets/product-tool.png", status:"available" },
+      { id:"p7", name:"Everyday Linen Shirt", image:"./assets/product-jacket.png", status:"missing" },
+      { id:"p8", name:"Artificial Olive Tree for Living Room", productId:"1729483061000111288", image:"./assets/product-tree.png", status:"available" }
+    ];
+    const statusLabels = { available:"可用", missing:"物料缺失", preparing:"准备中" };
+    const pageSize = 5;
+    const selected = new Set();
+    const productAmounts = new Map();
+    const handleAmounts = new Map();
+    const manualTasks = new Map();
+    const handles = ["@dailyhome.us", "@smartfinds.lab", "@everydayupgrade"];
+    const app = document.querySelector(".app");
+    const creationPage = document.querySelector("#creation-page");
+    let query = "";
+    let statusFilter = "all";
+    let page = 1;
+    let step = 1;
+    let creationMode = "auto";
+    let quantityMode = "product";
+    let activeManualProductId = "";
+    const expandedManualTaskIds = new Set();
+    let manualTaskSequence = 0;
+    let toastTimer;
+
+    function resetCreationState() {
+      selected.clear();
+      productAmounts.clear();
+      handleAmounts.clear();
+      manualTasks.clear();
+      activeManualProductId = "";
+      expandedManualTaskIds.clear();
+      manualTaskSequence = 0;
+      creationMode = "auto";
+      quantityMode = "product";
+      step = 1;
+    }
+
+    function filteredProducts() {
+      const normalized = query.trim().toLowerCase();
+      return products.filter(product => {
+        const matchesQuery = !normalized || product.name.toLowerCase().includes(normalized) || (product.productId || "").includes(normalized);
+        const matchesStatus = statusFilter === "all" || product.status === statusFilter;
+        return matchesQuery && matchesStatus;
+      });
+    }
+
+    function currentPageProducts() {
+      const list = filteredProducts();
+      const pageCount = Math.max(1, Math.ceil(list.length / pageSize));
+      page = Math.min(page, pageCount);
+      return list.slice((page - 1) * pageSize, page * pageSize);
+    }
+
+    function renderProducts() {
+      const rows = document.querySelector("#product-list");
+      const current = currentPageProducts();
+      const selectable = current.filter(product => product.status === "available");
+      rows.replaceChildren();
+      current.forEach(product => {
+        const row = document.createElement("tr");
+        const unavailable = product.status !== "available";
+        row.innerHTML = `<td><input type="checkbox" data-product-id="${product.id}" aria-label="选择${product.name}" ${selected.has(product.id) ? "checked" : ""} ${unavailable ? "disabled" : ""}></td><td><div class="product"><img src="${product.image}" alt=""><div><strong>${product.name}</strong>${product.productId ? `<span class="product-id">TK Product ID：${product.productId}</span>` : ""}</div></div></td><td><span class="status ${product.status}">${statusLabels[product.status]}</span></td>`;
+        rows.append(row);
+      });
+      document.querySelector("#empty-state").hidden = current.length > 0;
+      document.querySelector("table").hidden = current.length === 0;
+      document.querySelector("#selected-count").textContent = selected.size;
+      document.querySelector("#continue").disabled = selected.size === 0;
+      const selectPage = document.querySelector("#select-page");
+      selectPage.disabled = selectable.length === 0;
+      selectPage.checked = selectable.length > 0 && selectable.every(product => selected.has(product.id));
+      selectPage.indeterminate = selectable.some(product => selected.has(product.id)) && !selectPage.checked;
+      renderPagination();
+    }
+
+    function renderPagination() {
+      const pageCount = Math.max(1, Math.ceil(filteredProducts().length / pageSize));
+      const pagination = document.querySelector("#pagination");
+      pagination.replaceChildren();
+      for (let number = 1; number <= pageCount; number += 1) {
+        const button = document.createElement("button");
+        button.className = "page" + (number === page ? " active" : "");
+        button.textContent = number;
+        button.setAttribute("aria-label", `第 ${number} 页`);
+        button.onclick = () => { page = number; renderProducts(); };
+        pagination.append(button);
+      }
+      document.querySelector("#page-info").textContent = `共 ${filteredProducts().length} 个商品`;
+    }
+
+    function selectedProducts() {
+      return products.filter(product => selected.has(product.id));
+    }
+
+    function amountFor(productId) {
+      if (!productAmounts.has(productId)) productAmounts.set(productId, 3);
+      return productAmounts.get(productId);
+    }
+
+    function handleAmountFor(productId, handle, index) {
+      const key = `${productId}:${handle}`;
+      if (!handleAmounts.has(key)) handleAmounts.set(key, index < 2 ? 1 : 0);
+      return handleAmounts.get(key);
+    }
+
+    function escapeMarkup(value) {
+      return String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    }
+
+    function selectOptions(options, current = options[0]) {
+      return options.map(option => `<option ${option === current ? "selected" : ""}>${escapeMarkup(option)}</option>`).join("");
+    }
+
+    function createManualTask(product, source = {}) {
+      manualTaskSequence += 1;
+      return {
+        id:`manual-${manualTaskSequence}`,
+        productId:product.id,
+        handle:source.handle || handles[0],
+        script:source.script || "合照c位2 · 独立站",
+        title:source.title || product.name,
+        model:source.model || "OmniFlash",
+        duration:source.duration || "16 秒（2 × 8 秒）",
+        ratio:source.ratio || "9:16（竖屏）",
+        reference:source.reference || "人物 + 商品",
+        generation:source.generation || "独立生成"
+      };
+    }
+
+    function tasksForProduct(product) {
+      if (!manualTasks.has(product.id)) {
+        manualTasks.set(product.id, Array.from({ length:amountFor(product.id) }, () => createManualTask(product)));
+      }
+      return manualTasks.get(product.id);
+    }
+
+    function syncManualTaskCounts() {
+      selectedProducts().forEach(product => {
+        const tasks = tasksForProduct(product);
+        const target = amountFor(product.id);
+        while (tasks.length < target) tasks.push(createManualTask(product));
+        if (tasks.length > target) tasks.splice(target);
+      });
+      const availableProducts = selectedProducts();
+      if (!availableProducts.some(product => product.id === activeManualProductId)) activeManualProductId = availableProducts[0]?.id || "";
+    }
+
+    function taskIsComplete(task) {
+      return ["productId", "handle", "script", "title", "model", "duration", "ratio", "reference", "generation"].every(field => String(task[field] || "").trim());
+    }
+
+    function taskSummary(task) {
+      return [task.handle, task.script, task.model, task.duration].filter(Boolean).join(" · ");
+    }
+
+    function manualTaskCardMarkup(task, index) {
+      const product = products.find(item => item.id === task.productId);
+      const expanded = expandedManualTaskIds.has(task.id);
+      return `<article class="task-card ${expanded ? "expanded" : ""}" data-task-card="${task.id}"><div class="task-editor-toolbar"><button class="task-toggle" type="button" data-task-toggle="${task.id}" aria-expanded="${expanded}"><span class="task-state ${taskIsComplete(task) ? "complete" : ""}">✓</span><span class="task-toggle-copy"><strong>视频任务 ${index + 1}</strong><span class="task-summary">${escapeMarkup(taskSummary(task))}</span></span><span class="task-chevron">⌄</span></button><button class="tool-button" type="button" data-manual-action="copy">复制</button><button class="tool-button danger" type="button" data-manual-action="delete">删除</button></div>
+        <div class="task-card-body" ${expanded ? "" : "hidden"}>
+          <section class="form-section"><h5>基础信息</h5><div class="manual-form-grid">
+            <label class="manual-field product-field"><span>商品</span><input value="${escapeMarkup(product.name)}" readonly aria-label="当前任务商品"></label>
+            <label class="manual-field"><span>Handle / 发布帐号</span><select data-task-field="handle" aria-label="当前任务 Handle / 发布帐号">${selectOptions(handles, task.handle)}</select></label>
+          </div></section>
+          <section class="form-section"><h5>视频方案</h5><div class="manual-form-grid">
+            <label class="manual-field script-field"><span>脚本</span><select data-task-field="script" aria-label="当前任务脚本">${selectOptions(["合照c位2 · 独立站", "产品卖点口播 · 通用", "场景体验分享 · 通用"], task.script)}</select></label>
+            <label class="manual-field"><span>视频模型</span><select data-task-field="model" aria-label="当前任务视频模型">${selectOptions(["OmniFlash", "Seedance 2.0", "Veo 3.1"], task.model)}</select></label>
+            <label class="manual-field title-field"><span>视频标题</span><input data-task-field="title" value="${escapeMarkup(task.title)}" aria-label="当前任务视频标题"></label>
+            <label class="manual-field"><span>视频时长</span><select data-task-field="duration" aria-label="当前任务视频时长">${selectOptions(["16 秒（2 × 8 秒）", "24 秒（3 × 8 秒）", "32 秒（4 × 8 秒）"], task.duration)}</select></label>
+            <label class="manual-field"><span>画面比例</span><select data-task-field="ratio" aria-label="当前任务画面比例">${selectOptions(["9:16（竖屏）", "1:1", "16:9（横屏）"], task.ratio)}</select></label>
+            <label class="manual-field"><span>参考素材</span><select data-task-field="reference" aria-label="当前任务参考素材">${selectOptions(["人物 + 商品", "仅商品", "人物形象"], task.reference)}</select></label>
+            <label class="manual-field"><span>片段生成方式</span><select data-task-field="generation" aria-label="当前任务片段生成方式">${selectOptions(["独立生成", "连续生成"], task.generation)}</select></label>
+          </div></section>
+        </div></article>`;
+    }
+
+    function renderManualWorkbench(list) {
+      syncManualTaskCounts();
+      const allTasks = selectedProducts().flatMap(tasksForProduct);
+      const activeProduct = selectedProducts().find(product => product.id === activeManualProductId) || selectedProducts()[0];
+      activeManualProductId = activeProduct.id;
+      const activeTasks = tasksForProduct(activeProduct);
+      const completeCount = allTasks.filter(taskIsComplete).length;
+      const sidebar = selectedProducts().map(product => {
+        return `<button class="product-nav ${product.id === activeProduct.id ? "active" : ""}" type="button" data-manual-product="${product.id}"><img src="${product.image}" alt=""><div><strong>${product.name}</strong></div></button>`;
+      }).join("");
+      const cards = activeTasks.map(manualTaskCardMarkup).join("");
+      const allExpanded = activeTasks.length > 0 && activeTasks.every(task => expandedManualTaskIds.has(task.id));
+      list.innerHTML = `<div class="manual-workbench"><aside class="task-sidebar"><div class="task-sidebar-head"><strong>商品</strong></div>${sidebar}</aside><section class="task-editor"><header class="task-list-head"><div><strong>${activeProduct.name}</strong><span>${activeTasks.length} 条视频任务</span></div><button class="tool-button" type="button" data-toggle-all-tasks>${allExpanded ? "收起全部" : "展开全部"}</button><button class="tool-button" type="button" data-add-task-product="${activeProduct.id}">+ 新建任务</button></header><div class="task-card-list">${cards}</div></section></div>`;
+      document.querySelector("#continue").disabled = completeCount !== allTasks.length;
+    }
+
+    function findManualTask(taskId) {
+      for (const tasks of manualTasks.values()) {
+        const task = tasks.find(item => item.id === taskId);
+        if (task) return task;
+      }
+      return null;
+    }
+
+    function updateManualCompletion() {
+      const allTasks = selectedProducts().flatMap(tasksForProduct);
+      const completeCount = allTasks.filter(taskIsComplete).length;
+      allTasks.forEach(task => {
+        const card = document.querySelector(`[data-task-card="${task.id}"]`);
+        if (!card) return;
+        const complete = taskIsComplete(task);
+        card.querySelector(".task-state").classList.toggle("complete", complete);
+        card.querySelector(".task-summary").textContent = taskSummary(task);
+      });
+      document.querySelector("#continue").disabled = completeCount !== allTasks.length;
+    }
+
+    function renderManualTaskCounts(list) {
+      const cards = selectedProducts().map(product => {
+        const productMeta = product.productId ? "未设置 · TK 商品" : "未设置 · 独立站商品";
+        return `<article class="manual-count-card"><div class="manual-count-card-head"><div class="manual-count-card-copy"><strong>${escapeMarkup(product.name)}</strong><span>${productMeta}</span></div><span class="manual-count-badge">手动配置</span></div><label class="manual-count-control"><span>该商品视频总数</span><input type="number" min="1" max="99" value="${amountFor(product.id)}" data-product-amount="${product.id}" aria-label="${escapeMarkup(product.name)}视频总数"></label></article>`;
+      }).join("");
+      list.innerHTML = `<section class="manual-count-intro"><span>任务数量</span><h4>只创建待配置的视频任务</h4><p>创建后到「进度管理 → 手动配置」逐条填写 Handle、脚本、模型和标题；视频提示词由系统根据脚本自动生成。</p></section><div class="manual-count-list">${cards}</div>`;
+      document.querySelector("#continue").disabled = selectedProducts().some(product => amountFor(product.id) < 1);
+    }
+
+    function renderAssignmentProducts() {
+      const list = document.querySelector("#product-config-list");
+      list.replaceChildren();
+      if (creationMode === "manual") {
+        renderManualTaskCounts(list);
+        return;
+      }
+      selectedProducts().forEach(product => {
+        const card = document.createElement("article");
+        card.className = "product-config";
+        const productMeta = product.productId ? `TK Product ID：${product.productId}` : "独立站商品";
+        const head = `<div class="config-head"><img src="${product.image}" alt=""><div class="config-name"><strong>${product.name}</strong><span>${productMeta}</span></div>`;
+        if (quantityMode === "product") {
+          card.innerHTML = `${head}<label class="amount-field">视频总数<input type="number" min="1" max="99" value="${amountFor(product.id)}" data-product-amount="${product.id}" aria-label="${product.name}视频总数"></label></div>`;
+        } else {
+          const rows = handles.map((handle, index) => `<label class="handle-row"><strong>${handle}</strong><span>视频数</span><input type="number" min="0" max="99" value="${handleAmountFor(product.id, handle, index)}" data-handle-amount="${product.id}:${handle}" aria-label="${product.name} ${handle} 视频数"></label>`).join("");
+          const total = handles.reduce((sum, handle, index) => sum + handleAmountFor(product.id, handle, index), 0);
+          card.innerHTML = `${head}<span class="handle-total">共 <b data-handle-total="${product.id}">${total}</b> 条</span></div><div class="handle-list">${rows}</div>`;
+        }
+        list.append(card);
+      });
+    }
+
+    function renderAssignmentMode() {
+      document.querySelectorAll("[data-mode]").forEach(button => {
+        const active = button.dataset.mode === creationMode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-checked", String(active));
+      });
+      document.querySelectorAll("[data-quantity-mode]").forEach(button => {
+        const active = button.dataset.quantityMode === quantityMode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-checked", String(active));
+      });
+      const automatic = creationMode === "auto";
+      document.querySelector("#assignment-panel").classList.toggle("manual-mode", !automatic);
+      document.querySelector("#automatic-settings").hidden = !automatic;
+      document.querySelector("#model-field").hidden = !automatic;
+      document.querySelector(".assignment-intro h3").textContent = automatic ? "配置任务分配" : "创建手动视频任务";
+      document.querySelector("#assignment-description").textContent = automatic ? "AI 将自动分配帐号、生成脚本并开始制作视频。" : "为每个商品指定任务数量，详细配置稍后完成。";
+      document.querySelector("#mode-note").innerHTML = automatic
+        ? "<b>自动执行</b><span>任务创建后，AI 会按当前约束选择参与自动化制作的帐号、生成脚本并开始制作视频。</span>"
+        : "<b>待后续配置</b><span>本步骤只创建任务，不开始生成；任务会进入进度管理的手动配置列表。</span>";
+      document.querySelector("#continue").textContent = automatic ? "确认创建自动任务" : "创建待配置任务";
+      renderAssignmentProducts();
+    }
+
+    function showStep(nextStep) {
+      step = nextStep;
+      if (step === 1) {
+        document.querySelector("#assignment-panel").classList.remove("manual-mode");
+      }
+      document.querySelector("#step-product").classList.toggle("active", step === 1);
+      document.querySelector("#step-assignment").classList.toggle("active", step === 2);
+      document.querySelector("#product-filters").hidden = step !== 1;
+      document.querySelector("#product-table-shell").hidden = step !== 1;
+      document.querySelector("#assignment-panel").hidden = step !== 2;
+      document.querySelector("#pagination").hidden = step !== 1;
+      document.querySelector("#page-info").hidden = step !== 1;
+      if (step === 1) document.querySelector("#page-info").textContent = `共 ${filteredProducts().length} 个商品`;
+      document.querySelector("#cancel").textContent = step === 1 ? "退出创建" : "上一步";
+      if (step === 1) document.querySelector("#continue").textContent = "继续";
+      else renderAssignmentMode();
+    }
+
+    const uploadDialog = document.querySelector("#upload-dialog");
+
+    function enterCreation(updateLocation = true) {
+      app.hidden = true;
+      creationPage.hidden = false;
+      renderProducts();
+      showStep(step);
+      if (updateLocation && location.hash !== "#/matrix-video/create") location.hash = "/matrix-video/create";
+    }
+
+    function exitCreation(updateLocation = true) {
+      creationPage.hidden = true;
+      app.hidden = false;
+      if (updateLocation && location.hash === "#/matrix-video/create") location.hash = "";
+    }
+
+    function openUpload(updateLocation = true) {
+      if (!uploadDialog.open) uploadDialog.showModal();
+      if (updateLocation && location.hash !== "#/matrix-video/upload") location.hash = "/matrix-video/upload";
+    }
+
+    function closeUpload(updateLocation = true) {
+      if (uploadDialog.open) uploadDialog.close();
+      if (updateLocation && location.hash === "#/matrix-video/upload") location.hash = "";
+    }
+
+    function requestExit() {
+      if (!selected.size && !manualTasks.size) {
+        exitCreation();
+        return;
+      }
+      document.querySelector("#exit-confirm").hidden = false;
+    }
+
+    const openBatch = () => enterCreation();
+    document.querySelector("#open-batch").onclick = openBatch;
+    document.querySelector("#open-batch").onkeydown = event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openBatch();
+    };
+    document.querySelector("#open-upload").onclick = () => openUpload();
+    document.querySelector("#close-upload").onclick = () => closeUpload();
+    document.querySelector("#cancel-upload").onclick = () => closeUpload();
+    document.querySelector("#upload-link-mode").onclick = event => {
+      const button = event.target.closest("[data-link-mode]");
+      if (!button) return;
+      const linked = button.dataset.linkMode === "product";
+      document.querySelectorAll("[data-link-mode]").forEach(item => {
+        const active = item === button;
+        item.classList.toggle("active", active);
+        item.setAttribute("aria-checked", String(active));
+      });
+      document.querySelector("#upload-product-field").hidden = !linked;
+      document.querySelector("#upload-product").required = linked;
+      if (!linked) document.querySelector("#upload-product").value = "";
+    };
+    document.querySelector("#upload-file").onchange = event => { document.querySelector("#upload-file-name").textContent = event.target.files[0]?.name || "选择视频文件"; };
+    document.querySelector("#upload-form").onsubmit = event => {
+      event.preventDefault();
+      const toast = document.querySelector("#toast");
+      toast.textContent = "成片已上传，正在进入待发布队列";
+      toast.classList.add("show");
+      setTimeout(() => { location.href = "../task-management/index.html#/publish"; }, 900);
+    };
+    document.querySelector("#close-creation").onclick = requestExit;
+    document.querySelector("#back-workspace").onclick = requestExit;
+    document.querySelector("#continue-editing").onclick = () => { document.querySelector("#exit-confirm").hidden = true; };
+    document.querySelector("#confirm-exit").onclick = () => { resetCreationState(); document.querySelector("#exit-confirm").hidden = true; exitCreation(); };
+    document.querySelector("#product-search").oninput = event => { query = event.target.value; page = 1; renderProducts(); };
+    document.querySelector("#status-filter").onchange = event => { statusFilter = event.target.value; page = 1; renderProducts(); };
+    document.querySelector("#product-list").onchange = event => {
+      const checkbox = event.target.closest("[data-product-id]");
+      if (!checkbox) return;
+      checkbox.checked ? selected.add(checkbox.dataset.productId) : selected.delete(checkbox.dataset.productId);
+      renderProducts();
+    };
+    document.querySelector("#select-page").onchange = event => {
+      currentPageProducts().filter(product => product.status === "available").forEach(product => event.target.checked ? selected.add(product.id) : selected.delete(product.id));
+      renderProducts();
+    };
+    document.querySelector("#clear-selection").onclick = () => { selected.clear(); renderProducts(); };
+    document.querySelector("#creation-mode").onclick = event => {
+      const button = event.target.closest("[data-mode]");
+      if (!button) return;
+      creationMode = button.dataset.mode;
+      renderAssignmentMode();
+    };
+    document.querySelector("#quantity-mode").onclick = event => {
+      const button = event.target.closest("[data-quantity-mode]");
+      if (!button) return;
+      quantityMode = button.dataset.quantityMode;
+      renderAssignmentMode();
+    };
+    document.querySelector("#product-config-list").oninput = event => {
+      const value = Math.max(Number(event.target.min || 0), Math.min(99, Number(event.target.value) || 0));
+      if (event.target.dataset.productAmount) {
+        productAmounts.set(event.target.dataset.productAmount, value);
+        if (creationMode === "manual") document.querySelector("#continue").disabled = selectedProducts().some(product => amountFor(product.id) < 1);
+      }
+      if (event.target.dataset.handleAmount) {
+        handleAmounts.set(event.target.dataset.handleAmount, value);
+        const productId = event.target.dataset.handleAmount.split(":")[0];
+        const total = handles.reduce((sum, handle, index) => sum + handleAmountFor(productId, handle, index), 0);
+        document.querySelector(`[data-handle-total="${productId}"]`).textContent = total;
+      }
+      const taskField = event.target.dataset.taskField;
+      const taskId = event.target.closest("[data-task-card]")?.dataset.taskCard;
+      if (taskField && taskId) {
+        const task = findManualTask(taskId);
+        task[taskField] = event.target.value;
+        updateManualCompletion();
+      }
+    };
+    document.querySelector("#product-config-list").onchange = event => {
+      const taskField = event.target.dataset.taskField;
+      const taskId = event.target.closest("[data-task-card]")?.dataset.taskCard;
+      if (!taskField || !taskId) return;
+      const task = findManualTask(taskId);
+      task[taskField] = event.target.value;
+      updateManualCompletion();
+    };
+    document.querySelector("#product-config-list").onclick = event => {
+      const toggleAllButton = event.target.closest("[data-toggle-all-tasks]");
+      if (toggleAllButton) {
+        const product = products.find(item => item.id === activeManualProductId);
+        const tasks = tasksForProduct(product);
+        const allExpanded = tasks.length > 0 && tasks.every(task => expandedManualTaskIds.has(task.id));
+        tasks.forEach(task => allExpanded ? expandedManualTaskIds.delete(task.id) : expandedManualTaskIds.add(task.id));
+        renderAssignmentProducts();
+        return;
+      }
+      const addTaskButton = event.target.closest("[data-add-task-product]");
+      if (addTaskButton) {
+        const product = products.find(item => item.id === addTaskButton.dataset.addTaskProduct);
+        const tasks = tasksForProduct(product);
+        const newTask = createManualTask(product);
+        tasks.push(newTask);
+        productAmounts.set(product.id, tasks.length);
+        activeManualProductId = product.id;
+        expandedManualTaskIds.clear();
+        expandedManualTaskIds.add(newTask.id);
+        renderAssignmentProducts();
+        requestAnimationFrame(() => document.querySelector(`[data-task-card="${newTask.id}"]`)?.scrollIntoView({ block:"nearest" }));
+        return;
+      }
+      const productButton = event.target.closest("[data-manual-product]");
+      if (productButton) {
+        activeManualProductId = productButton.dataset.manualProduct;
+        renderAssignmentProducts();
+        return;
+      }
+      const taskToggle = event.target.closest("[data-task-toggle]");
+      if (taskToggle) {
+        const taskId = taskToggle.dataset.taskToggle;
+        if (expandedManualTaskIds.has(taskId)) expandedManualTaskIds.delete(taskId);
+        else {
+          expandedManualTaskIds.clear();
+          expandedManualTaskIds.add(taskId);
+        }
+        renderAssignmentProducts();
+        return;
+      }
+      const actionButton = event.target.closest("[data-manual-action]");
+      const action = actionButton?.dataset.manualAction;
+      if (!action) return;
+      const taskId = actionButton.closest("[data-task-card]")?.dataset.taskCard;
+      const task = findManualTask(taskId);
+      const product = products.find(item => item.id === task.productId);
+      const tasks = tasksForProduct(product);
+      const index = tasks.findIndex(item => item.id === task.id);
+      if (action === "copy") {
+        const copy = createManualTask(product, task);
+        tasks.splice(index + 1, 0, copy);
+        expandedManualTaskIds.clear();
+        expandedManualTaskIds.add(copy.id);
+      }
+      if (action === "delete") {
+        const total = selectedProducts().flatMap(tasksForProduct).length;
+        if (total === 1) return;
+        tasks.splice(index, 1);
+        expandedManualTaskIds.delete(task.id);
+        const nextTask = tasks[index] || tasks[index - 1];
+        if (nextTask) expandedManualTaskIds.add(nextTask.id);
+      }
+      productAmounts.set(product.id, tasks.length);
+      renderAssignmentProducts();
+      if (action === "copy") requestAnimationFrame(() => document.querySelector(`[data-task-card="${tasks[index + 1].id}"]`)?.scrollIntoView({ block:"nearest" }));
+    };
+    document.querySelector("#continue").onclick = () => {
+      if (step === 1 && selected.size) {
+        showStep(2);
+      }
+      else if (step === 2) {
+        const toast = document.querySelector("#toast");
+        toast.textContent = creationMode === "auto" ? "自动任务已创建，开始生成视频" : "待配置视频任务已创建，可到进度管理继续配置";
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
+      }
+    };
+    document.querySelector("#cancel").onclick = () => {
+      if (step === 1) requestExit();
+      else {
+        showStep(1);
+      }
+    };
+    function syncRoute() {
+      if (location.hash === "#/matrix-video/create") enterCreation(false);
+      else {
+        exitCreation(false);
+        if (location.hash === "#/matrix-video/upload") openUpload(false);
+        else closeUpload(false);
+      }
+    }
+    window.addEventListener("hashchange", syncRoute);
+    syncRoute();
+    renderProducts();
+  </script>
+</body>
+</html>

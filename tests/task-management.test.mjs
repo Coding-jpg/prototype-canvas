@@ -14,17 +14,36 @@ test("the global navigation contains an active task entry", () => {
   assert.match(html, /rail-item active[^>]*aria-current="page"[\s\S]*?<span>任务<\/span>/);
 });
 
-test("the six matrix video task states are available", () => {
-  for (const status of ["生成中", "生成失败", "待审核", "待发布", "已发布", "发布失败"]) assert.match(html, new RegExp(status));
+test("the seven matrix video task states are available", () => {
+  for (const status of ["待配置", "生成中", "生成失败", "待审核", "待发布", "已发布", "发布失败"]) assert.match(html, new RegExp(status));
 });
 
 test("top navigation groups task states by workflow stage", () => {
+  assert.match(html, /\{ id:"configuration", label:"待配置", statuses:\["pending_configuration"\] \}/);
   assert.match(html, /\{ id:"generation", label:"生成", statuses:\["generating","generation_failed"\] \}/);
-  assert.match(html, /\{ id:"review", label:"审核", statuses:\["pending_review"\] \}/);
+  assert.match(html, /\{ id:"review", label:"待审核", statuses:\["pending_review"\] \}/);
   assert.match(html, /\{ id:"publish", label:"发布", statuses:\["pending_publish","publish_failed"\] \}/);
   assert.match(html, /\{ id:"completed", label:"已完成", statuses:\["published"\] \}/);
   assert.match(html, /data-stage="\$\{stage\.id\}"/);
   assert.doesNotMatch(html, /data-status="\$\{status\.id\}"/);
+});
+
+test("pending configuration tasks can be configured, edited, and deleted", () => {
+  assert.match(html, /pending_configuration:\{ action:"configure", label:"配置"[\s\S]*?showEdit:true, canDelete:true/);
+  assert.match(html, /class="row-delete"[^>]*data-action="delete"[^>]*>删除<\/button>/);
+  assert.match(html, /action\.dataset\.action === "configure"\) openConfiguration\(task\)/);
+  assert.match(html, /action\.dataset\.action === "delete" && confirm/);
+  assert.match(html, /status-badge\.pending_configuration/);
+});
+
+test("manual task configuration includes every required generation field", () => {
+  assert.match(html, /id="configuration-dialog"/);
+  for (const id of ["configuration-product", "configuration-handle", "configuration-script", "configuration-video-title", "configuration-model", "configuration-duration", "configuration-ratio", "configuration-reference", "configuration-generation"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(html, /保存配置并开始生成/);
+  assert.match(html, /activeTask\.status = "generating"/);
+  assert.match(html, /activeStage = "generation"/);
 });
 
 test("generation and publish stages expose a secondary status filter", () => {
@@ -96,8 +115,10 @@ test("the publish stage links to the finished-video upload workflow", () => {
 });
 
 test("generating tasks expose details and cancellation", () => {
-  assert.match(html, /generating:\{ action:"detail", label:"查看进度"[\s\S]*?showDetail:false/);
-  assert.match(html, /id="detail-dialog"/);
+  assert.match(html, /generating:\{ action:"edit", label:"查看进度"[\s\S]*?showEdit:false/);
+  assert.match(html, /class="detail-drawer" id="task-editor-drawer"/);
+  assert.match(html, /editorDrawer\.showModal\(\)/);
+  assert.match(html, /\.detail-drawer \{ position:fixed; inset:0 0 0 auto;/);
   assert.match(html, /id="detail-cancel"/);
   assert.match(html, /detailCancel\.hidden = task\.status !== "generating"/);
   assert.match(html, /素材与生成/);
@@ -105,26 +126,28 @@ test("generating tasks expose details and cancellation", () => {
 });
 
 test("row actions separate the next step from secondary management commands", () => {
-  assert.match(html, /generating:\{ action:"detail", label:"查看进度"[\s\S]*?showDetail:false/);
-  assert.match(html, /generation_failed:\{ action:"retry", label:"重试生成"[\s\S]*?showDetail:true/);
-  assert.match(html, /pending_review:\{ action:"review", label:"审核", icon:"✓", tone:"review", showDetail:true/);
-  assert.match(html, /pending_publish:\{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showDetail:true/);
-  assert.match(html, /published:\{ action:"detail", label:"查看详情"[\s\S]*?showDetail:false/);
-  assert.match(html, /publish_failed:\{ action:"retry-publish", label:"重试发布"[\s\S]*?showDetail:true/);
-  assert.match(html, /class="row-detail"[^>]*data-action="detail"[^>]*>查看详情<\/button>/);
-  assert.match(html, /configuration\.action === "detail" \? "row-detail"/);
+  assert.match(html, /pending_configuration:\{ action:"configure", label:"配置"/);
+  assert.match(html, /generating:\{ action:"edit", label:"查看进度"[\s\S]*?showEdit:false/);
+  assert.match(html, /generation_failed:\{ action:"retry", label:"重试生成"[\s\S]*?showEdit:true/);
+  assert.match(html, /pending_review:\{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:true/);
+  assert.match(html, /pending_publish:\{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showEdit:true/);
+  assert.match(html, /published:\{ action:"edit", label:"编辑"[\s\S]*?showEdit:false/);
+  assert.match(html, /publish_failed:\{ action:"retry-publish", label:"重试发布"[\s\S]*?showEdit:true/);
+  assert.match(html, /class="row-detail"[^>]*data-action="edit"[^>]*>编辑<\/button>/);
+  assert.match(html, /configuration\.action === "edit" \? "row-detail"/);
   assert.match(html, /\$\{primaryIcon\}\$\{configuration\.label\}/);
   assert.doesNotMatch(html, /row-more|action-menu|data-menu-trigger|closeActionMenus/);
   assert.doesNotMatch(html, /<button class="link" data-action/);
 });
 
 test("row status and primary actions use explicit matching visual tones", () => {
-  for (const status of ["generating", "generation_failed", "pending_review", "pending_publish", "published", "publish_failed"]) {
+  for (const status of ["pending_configuration", "generating", "generation_failed", "pending_review", "pending_publish", "published", "publish_failed"]) {
     assert.match(html, new RegExp(`\\.status-badge\\.${status}`));
   }
   assert.match(html, /tone:"retry"/);
   assert.match(html, /tone:"review"/);
   assert.match(html, /tone:"publish"/);
+  assert.match(html, /tone:"configure"/);
   assert.doesNotMatch(html, /row-primary\.progress|row-primary\.complete/);
   assert.doesNotMatch(html, />更多 <span aria-hidden="true">⌄<\/span>/);
   assert.doesNotMatch(html, />⋯<\/button>/);

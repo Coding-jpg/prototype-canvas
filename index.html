@@ -521,11 +521,6 @@
       background: var(--panel);
     }
 
-    .library-item.is-deleted { background: var(--panel-2); }
-
-    .library-item.is-deleted .library-copy,
-    .library-item.is-deleted .library-device { opacity: 0.62; }
-
     .library-actions {
       display: flex;
       align-items: center;
@@ -533,19 +528,6 @@
     }
 
     .library-actions .icon-button { width: 30px; height: 30px; }
-
-    .library-actions .danger:hover {
-      color: var(--danger);
-      background: color-mix(in srgb, var(--danger) 9%, var(--panel));
-    }
-
-    .library-section-label {
-      padding: 7px 12px;
-      color: var(--muted);
-      background: var(--panel-2);
-      font-size: 11px;
-      font-weight: 650;
-    }
 
     .library-copy { min-width: 0; }
 
@@ -796,12 +778,11 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         try {
           const stored = JSON.parse(localStorage.getItem(COMPONENT_PREFERENCES_KEY) || "{}");
           return {
-            names: stored.names && typeof stored.names === "object" ? stored.names : {},
-            deleted: Array.isArray(stored.deleted) ? stored.deleted : []
+            names: stored.names && typeof stored.names === "object" ? stored.names : {}
           };
         } catch (error) {
           console.warn("Could not load component preferences", error);
-          return { names: {}, deleted: [] };
+          return { names: {} };
         }
       }
 
@@ -1080,7 +1061,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
             <button class="icon-button" type="button" data-reload title="重新加载组件"><i data-lucide="refresh-cw"></i></button>
             <button class="icon-button" type="button" data-download title="下载 HTML" aria-label="下载${escapeHtml(item.title)}"><i data-lucide="download"></i></button>
             <button class="icon-button" type="button" data-duplicate title="复制画框"><i data-lucide="copy"></i></button>
-            <button class="icon-button" type="button" data-delete title="删除画框"><i data-lucide="trash-2"></i></button>
           </header>
           <div class="frame-content"><iframe title="${escapeHtml(item.title)}" sandbox="allow-scripts allow-forms allow-modals"></iframe></div>`;
         const title = element.querySelector(".frame-title");
@@ -1137,10 +1117,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           selectedId = copy.id;
           renderItems();
           queueSave();
-        });
-        element.querySelector("[data-delete]").addEventListener("click", event => {
-          event.stopPropagation();
-          deleteSelected(item.id);
         });
         bindMove(element, item, element.querySelector("[data-drag-handle]"));
         return element;
@@ -1332,6 +1308,8 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       function deleteSelected(id = selectedId) {
         if (!id) return;
+        const selectedItem = state.items.find(item => item.id === id);
+        if (!selectedItem || selectedItem.type === "frame") return;
         state.items = state.items.filter(item => item.id !== id);
         if (selectedId === id) selectedId = null;
         renderItems();
@@ -1434,38 +1412,20 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       }
 
       function renderComponentLibrary() {
-        const deletedIds = new Set(componentPreferences.deleted);
-        const availableComponents = componentCatalog.filter(component => !deletedIds.has(component.id));
-        const deletedComponents = componentCatalog.filter(component => deletedIds.has(component.id));
-        librarySummary.textContent = `${availableComponents.length} 个可用` + (deletedComponents.length ? ` · ${deletedComponents.length} 个已删除` : "");
+        librarySummary.textContent = `${componentCatalog.length} 个可用`;
         libraryList.replaceChildren();
         if (!componentCatalog.length) {
           libraryList.innerHTML = '<div class="library-empty">组件库为空</div>';
           return;
         }
 
-        if (!availableComponents.length) {
-          const empty = document.createElement("div");
-          empty.className = "library-empty";
-          empty.textContent = "可用组件为空";
-          libraryList.appendChild(empty);
-        }
-
-        availableComponents.forEach(component => renderLibraryItem(component, false));
-
-        if (deletedComponents.length) {
-          const label = document.createElement("div");
-          label.className = "library-section-label";
-          label.textContent = "已删除，可恢复";
-          libraryList.appendChild(label);
-          deletedComponents.forEach(component => renderLibraryItem(component, true));
-        }
+        componentCatalog.forEach(component => renderLibraryItem(component));
         if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
       }
 
-      function renderLibraryItem(component, isDeleted) {
+      function renderLibraryItem(component) {
           const row = document.createElement("article");
-          row.className = "library-item" + (isDeleted ? " is-deleted" : "");
+          row.className = "library-item";
           const copy = document.createElement("div");
           copy.className = "library-copy";
           const name = document.createElement("strong");
@@ -1480,18 +1440,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
           const actions = document.createElement("div");
           actions.className = "library-actions";
-
-          if (isDeleted) {
-            const restoreButton = document.createElement("button");
-            restoreButton.type = "button";
-            restoreButton.className = "command-button";
-            restoreButton.innerHTML = '<i data-lucide="undo-2"></i><span>恢复</span>';
-            restoreButton.addEventListener("click", () => restoreLibraryComponent(component));
-            actions.appendChild(restoreButton);
-            row.append(copy, device, actions);
-            libraryList.appendChild(row);
-            return;
-          }
 
           const addButton = document.createElement("button");
           addButton.type = "button";
@@ -1515,15 +1463,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           renameButton.innerHTML = '<i data-lucide="pencil"></i>';
           renameButton.addEventListener("click", () => renameLibraryComponent(component));
 
-          const deleteButton = document.createElement("button");
-          deleteButton.type = "button";
-          deleteButton.className = "icon-button danger";
-          deleteButton.title = "删除组件";
-          deleteButton.setAttribute("aria-label", `删除${componentDisplayName(component)}`);
-          deleteButton.innerHTML = '<i data-lucide="trash-2"></i>';
-          deleteButton.addEventListener("click", () => deleteLibraryComponent(component));
-
-          actions.append(addButton, renameButton, deleteButton);
+          actions.append(addButton, renameButton);
           row.append(copy, device, actions);
           libraryList.appendChild(row);
       }
@@ -1545,22 +1485,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         renderItems();
         queueSave();
         showToast("组件已重命名");
-      }
-
-      function deleteLibraryComponent(component) {
-        const name = componentDisplayName(component);
-        if (!confirm(`从组件库删除“${name}”？\n\n这只影响当前浏览器，画板中的组件和仓库源文件会保留。`)) return;
-        if (!componentPreferences.deleted.includes(component.id)) componentPreferences.deleted.push(component.id);
-        saveComponentPreferences();
-        renderComponentLibrary();
-        showToast("已从组件库删除，可在列表底部恢复");
-      }
-
-      function restoreLibraryComponent(component) {
-        componentPreferences.deleted = componentPreferences.deleted.filter(id => id !== component.id);
-        saveComponentPreferences();
-        renderComponentLibrary();
-        showToast("组件已恢复");
       }
 
       function addComponentFrame(component) {

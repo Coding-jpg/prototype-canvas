@@ -27,7 +27,10 @@ test("uploaded finished videos use a separate publishing workflow", () => {
   assert.match(html, /class="upload-dialog" id="upload-dialog"/);
   assert.match(html, /uploadDialog\.showModal\(\)/);
   assert.match(html, /id="upload-handle" required/);
-  assert.match(html, /挂链商品（选填）/);
+  assert.match(html, /id="upload-link-mode" role="radiogroup"[\s\S]*?data-link-mode="none"[\s\S]*?>不挂链<[\s\S]*?data-link-mode="product"[\s\S]*?>挂链商品</);
+  assert.match(html, /id="upload-product-field" hidden[\s\S]*?<span>选择挂链商品<\/span>/);
+  assert.match(html, /upload-product-field"\)\.hidden = !linked/);
+  assert.match(html, /upload-product"\)\.required = linked/);
   assert.match(html, /id="upload-title" required/);
   assert.match(html, /type="file" id="upload-file"[^>]*required/);
   assert.match(html, />加入发布队列<\/button>/);

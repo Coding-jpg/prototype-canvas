@@ -53,6 +53,9 @@
     .upload-field { display:grid; gap:6px; color:#555b64; font-size:12px; font-weight:650; }
     .upload-field.full { grid-column:1 / -1; }
     .upload-field input,.upload-field select { width:100%; height:38px; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#30353b; }
+    .link-mode { height:38px; display:grid; grid-template-columns:1fr 1fr; padding:3px; border:1px solid var(--line-strong); border-radius:5px; background:#f1f2f4; }
+    .link-mode button { border:0; border-radius:3px; background:transparent; color:#727882; font-size:12px; }
+    .link-mode button.active { background:#fff; color:#292d32; font-weight:650; box-shadow:0 1px 3px rgba(22,26,32,.1); }
     .file-drop { min-height:126px; display:grid; place-items:center; padding:18px; border:1px dashed #c8cdd4; border-radius:6px; background:#f7f8f9; color:#545b65; text-align:center; cursor:pointer; }
     .file-drop:hover { border-color:#9fa7b2; background:#f3f5f7; }
     .file-drop input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
@@ -241,7 +244,8 @@
       <div class="upload-content">
           <div class="upload-form-grid">
             <label class="upload-field"><span>发布帐号 / Handle</span><select id="upload-handle" required><option value="">请选择帐号</option><option>@user167630490</option><option>@dailyhome.us</option><option>@smartfinds.lab</option></select></label>
-            <label class="upload-field"><span>挂链商品（选填）</span><select id="upload-product"><option value="">不挂链商品</option><option>Portable Blender Cup</option><option>Ergonomic Office Chair with Lumbar Support</option></select></label>
+            <div class="upload-field"><span>挂链设置</span><div class="link-mode" id="upload-link-mode" role="radiogroup" aria-label="挂链设置"><button class="active" type="button" data-link-mode="none" role="radio" aria-checked="true">不挂链</button><button type="button" data-link-mode="product" role="radio" aria-checked="false">挂链商品</button></div></div>
+            <label class="upload-field full" id="upload-product-field" hidden><span>选择挂链商品</span><select id="upload-product"><option value="">请选择商品</option><option>Portable Blender Cup</option><option>Ergonomic Office Chair with Lumbar Support</option></select></label>
             <label class="upload-field full"><span>视频标题</span><input id="upload-title" required placeholder="填写发布时使用的视频标题"></label>
             <label class="upload-field full"><span>成片文件</span><span class="file-drop"><input type="file" id="upload-file" accept="video/mp4,video/quicktime" required><strong id="upload-file-name">选择视频文件</strong><span>点击选择 MP4 或 MOV 文件</span></span><small class="file-help">最大 100MB，最长 2 分钟；上传后由服务端校验文件。</small></label>
           </div>
@@ -580,6 +584,19 @@
     document.querySelector("#open-upload").onclick = () => openUpload();
     document.querySelector("#close-upload").onclick = () => closeUpload();
     document.querySelector("#cancel-upload").onclick = () => closeUpload();
+    document.querySelector("#upload-link-mode").onclick = event => {
+      const button = event.target.closest("[data-link-mode]");
+      if (!button) return;
+      const linked = button.dataset.linkMode === "product";
+      document.querySelectorAll("[data-link-mode]").forEach(item => {
+        const active = item === button;
+        item.classList.toggle("active", active);
+        item.setAttribute("aria-checked", String(active));
+      });
+      document.querySelector("#upload-product-field").hidden = !linked;
+      document.querySelector("#upload-product").required = linked;
+      if (!linked) document.querySelector("#upload-product").value = "";
+    };
     document.querySelector("#upload-file").onchange = event => { document.querySelector("#upload-file-name").textContent = event.target.files[0]?.name || "选择视频文件"; };
     document.querySelector("#upload-form").onsubmit = event => {
       event.preventDefault();

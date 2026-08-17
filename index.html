@@ -63,6 +63,7 @@
       background: var(--panel);
       border-bottom: 1px solid var(--border);
       z-index: 30;
+      touch-action: none;
     }
 
     .brand {
@@ -103,7 +104,10 @@
       z-index: 40;
       top: 8px;
       left: 50%;
+      max-width: calc(100vw - 24px);
       padding: 3px;
+      overflow-x: auto;
+      overscroll-behavior: contain;
       background: var(--panel-2);
       border: 1px solid var(--border);
       border-radius: 7px;
@@ -1584,6 +1588,10 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           renderCamera();
           queueSave();
         }
+      }, { passive: false });
+
+      document.querySelector(".topbar").addEventListener("wheel", event => {
+        event.preventDefault();
       }, { passive: false });
 
       document.querySelectorAll("[data-tool-button]").forEach(button => {

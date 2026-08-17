@@ -69,7 +69,7 @@ test("component frames can be removed from the board without changing the reposi
 });
 
 test("the main canvas tools stay fixed outside the zooming stage", () => {
-  assert.match(html, /\.tools \{[\s\S]*?position: fixed;[\s\S]*?top: 8px;[\s\S]*?left: 50%;[\s\S]*?transform: translateX\(-50%\)/);
+  assert.match(html, /\.tools \{[\s\S]*?position: fixed;[\s\S]*?top: 8px;[\s\S]*?left: 50%;[\s\S]*?max-width: calc\(100vw - 24px\);[\s\S]*?transform: translateX\(-50%\)/);
   assert.match(html, /\.actions \{[\s\S]*?grid-column: 3;[\s\S]*?justify-self: end;/);
   const viewportMarkup = section('<section id="viewport"', '<footer class="statusbar"');
   assert.doesNotMatch(viewportMarkup, /class="tools"/);
@@ -78,6 +78,14 @@ test("the main canvas tools stay fixed outside the zooming stage", () => {
   assert.match(toolbarMarkup, /data-tool-button="text"/);
   assert.match(toolbarMarkup, /data-tool-button="note"/);
   assert.match(toolbarMarkup, /data-tool-button="arrow"/);
+});
+
+test("the fixed top bar cannot trigger page or canvas zoom", () => {
+  const wheelHandling = section('viewport.addEventListener("wheel"', 'document.querySelectorAll("[data-tool-button]")');
+  assert.match(wheelHandling, /document\.querySelector\("\.topbar"\)\.addEventListener\("wheel"/);
+  assert.match(wheelHandling, /event\.preventDefault\(\)/);
+  assert.match(html, /\.topbar \{[\s\S]*?touch-action: none;/);
+  assert.match(html, /overscroll-behavior: contain/);
 });
 
 test("each frame can download its standalone HTML", () => {

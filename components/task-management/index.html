@@ -228,7 +228,6 @@
           <select class="select" id="stage-status-filter" aria-label="阶段状态" hidden></select>
           <div class="search-wrap"><input class="search" id="task-search" placeholder="搜索商品、任务 ID、Handle、视频标题"></div>
           <div class="toolbar-actions">
-            <a class="button small upload-entry" id="upload-video-entry" href="../matrix-video-creation/index.html#/matrix-video/upload" hidden>上传成片</a>
             <button class="button danger small" id="enter-batch-retry" type="button" hidden>批量重试失败任务</button>
             <div class="batch-bar" id="batch-bar" hidden>
               <span class="selected-copy">已选择 <strong id="selected-count">0</strong> 项</span>
@@ -308,7 +307,7 @@
       { id:"configuration", label:"待配置", statuses:["pending_configuration"] },
       { id:"generation", label:"生成", statuses:["generating","generation_failed"] },
       { id:"review", label:"待审核", statuses:["pending_review"] },
-      { id:"publish", label:"发布", statuses:["pending_publish","publish_failed"] },
+      { id:"publish", label:"待发布", statuses:["pending_publish","publish_failed"] },
       { id:"completed", label:"已完成", statuses:["published"] }
     ];
     const stageStatusOptions = {
@@ -342,7 +341,6 @@
 
     const taskList = document.querySelector("#task-list");
     const emptyState = document.querySelector("#empty-state");
-    const uploadEntry = document.querySelector("#upload-video-entry");
     const batchEntry = document.querySelector("#enter-batch-retry");
     const batchBar = document.querySelector("#batch-bar");
     const selectAll = document.querySelector("#select-all-failed");
@@ -408,7 +406,7 @@
 
     function actionMarkup(task) {
       const configurations = {
-        pending_configuration:{ action:"configure", label:"配置", icon:"⚙", tone:"configure", showEdit:true, canDelete:true },
+        pending_configuration:{ action:"configure", label:"配置", icon:"⚙", tone:"configure", canDelete:true },
         generating:{ action:"edit", label:"查看进度", showEdit:false },
         generation_failed:{ action:"retry", label:"重试生成", icon:"↻", tone:"retry", showEdit:true },
         pending_review:{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:true },
@@ -443,7 +441,6 @@
       document.querySelector("table").hidden = visible.length === 0;
       document.querySelector("#result-summary").textContent = `共 ${visible.length} 条任务`;
       const failedCount = tasks.filter(task => task.status === "generation_failed").length;
-      uploadEntry.hidden = activeStage !== "publish";
       batchEntry.hidden = failureMode || failedCount === 0;
       batchBar.hidden = !failureMode;
       updateBatchControls(visible);

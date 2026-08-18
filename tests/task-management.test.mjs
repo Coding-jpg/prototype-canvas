@@ -22,14 +22,15 @@ test("top navigation groups task states by workflow stage", () => {
   assert.match(html, /\{ id:"configuration", label:"待配置", statuses:\["pending_configuration"\] \}/);
   assert.match(html, /\{ id:"generation", label:"生成", statuses:\["generating","generation_failed"\] \}/);
   assert.match(html, /\{ id:"review", label:"待审核", statuses:\["pending_review"\] \}/);
-  assert.match(html, /\{ id:"publish", label:"发布", statuses:\["pending_publish","publish_failed"\] \}/);
+  assert.match(html, /\{ id:"publish", label:"待发布", statuses:\["pending_publish","publish_failed"\] \}/);
   assert.match(html, /\{ id:"completed", label:"已完成", statuses:\["published"\] \}/);
   assert.match(html, /data-stage="\$\{stage\.id\}"/);
   assert.doesNotMatch(html, /data-status="\$\{status\.id\}"/);
 });
 
-test("pending configuration tasks can be configured, edited, and deleted", () => {
-  assert.match(html, /pending_configuration:\{ action:"configure", label:"配置"[\s\S]*?showEdit:true, canDelete:true/);
+test("pending configuration tasks expose only configure and delete actions", () => {
+  assert.match(html, /pending_configuration:\{ action:"configure", label:"配置"[\s\S]*?canDelete:true/);
+  assert.doesNotMatch(html, /pending_configuration:\{[^}]*showEdit:true/);
   assert.match(html, /class="row-delete"[^>]*data-action="delete"[^>]*>删除<\/button>/);
   assert.match(html, /action\.dataset\.action === "configure"\) openConfiguration\(task\)/);
   assert.match(html, /action\.dataset\.action === "delete" && confirm/);
@@ -107,9 +108,8 @@ test("pending publish tasks can choose immediate or scheduled publishing", () =>
   assert.match(html, /type="datetime-local"/);
 });
 
-test("the publish stage links to the finished-video upload workflow", () => {
-  assert.match(html, /id="upload-video-entry" href="\.\.\/matrix-video-creation\/index\.html#\/matrix-video\/upload" hidden>上传成片/);
-  assert.match(html, /uploadEntry\.hidden = activeStage !== "publish"/);
+test("the publish stage accepts uploaded tasks without exposing an upload entry", () => {
+  assert.doesNotMatch(html, /id="upload-video-entry"|uploadEntry/);
   assert.match(html, /location\.hash === "#\/publish" \? "publish" : "all"/);
   assert.match(html, /manualUpload:true/);
 });

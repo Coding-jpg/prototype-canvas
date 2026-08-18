@@ -3,6 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const framedComponentPaths = [
+  "account-management-flow", "filter-panel", "matrix-video-creation-0817", "matrix-video-creation", "product-import-flow", "release-confirm", "task-management"
+];
+const framedComponents = await Promise.all(framedComponentPaths.map(path => readFile(new URL(`../components/${path}/index.html`, import.meta.url), "utf8")));
 
 function section(start, end) {
   const startIndex = html.indexOf(start);
@@ -86,6 +90,25 @@ test("the fixed top bar cannot trigger page or canvas zoom", () => {
   assert.match(wheelHandling, /event\.preventDefault\(\)/);
   assert.match(html, /\.topbar \{[\s\S]*?touch-action: none;/);
   assert.match(html, /overscroll-behavior: contain/);
+});
+
+test("canvas wheel zoom uses lower damping", () => {
+  const wheelHandling = section('viewport.addEventListener("wheel"', 'document.querySelector(".topbar").addEventListener("wheel"');
+  assert.match(wheelHandling, /Math\.exp\(-event\.deltaY \* 0\.003\)/);
+});
+
+test("zoom gestures inside component frames are forwarded to the canvas", () => {
+  const renderFrame = section("function renderFrame(item)", "function renameFrame(item, element)");
+  const messageHandling = section('window.addEventListener("message"', 'document.querySelector(".topbar").addEventListener("wheel"');
+  assert.match(renderFrame, /sandbox="allow-scripts allow-forms allow-modals"/);
+  assert.match(messageHandling, /message\.type !== "prototype-canvas:frame-zoom"/);
+  assert.match(messageHandling, /frame\.contentWindow === event\.source/);
+  assert.match(messageHandling, /Number\.isFinite\(message\.deltaY\)/);
+  assert.match(messageHandling, /setZoom\(state\.camera\.zoom \* Math\.exp\(-message\.deltaY \* 0\.003\), clientX, clientY\)/);
+  framedComponents.forEach(componentHtml => {
+    assert.match(componentHtml, /window\.parent\.postMessage\(\{ type:"prototype-canvas:frame-zoom"/);
+    assert.match(componentHtml, /event\.preventDefault\(\)/);
+  });
 });
 
 test("each frame can download its standalone HTML", () => {

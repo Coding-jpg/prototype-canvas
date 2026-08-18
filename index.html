@@ -1783,7 +1783,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       viewport.addEventListener("wheel", event => {
         event.preventDefault();
         if (event.ctrlKey || event.metaKey) {
-          setZoom(state.camera.zoom * Math.exp(-event.deltaY * 0.002), event.clientX, event.clientY);
+          setZoom(state.camera.zoom * Math.exp(-event.deltaY * 0.003), event.clientX, event.clientY);
         } else {
           state.camera.x -= event.deltaX;
           state.camera.y -= event.deltaY;
@@ -1791,6 +1791,19 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           queueSave();
         }
       }, { passive: false });
+
+      window.addEventListener("message", event => {
+        const message = event.data;
+        if (!message || message.type !== "prototype-canvas:frame-zoom") return;
+        const iframe = [...stage.querySelectorAll("iframe")].find(frame => frame.contentWindow === event.source);
+        if (!iframe || !Number.isFinite(message.deltaY) || !Number.isFinite(message.clientX) || !Number.isFinite(message.clientY)) return;
+        const rect = iframe.getBoundingClientRect();
+        const frameWidth = iframe.clientWidth || 1;
+        const frameHeight = iframe.clientHeight || 1;
+        const clientX = rect.left + message.clientX * rect.width / frameWidth;
+        const clientY = rect.top + message.clientY * rect.height / frameHeight;
+        setZoom(state.camera.zoom * Math.exp(-message.deltaY * 0.003), clientX, clientY);
+      });
 
       document.querySelector(".topbar").addEventListener("wheel", event => {
         event.preventDefault();

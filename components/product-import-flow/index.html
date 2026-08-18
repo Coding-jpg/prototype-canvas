@@ -748,5 +748,12 @@
       showToast("商品已加入商品库，正在准备必要物料");
     };
   </script>
+  <script>
+    window.addEventListener("wheel", event => {
+      if (window.parent === window || (!event.ctrlKey && !event.metaKey)) return;
+      event.preventDefault();
+      window.parent.postMessage({ type:"prototype-canvas:frame-zoom", deltaY:event.deltaY, clientX:event.clientX, clientY:event.clientY }, "*");
+    }, { passive:false });
+  </script>
 </body>
 </html>

@@ -95,17 +95,41 @@ test("tasks can be filtered by a dynamically generated Handle menu", () => {
   assert.match(html, /handleFilter = event\.target\.value; selectedFailed\.clear\(\); renderTasks\(\)/);
 });
 
-test("review supports approval and rejection with an optional reason", () => {
+test("pending review combines video, script, editing, and review in one drawer", () => {
   assert.match(html, /id="review-dialog"/);
-  assert.match(html, /class="review-material"[\s\S]*?>审核内容</);
+  assert.match(html, /class="review-drawer" id="review-dialog"/);
+  assert.match(html, /审核与编辑视频任务/);
+  assert.match(html, /成片与分镜脚本/);
   assert.match(html, /<strong>分镜脚本<\/strong>/);
-  assert.match(html, /class="review-decision"/);
+  for (const id of ["review-handle", "review-script", "review-video-title", "review-model", "review-generation", "review-ratio", "review-reference"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(html, /视频提示词 · 第 1 段 · 8s/);
+  assert.match(html, /视频提示词 · 第 2 段 · 8s/);
   assert.match(html, /id="review-approve">通过<\/button>/);
   assert.match(html, /id="review-reject">拒绝<\/button>/);
   assert.match(html, /拒绝原因（选填）/);
   assert.doesNotMatch(html, /确认审核|review-submit|setReviewDecision/);
   assert.match(html, /updateTaskStatus\(activeTask,"pending_publish"/);
   assert.match(html, /updateTaskStatus\(activeTask,"generating"/);
+});
+
+test("reviewers can download and upload a replacement video", () => {
+  assert.match(html, /id="review-download">↓ 下载成片<\/button>/);
+  assert.match(html, /id="review-replacement" accept="video\/mp4,video\/quicktime,video\/webm" hidden/);
+  assert.match(html, /id="review-upload">↑ 上传替换<\/button>/);
+  assert.match(html, /new Blob\(\[`Prototype video for \$\{activeTask\.id\}`\],\{ type:"video\/mp4" \}\)/);
+  assert.match(html, /link\.download = `\$\{activeTask\.id\}-\$\{activeTask\.replacementFile \? "edited" : "generated"\}\.mp4`/);
+  assert.match(html, /activeTask\.replacementVideoUrl = URL\.createObjectURL\(file\)/);
+  assert.match(html, /activeTask\.replacementFile = file\.name/);
+  assert.match(html, /替换成片已上传/);
+});
+
+test("generation-sensitive review edits require regeneration", () => {
+  assert.match(html, /function reviewNeedsRegeneration\(\)/);
+  assert.match(html, /review-approve"\)\.disabled = needsRegeneration \|\| !hasTitle/);
+  assert.match(html, /id="review-regenerate" hidden>保存并重新生成<\/button>/);
+  assert.match(html, /配置已保存，任务重新进入生成中/);
 });
 
 test("pending publish tasks can choose immediate or scheduled publishing", () => {
@@ -135,7 +159,7 @@ test("row actions separate the next step from secondary management commands", ()
   assert.match(html, /pending_configuration:\{ action:"configure", label:"配置"/);
   assert.match(html, /generating:\{ action:"edit", label:"查看进度"[\s\S]*?showEdit:false/);
   assert.match(html, /generation_failed:\{ action:"retry", label:"重试生成"[\s\S]*?showEdit:true/);
-  assert.match(html, /pending_review:\{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:true/);
+  assert.match(html, /pending_review:\{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:false/);
   assert.match(html, /pending_publish:\{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showEdit:true/);
   assert.match(html, /published:\{ action:"edit", label:"编辑"[\s\S]*?showEdit:false/);
   assert.match(html, /publish_failed:\{ action:"retry-publish", label:"重试发布"[\s\S]*?showEdit:true/);

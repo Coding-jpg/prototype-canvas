@@ -154,14 +154,21 @@
     .configuration-field input[readonly] { background:#f5f6f7; color:#707681; }
     .configuration-field.title { grid-column:span 2; }
 
-    .review-dialog { width:min(1100px,calc(100vw - 48px)); height:min(800px,calc(100vh - 48px)); }
-    .review-dialog .dialog-form { height:100%; }
-    .review-body { min-height:0; display:grid; grid-template-rows:minmax(0,1fr) auto; gap:14px; padding:18px; overflow:hidden; }
-    .review-material { min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr); gap:9px; }
-    .review-section-title { margin:0; font-size:13px; }
-    .review-content { min-height:0; display:grid; grid-template-columns:360px minmax(0,1fr); gap:16px; }
-    .video-player { position:relative; min-height:0; overflow:hidden; border-radius:6px; background:#121722 center/cover no-repeat; }
-    .video-player::after { content:"▶"; position:absolute; top:50%; left:50%; width:48px; height:48px; display:grid; place-items:center; padding-left:3px; border-radius:50%; transform:translate(-50%,-50%); background:rgba(13,17,23,.76); color:#fff; font-size:18px; }
+    .review-drawer { position:fixed; inset:0 0 0 auto; width:min(1120px,calc(100vw - 48px)); max-width:none; height:100dvh; max-height:none; margin:0; border-radius:8px 0 0 8px; }
+    .review-drawer .dialog-form { height:100%; max-height:none; }
+    .review-editor-body { min-height:0; overflow:auto; }
+    .review-block { padding:18px 22px; border-bottom:1px solid var(--line); }
+    .review-section-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:12px; }
+    .review-section-head h3 { margin:0; font-size:14px; }
+    .review-section-head p { margin:3px 0 0; color:#7b8189; font-size:11px; }
+    .media-actions { display:flex; gap:8px; }
+    .replacement-status { margin:-3px 0 10px; color:#737a84; font-size:11px; }
+    .replacement-status.replaced { color:var(--green); font-weight:650; }
+    .review-content { min-height:340px; display:grid; grid-template-columns:360px minmax(0,1fr); gap:16px; }
+    .review-player { position:relative; min-height:340px; overflow:hidden; border-radius:6px; background:#121722 center/cover no-repeat; }
+    .review-player video { position:absolute; inset:0; width:100%; height:100%; background:#0f131b; object-fit:contain; }
+    .video-placeholder { position:absolute; inset:0; display:grid; place-content:center; gap:10px; color:#fff; font-size:12px; text-align:center; }
+    .video-placeholder::before { content:"▶"; width:48px; height:48px; display:grid; place-items:center; margin:auto; padding-left:3px; border-radius:50%; background:rgba(13,17,23,.76); font-size:18px; }
     .script-panel { min-height:0; overflow:auto; padding:14px; border:1px solid var(--line); border-radius:6px; }
     .script-head { display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid var(--line); }
     .script-head strong,.script-head span { display:block; }
@@ -172,10 +179,26 @@
     .segment-meta { margin-bottom:5px; color:#6e747d; font-size:11px; }
     .script-row { display:grid; grid-template-columns:72px minmax(0,1fr); gap:10px; margin-top:5px; color:#58606b; font-size:12px; }
     .script-row strong { color:#737a84; font-size:11px; }
-    .review-decision { display:grid; grid-template-columns:170px minmax(0,1fr); gap:18px; padding:13px 14px; border:1px solid var(--line); border-radius:6px; background:#f8f9fa; }
-    .decision-copy h3 { margin:0; font-size:13px; }
-    .decision-copy p { margin:3px 0 0; color:#7b8189; font-size:11px; }
-    .decision-control { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:12px; }
+    .review-config-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .review-config-field { min-width:0; display:grid; gap:5px; color:#5f6670; font-size:11px; font-weight:650; }
+    .review-config-field select,.review-config-field textarea { width:100%; padding:0 10px; border:1px solid var(--line-strong); border-radius:5px; background:#fff; color:#30353b; }
+    .review-config-field select { height:40px; }
+    .review-config-field textarea { min-height:82px; padding-top:9px; resize:vertical; }
+    .review-config-field.title { grid-column:1 / -1; }
+    .review-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .review-stat { min-width:0; padding:11px 12px; border:1px solid var(--line); border-radius:6px; }
+    .review-stat span,.review-stat strong { display:block; }
+    .review-stat span { color:#737a84; font-size:10px; }
+    .review-stat strong { margin-top:2px; overflow:hidden; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+    .review-change-note { margin:10px 0 0; color:#7b8189; font-size:11px; }
+    .review-change-note.warning { color:#a75916; font-weight:650; }
+    .prompt-list { display:grid; gap:8px; }
+    .prompt-list details { border:1px solid var(--line); border-radius:6px; background:#fff; }
+    .prompt-list summary { padding:11px 12px; font-size:12px; font-weight:700; cursor:pointer; }
+    .prompt-copy { padding:0 12px 13px; border-top:1px solid var(--line); color:#4f5660; font-size:11px; line-height:1.65; }
+    .prompt-copy p { margin:9px 0 0; }
+    .review-foot { display:grid; grid-template-columns:minmax(280px,1fr) auto; align-items:end; gap:16px; }
+    .review-foot .reject-reason-field { max-width:520px; }
     .decision-actions { display:flex; gap:8px; padding-bottom:1px; }
     .reject-reason-field { display:grid; gap:6px; }
     .reject-reason-field > span { color:#5f6670; font-size:11px; font-weight:650; }
@@ -274,13 +297,34 @@
     </form>
   </dialog>
 
-  <dialog class="review-dialog" id="review-dialog">
+  <dialog class="review-drawer" id="review-dialog">
     <form class="dialog-form" id="review-form">
-      <header class="dialog-head"><div><span class="eyebrow">生成视频</span><h2>视频审核</h2><p id="review-product"></p></div><button class="icon-button" type="button" data-close="review" aria-label="关闭">×</button></header>
-      <div class="review-body">
-        <section class="review-material"><h3 class="review-section-title">审核内容</h3><div class="review-content"><div class="video-player" id="review-player" aria-label="视频播放预览"></div><section class="script-panel"><div class="script-head"><div><strong>分镜脚本</strong><span>口播内容与中文翻译</span></div><span>英语（美国）</span></div><div id="script-content"></div></section></div></section>
-        <section class="review-decision"><div class="decision-copy"><h3>审核结论</h3><p>点击后立即进入下一步</p></div><div class="decision-control"><label class="reject-reason-field"><span>拒绝原因（选填）</span><textarea class="reject-reason" id="reject-reason" placeholder="仅拒绝时生效；填写后 AI 将按原因定向重做"></textarea><small class="review-note">不填写原因也可以直接拒绝。</small></label><div class="decision-actions"><button class="button danger" type="button" id="review-reject">拒绝</button><button class="button primary" type="button" id="review-approve">通过</button></div></div></section>
+      <header class="dialog-head"><div><span class="eyebrow">待审核</span><h2>审核与编辑视频任务</h2><p id="review-product"></p></div><button class="icon-button" type="button" data-close="review" aria-label="关闭">×</button></header>
+      <div class="review-editor-body">
+        <section class="review-block">
+          <div class="review-section-head"><div><h3>成片与分镜脚本</h3><p>对照成片、口播内容与中文翻译完成审核</p></div><div class="media-actions"><button class="button small" type="button" id="review-download">↓ 下载成片</button><input type="file" id="review-replacement" accept="video/mp4,video/quicktime,video/webm" hidden><button class="button small" type="button" id="review-upload">↑ 上传替换</button></div></div>
+          <p class="replacement-status" id="review-replacement-status">当前使用 AI 生成成片</p>
+          <div class="review-content"><div class="review-player" id="review-player"><video id="review-video" controls hidden></video><div class="video-placeholder" id="review-video-placeholder">生成成片预览</div></div><section class="script-panel"><div class="script-head"><div><strong>分镜脚本</strong><span>口播内容与中文翻译</span></div><span>英语（美国）</span></div><div id="script-content"></div></section></div>
+        </section>
+        <section class="review-block">
+          <div class="review-section-head"><div><h3>创作配置</h3><p>标题可直接修改；帐号或脚本类型变更后需要重新生成</p></div></div>
+          <div class="review-config-grid">
+            <label class="review-config-field"><span>帐号</span><select id="review-handle"><option>@user167630490</option><option>@dailyhome.us</option><option>@smartfinds.lab</option><option>@test-mx-02</option></select></label>
+            <label class="review-config-field"><span>脚本类型</span><select id="review-script"><option>合照C位2</option><option>产品卖点口播</option><option>场景体验分享</option></select></label>
+            <label class="review-config-field title"><span>标题</span><textarea id="review-video-title"></textarea></label>
+          </div>
+          <div class="review-stats"><div class="review-stat"><span>视频模型</span><strong id="review-model">OmniFlash</strong></div><div class="review-stat"><span>生成模式</span><strong id="review-generation">独立模式</strong></div><div class="review-stat"><span>画面比例</span><strong id="review-ratio">9:16</strong></div><div class="review-stat"><span>参考图</span><strong id="review-reference">人物 + 商品</strong></div></div>
+          <p class="review-change-note" id="review-change-note">当前配置与生成成片一致。</p>
+        </section>
+        <section class="review-block">
+          <div class="review-section-head"><div><h3>视频提示词</h3><p>按生成片段查看本次任务使用的完整提示词</p></div></div>
+          <div class="prompt-list">
+            <details open><summary>视频提示词 · 第 1 段 · 8s</summary><div class="prompt-copy"><p><strong>人物形象：</strong>人物参考图中的帐号主角为唯一商品使用主体，保留脸部识别度、成年年龄段与自然舒展的肢体类型。</p><p><strong>整体设定：</strong>9:16 真实竖版短视频，墨西哥普通社区家居修补店傍晚。镜头平稳，绿色叶片、可见橄榄果与白色圆盆保持稳定。</p><p><strong>分镜：</strong>主角站在人工橄榄树旁介绍商品，展示树干、叶片与花盆细节，并说“¿Cuánto cuesta este olivo? Me encanta para mi entrada.”</p><p><strong>留白与约束：</strong>画面无平台 Logo、水印、App 界面、用户名、二维码或价格贴纸。</p></div></details>
+            <details><summary>视频提示词 · 第 2 段 · 8s</summary><div class="prompt-copy"><p><strong>延续要求：</strong>保持主角、服装、场景、商品 SKU 和光线连续。主角移动到收银台方向，展示白色圆盆与完整树冠。</p><p><strong>具体对白：</strong>“Antes de decidir, revisa la opción en línea. Tiene tronco grueso y frutos muy reales.”</p><p><strong>画面约束：</strong>产品始终完整可见，无变形、无额外肢体、无文字覆盖主体。</p></div></details>
+          </div>
+        </section>
       </div>
+      <footer class="dialog-foot review-foot"><label class="reject-reason-field"><span>拒绝原因（选填）</span><textarea class="reject-reason" id="reject-reason" placeholder="填写后 AI 将按原因定向重做"></textarea><small class="review-note">不填写原因也可以直接拒绝。</small></label><div class="decision-actions"><button class="button primary" type="button" id="review-regenerate" hidden>保存并重新生成</button><button class="button danger" type="button" id="review-reject">拒绝</button><button class="button primary" type="button" id="review-approve">通过</button></div></footer>
     </form>
   </dialog>
 
@@ -337,6 +381,7 @@
     let handleFilter = "all";
     let activeTask = null;
     let publishMode = "now";
+    let reviewOriginalConfig = null;
     let toastTimer;
 
     const taskList = document.querySelector("#task-list");
@@ -410,7 +455,7 @@
         pending_configuration:{ action:"configure", label:"配置", icon:"⚙", tone:"configure", canDelete:true },
         generating:{ action:"edit", label:"查看进度", showEdit:false },
         generation_failed:{ action:"retry", label:"重试生成", icon:"↻", tone:"retry", showEdit:true },
-        pending_review:{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:true },
+        pending_review:{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:false },
         pending_publish:{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showEdit:true },
         published:{ action:"edit", label:"编辑", showEdit:false },
         publish_failed:{ action:"retry-publish", label:"重试发布", icon:"↻", tone:"retry", showEdit:true }
@@ -480,7 +525,8 @@
 
     function setConfigurationSelect(id, value) {
       const select = document.querySelector(id);
-      select.value = [...select.options].some(option => option.value === value) ? value : select.options[0].value;
+      if (value && ![...select.options].some(option => option.value === value)) select.add(new Option(value,value));
+      select.value = value || select.options[0].value;
     }
 
     function openConfiguration(task) {
@@ -511,10 +557,59 @@
     function openReview(task) {
       activeTask = task;
       document.querySelector("#review-product").textContent = `${task.product} · ${task.handle}`;
-      document.querySelector("#review-player").style.backgroundImage = `linear-gradient(rgba(18,23,34,.15),rgba(18,23,34,.15)),url('${assets[task.preview]}')`;
+      const player = document.querySelector("#review-player");
+      const video = document.querySelector("#review-video");
+      const placeholder = document.querySelector("#review-video-placeholder");
+      player.style.backgroundImage = `linear-gradient(rgba(18,23,34,.15),rgba(18,23,34,.15)),url('${assets[task.preview]}')`;
+      if (task.replacementVideoUrl) {
+        video.src = task.replacementVideoUrl;
+        video.hidden = false;
+        placeholder.hidden = true;
+        player.style.backgroundImage = "none";
+      } else {
+        video.removeAttribute("src");
+        video.hidden = true;
+        placeholder.hidden = false;
+      }
+      const replacementStatus = document.querySelector("#review-replacement-status");
+      replacementStatus.textContent = task.replacementFile ? `当前使用替换成片：${task.replacementFile}` : "当前使用 AI 生成成片";
+      replacementStatus.classList.toggle("replaced",Boolean(task.replacementFile));
       document.querySelector("#script-content").innerHTML = scriptSegments.map(segment => `<section class="script-segment"><div class="segment-meta">${segment[0]}</div><div class="script-row"><strong>原文</strong><span>${segment[1]}</span></div><div class="script-row"><strong>中文翻译</strong><span>${segment[2]}</span></div></section>`).join("");
+      setConfigurationSelect("#review-handle",task.handle);
+      setConfigurationSelect("#review-script",task.script);
+      document.querySelector("#review-video-title").value = task.title;
+      document.querySelector("#review-model").textContent = task.model || "OmniFlash";
+      document.querySelector("#review-generation").textContent = task.generation || "独立模式";
+      document.querySelector("#review-ratio").textContent = task.ratio || "9:16";
+      document.querySelector("#review-reference").textContent = (task.reference || "人物+商品").replace("+"," + ");
+      reviewOriginalConfig = { handle:task.handle, script:task.script };
       document.querySelector("#reject-reason").value = "";
+      document.querySelector("#review-replacement").value = "";
+      syncReviewMode();
       reviewDialog.showModal();
+    }
+
+    function reviewNeedsRegeneration() {
+      return Boolean(reviewOriginalConfig && (document.querySelector("#review-handle").value !== reviewOriginalConfig.handle || document.querySelector("#review-script").value !== reviewOriginalConfig.script));
+    }
+
+    function syncReviewMode() {
+      const needsRegeneration = reviewNeedsRegeneration();
+      const hasTitle = Boolean(document.querySelector("#review-video-title").value.trim());
+      const note = document.querySelector("#review-change-note");
+      const regenerate = document.querySelector("#review-regenerate");
+      regenerate.hidden = !needsRegeneration;
+      regenerate.disabled = !hasTitle;
+      document.querySelector("#review-approve").disabled = needsRegeneration || !hasTitle;
+      note.classList.toggle("warning",needsRegeneration || !hasTitle);
+      note.textContent = !hasTitle ? "视频标题不能为空。" : needsRegeneration ? "帐号或脚本类型已修改，需要重新生成后再审核。" : "当前配置与生成成片一致。";
+    }
+
+    function saveReviewFields() {
+      activeTask.handle = document.querySelector("#review-handle").value;
+      activeTask.script = document.querySelector("#review-script").value;
+      activeTask.title = document.querySelector("#review-video-title").value.trim();
+      renderHandleOptions();
     }
 
     function openPublish(task) {
@@ -611,12 +706,55 @@
       tasks.splice(tasks.indexOf(activeTask),1); editorDrawer.close(); renderTabs(); renderTasks(); showToast("任务已取消");
     };
     document.querySelectorAll('[data-close="review"]').forEach(button => button.onclick = () => reviewDialog.close());
+    ["#review-handle","#review-script","#review-video-title"].forEach(id => document.querySelector(id).addEventListener("input",syncReviewMode));
+    document.querySelector("#review-download").onclick = () => {
+      if (!activeTask) return;
+      const generatedUrl = activeTask.replacementVideoUrl || URL.createObjectURL(new Blob([`Prototype video for ${activeTask.id}`],{ type:"video/mp4" }));
+      const link = document.createElement("a");
+      link.href = generatedUrl;
+      link.download = `${activeTask.id}-${activeTask.replacementFile ? "edited" : "generated"}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      if (!activeTask.replacementVideoUrl) setTimeout(() => URL.revokeObjectURL(generatedUrl),1000);
+      showToast("成片已下载");
+    };
+    document.querySelector("#review-upload").onclick = () => document.querySelector("#review-replacement").click();
+    document.querySelector("#review-replacement").addEventListener("change", event => {
+      const [file] = event.target.files;
+      if (!file) return;
+      if (!file.type.startsWith("video/")) { showToast("请选择视频文件"); event.target.value = ""; return; }
+      if (activeTask.replacementVideoUrl) URL.revokeObjectURL(activeTask.replacementVideoUrl);
+      activeTask.replacementVideoUrl = URL.createObjectURL(file);
+      activeTask.replacementFile = file.name;
+      const video = document.querySelector("#review-video");
+      video.src = activeTask.replacementVideoUrl;
+      video.hidden = false;
+      document.querySelector("#review-video-placeholder").hidden = true;
+      document.querySelector("#review-player").style.backgroundImage = "none";
+      const status = document.querySelector("#review-replacement-status");
+      status.textContent = `当前使用替换成片：${file.name}`;
+      status.classList.add("replaced");
+      showToast("替换成片已上传");
+    });
+    document.querySelector("#review-regenerate").onclick = () => {
+      if (!document.querySelector("#review-video-title").value.trim()) return;
+      saveReviewFields();
+      reviewDialog.close();
+      activeStage = "generation";
+      stageStatusFilter = "all";
+      renderStageStatusFilter();
+      updateTaskStatus(activeTask,"generating","配置已保存，任务重新进入生成中");
+    };
     document.querySelector("#review-approve").onclick = () => {
+      if (reviewNeedsRegeneration() || !document.querySelector("#review-video-title").value.trim()) return;
+      saveReviewFields();
       reviewDialog.close();
       updateTaskStatus(activeTask,"pending_publish","审核已通过，任务进入待发布");
     };
     document.querySelector("#review-reject").onclick = () => {
       const reason = document.querySelector("#reject-reason").value.trim();
+      saveReviewFields();
       reviewDialog.close();
       updateTaskStatus(activeTask,"generating",reason ? "已按拒绝原因重新生成" : "已拒绝，任务重新进入生成中");
     };

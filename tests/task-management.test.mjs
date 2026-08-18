@@ -61,7 +61,7 @@ test("generation and publish stages expose a secondary status filter", () => {
 });
 
 test("the task table keeps only the requested business columns", () => {
-  for (const field of ["商品名称", "Handle", "视频标题", "生成视频预览", "发布时间", "操作"]) assert.match(html, new RegExp(`<th[^>]*>${field}<\\/th>`));
+  for (const field of ["商品名称", "Handle", "视频标题", "生成视频预览", "预计发布时间", "操作"]) assert.match(html, new RegExp(`<th[^>]*>${field}<\\/th>`));
   assert.doesNotMatch(html, /<th[^>]*>(?:商品卖点|类目|脚本类型|视频模型|当前节点)<\/th>/);
   assert.match(html, /data-copy=/);
   assert.match(html, /任务 ID：/);
@@ -73,7 +73,7 @@ test("failed generation tasks support single and batch retry", () => {
   assert.match(html, /id="batch-retry"/);
   assert.match(html, /generation_failed:\{ action:"retry", label:"重试生成"/);
   assert.match(html, /selectedFailed/);
-  assert.match(html, /batchEntry\.hidden = failureMode \|\| failedCount === 0/);
+  assert.match(html, /batchEntry\.hidden = activeStage !== "generation" \|\| failureMode \|\| failedCount === 0/);
   assert.match(html, /batchEntry\.onclick = \(\) => \{[\s\S]*?activeStage = "generation";[\s\S]*?stageStatusFilter = "generation_failed"/);
   assert.match(html, /id="exit-batch-retry">退出批量操作/);
   assert.match(html, /已重试 \$\{count\} 条任务/);
@@ -107,9 +107,9 @@ test("pending review combines video, script, editing, and review in one drawer",
   assert.match(html, /视频提示词 · 第 1 段 · 8s/);
   assert.match(html, /视频提示词 · 第 2 段 · 8s/);
   assert.match(html, /id="review-approve">通过<\/button>/);
-  assert.match(html, /id="review-reject">拒绝<\/button>/);
-  assert.match(html, /拒绝原因（选填）/);
-  assert.doesNotMatch(html, /确认审核|review-submit|setReviewDecision/);
+  assert.match(html, /id="review-redo">重做<\/button>/);
+  assert.match(html, /重做要求（选填）/);
+  assert.doesNotMatch(html, /确认审核|review-submit|setReviewDecision|id="review-reject"|id="review-regenerate"/);
   assert.match(html, /updateTaskStatus\(activeTask,"pending_publish"/);
   assert.match(html, /updateTaskStatus\(activeTask,"generating"/);
 });
@@ -125,11 +125,28 @@ test("reviewers can download and upload a replacement video", () => {
   assert.match(html, /替换成片已上传/);
 });
 
-test("generation-sensitive review edits require regeneration", () => {
-  assert.match(html, /function reviewNeedsRegeneration\(\)/);
-  assert.match(html, /review-approve"\)\.disabled = needsRegeneration \|\| !hasTitle/);
-  assert.match(html, /id="review-regenerate" hidden>保存并重新生成<\/button>/);
-  assert.match(html, /配置已保存，任务重新进入生成中/);
+test("review uses one redo action for settings and prompt requirements", () => {
+  assert.match(html, /function reviewSettingsChanged\(\)/);
+  assert.match(html, /Object\.keys\(currentConfig\)\.some\(key => currentConfig\[key\] !== reviewOriginalConfig\[key\]\)/);
+  assert.match(html, /id="review-redo-requirement"/);
+  assert.match(html, /review-redo"\)\.disabled = !hasTitle/);
+  assert.match(html, /review-approve"\)\.disabled = !hasTitle/);
+  assert.match(html, /review-redo"\)\.onclick = \(\) => \{[\s\S]*?saveReviewFields\(\)[\s\S]*?updateTaskStatus\(activeTask,"generating","创作配置已保存，任务进入生成中"\)/);
+  assert.match(html, /review-approve"\)\.onclick = \(\) => \{[\s\S]*?saveReviewTitle\(\)[\s\S]*?updateTaskStatus\(activeTask,"pending_publish"/);
+});
+
+test("redo requirements belong to the creation configuration section", () => {
+  assert.match(html, /<h3>创作配置<\/h3>[\s\S]*?id="review-reference"[\s\S]*?id="review-redo-requirement"[\s\S]*?<\/section>/);
+  assert.match(html, /<footer class="dialog-foot"><div class="decision-actions">/);
+  assert.doesNotMatch(html, /review-foot|<h3>重做设置<\/h3>/);
+});
+
+test("generation settings use dropdown controls in review", () => {
+  for (const id of ["review-model", "review-generation", "review-ratio", "review-reference"]) {
+    assert.match(html, new RegExp(`<select id="${id}">`));
+  }
+  assert.match(html, /activeTask\.model = document\.querySelector\("#review-model"\)\.value/);
+  assert.match(html, /activeTask\.reference = document\.querySelector\("#review-reference"\)\.value/);
 });
 
 test("pending publish tasks can choose immediate or scheduled publishing", () => {
@@ -155,16 +172,80 @@ test("generating tasks expose details and cancellation", () => {
   assert.match(html, /运行记录/);
 });
 
+test("failed generation tasks expose editable creation settings", () => {
+  for (const id of ["detail-edit-handle", "detail-edit-script", "detail-edit-title", "detail-edit-model", "detail-edit-generation", "detail-edit-ratio", "detail-edit-reference"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(html, /editableConfiguration = task\.status === "generation_failed"/);
+  assert.match(html, /视频模型[\s\S]*?生成模式[\s\S]*?画面比例[\s\S]*?参考图/);
+  assert.match(html, /function saveDetailEditFields\(\)/);
+  assert.match(html, /activeTask\.model = document\.querySelector\("#detail-edit-model"\)\.value/);
+  assert.match(html, /editableConfiguration \? editableMarkup : detailSections/);
+});
+
+test("editable generation drawers omit operational detail sections", () => {
+  assert.match(html, /const detailSections = `<div class="detail-grid">[\s\S]*?任务基础[\s\S]*?素材与生成[\s\S]*?运行记录/);
+  assert.match(html, /innerHTML = `[\s\S]*?\$\{editableConfiguration \? editableMarkup : detailSections\}`/);
+  assert.doesNotMatch(html, /\$\{editableConfiguration \? editableMarkup : ""\}<div class="detail-grid">/);
+});
+
+test("failed generation edits can save and regenerate", () => {
+  assert.match(html, /id="detail-regenerate" hidden>保存并重新生成<\/button>/);
+  assert.match(html, /detailRegenerate\.hidden = task\.status !== "generation_failed"/);
+  assert.match(html, /detail-regenerate"\)\.onclick = \(\) => \{[\s\S]*?saveDetailEditFields\(\)[\s\S]*?updateTaskStatus\(activeTask,"generating","配置已保存，任务重新进入生成中"\)/);
+});
+
+test("pending publish tasks are read-only until returned to review", () => {
+  assert.match(html, /id="detail-back-review" hidden>退回待审核<\/button>/);
+  assert.match(html, /pending_publish:\{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showView:true \}/);
+  assert.match(html, /data-action="view-pending-publish"[^>]*>查看详情<\/button>/);
+  assert.match(html, /function openPendingPublishDetails\(task\)/);
+  assert.match(html, /readOnlyTaskConfiguration\(task,true\)\}\$\{readOnlyPromptSection\(\)\}/);
+  assert.match(html, /detail-back-review"\)\.onclick = \(\) => \{[\s\S]*?updateTaskStatus\(activeTask,"pending_review","任务已退回待审核"\)/);
+  assert.doesNotMatch(html, /detail-back-review"\)\.onclick = \(\) => \{[\s\S]*?saveDetailEditFields\(\)/);
+});
+
+test("publish failures support only retry and returning to review", () => {
+  assert.match(html, /publish_failed:\{ action:"retry-publish", label:"重试发布", icon:"↻", tone:"retry", canReturnReview:true \}/);
+  assert.match(html, /data-action="return-review"[^>]*>退回审核<\/button>/);
+  assert.match(html, /action\.dataset\.action === "return-review"\) updateTaskStatus\(task,"pending_review","任务已退回待审核"\)/);
+  assert.match(html, /\["pending_publish","publish_failed"\]\.includes\(task\.status\) \? openPendingPublishDetails\(task\)/);
+  assert.doesNotMatch(html, /publish_failed:\{[^}]*showEdit:true/);
+});
+
+test("completed tasks expose a read-only configuration and TikTok link", () => {
+  assert.match(html, /published:\{ action:"view-published", label:"查看详情", showEdit:false \}/);
+  assert.match(html, /tkVideoUrl:"https:\/\/www\.tiktok\.com\/@garagekit\.us\/video\//);
+  assert.match(html, /function openPublishedDetails\(task\)/);
+  assert.match(html, /查看任务详情/);
+  assert.match(html, /<h3>任务配置<\/h3>/);
+  assert.match(html, /<h3>TikTok 视频<\/h3>/);
+  assert.match(html, /published-details"><section class="published-section"><h3>TikTok 视频<\/h3>[\s\S]*?readOnlyTaskConfiguration\(task\)/);
+  assert.match(html, /readOnlyTaskConfiguration\(task\)\}\$\{readOnlyPromptSection\(\)\}/);
+  assert.match(html, /class="tk-video-link"[\s\S]*?target="_blank" rel="noopener noreferrer"/);
+  assert.match(html, /action\.dataset\.action === "view-published"\) openPublishedDetails\(task\)/);
+  assert.match(html, /task\.status === "published" \? openPublishedDetails\(task\)/);
+});
+
+test("review and read-only detail drawers share the same prompt layout", () => {
+  assert.match(html, /id="review-prompt-section"/);
+  assert.match(html, /function promptContentMarkup\(\)/);
+  assert.match(html, /视频提示词 · 第 1 段 · 8s/);
+  assert.match(html, /视频提示词 · 第 2 段 · 8s/);
+  assert.match(html, /review-prompt-section"\)\.innerHTML = promptContentMarkup\(\)/);
+  assert.match(html, /function readOnlyPromptSection\(\)/);
+});
+
 test("row actions separate the next step from secondary management commands", () => {
   assert.match(html, /pending_configuration:\{ action:"configure", label:"配置"/);
   assert.match(html, /generating:\{ action:"edit", label:"查看进度"[\s\S]*?showEdit:false/);
   assert.match(html, /generation_failed:\{ action:"retry", label:"重试生成"[\s\S]*?showEdit:true/);
-  assert.match(html, /pending_review:\{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:false/);
-  assert.match(html, /pending_publish:\{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showEdit:true/);
-  assert.match(html, /published:\{ action:"edit", label:"编辑"[\s\S]*?showEdit:false/);
-  assert.match(html, /publish_failed:\{ action:"retry-publish", label:"重试发布"[\s\S]*?showEdit:true/);
+  assert.match(html, /pending_review:\{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:false, canDelete:true/);
+  assert.match(html, /pending_publish:\{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showView:true/);
+  assert.match(html, /published:\{ action:"view-published", label:"查看详情"[\s\S]*?showEdit:false/);
+  assert.match(html, /publish_failed:\{ action:"retry-publish", label:"重试发布"[\s\S]*?canReturnReview:true/);
   assert.match(html, /class="row-detail"[^>]*data-action="edit"[^>]*>编辑<\/button>/);
-  assert.match(html, /configuration\.action === "edit" \? "row-detail"/);
+  assert.match(html, /\["edit","view-published"\]\.includes\(configuration\.action\) \? "row-detail"/);
   assert.match(html, /\$\{primaryIcon\}\$\{configuration\.label\}/);
   assert.doesNotMatch(html, /row-more|action-menu|data-menu-trigger|closeActionMenus/);
   assert.doesNotMatch(html, /<button class="link" data-action/);

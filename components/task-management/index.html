@@ -141,6 +141,18 @@
     .kv dd { margin:0; color:#4a5059; font-weight:550; }
     .log-list { display:grid; gap:8px; }
     .log-item { display:grid; grid-template-columns:60px minmax(0,1fr); gap:10px; color:#69707a; font-size:11px; }
+    .detail-edit-section { margin-top:14px; padding:15px; border:1px solid var(--line); border-radius:6px; }
+    .detail-edit-section .review-section-head { margin-bottom:13px; }
+    .published-details { display:grid; gap:22px; }
+    .published-section h3 { margin:0 0 12px; font-size:14px; }
+    .published-config { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; }
+    .published-field { min-width:0; padding-bottom:10px; border-bottom:1px solid var(--line); }
+    .published-field.wide { grid-column:1 / -1; }
+    .published-field span,.published-field strong { display:block; }
+    .published-field span { margin-bottom:4px; color:#777e88; font-size:11px; }
+    .published-field strong { overflow-wrap:anywhere; color:#3f454d; font-size:12px; }
+    .tk-video-link { display:inline-flex; align-items:center; gap:6px; max-width:100%; color:#2759ad; font-size:12px; font-weight:650; overflow-wrap:anywhere; }
+    .detail-prompt-section { padding-top:18px; border-top:1px solid var(--line); }
 
     .configuration-dialog { width:min(1120px,calc(100vw - 48px)); }
     .configuration-card { padding:16px; border:1px solid var(--line); border-radius:6px; }
@@ -197,12 +209,10 @@
     .prompt-list summary { padding:11px 12px; font-size:12px; font-weight:700; cursor:pointer; }
     .prompt-copy { padding:0 12px 13px; border-top:1px solid var(--line); color:#4f5660; font-size:11px; line-height:1.65; }
     .prompt-copy p { margin:9px 0 0; }
-    .review-foot { display:grid; grid-template-columns:minmax(280px,1fr) auto; align-items:end; gap:16px; }
-    .review-foot .reject-reason-field { max-width:520px; }
     .decision-actions { display:flex; gap:8px; padding-bottom:1px; }
-    .reject-reason-field { display:grid; gap:6px; }
-    .reject-reason-field > span { color:#5f6670; font-size:11px; font-weight:650; }
-    .reject-reason { width:100%; min-height:64px; padding:8px 9px; resize:vertical; border:1px solid var(--line-strong); border-radius:5px; background:#fff; }
+    .redo-requirement-field { display:grid; gap:6px; margin-top:12px; }
+    .redo-requirement-field > span { color:#5f6670; font-size:11px; font-weight:650; }
+    .redo-requirement { width:100%; min-height:64px; padding:8px 9px; resize:vertical; border:1px solid var(--line-strong); border-radius:5px; background:#fff; }
     .review-note { margin:6px 0 0; color:#858b94; font-size:11px; }
 
     .publish-dialog { width:min(520px,calc(100vw - 48px)); }
@@ -261,7 +271,7 @@
         </div>
         <div class="table-scroll">
           <table>
-            <thead><tr><th class="check-col"><input type="checkbox" id="select-all-failed" aria-label="选择当前页全部生成失败任务"></th><th class="product-col">商品名称</th><th class="handle-col">Handle</th><th class="title-col">视频标题</th><th class="preview-col">生成视频预览</th><th class="publish-col">发布时间</th><th class="action-col">操作</th></tr></thead>
+            <thead><tr><th class="check-col"><input type="checkbox" id="select-all-failed" aria-label="选择当前页全部生成失败任务"></th><th class="product-col">商品名称</th><th class="handle-col">Handle</th><th class="title-col">视频标题</th><th class="preview-col">生成视频预览</th><th class="publish-col">预计发布时间</th><th class="action-col">操作</th></tr></thead>
             <tbody id="task-list"></tbody>
           </table>
           <div class="empty" id="empty-state" hidden>没有匹配的任务</div>
@@ -275,7 +285,7 @@
     <form class="dialog-form" method="dialog">
       <header class="dialog-head"><div><span class="eyebrow" id="detail-status">生成中</span><h2 id="detail-title">编辑视频任务</h2><p id="detail-meta"></p></div><button class="icon-button" value="cancel" aria-label="关闭">×</button></header>
       <div class="dialog-body" id="detail-body"></div>
-      <footer class="dialog-foot"><button class="button" value="cancel">关闭</button><button class="button danger" type="button" id="detail-cancel">取消任务</button></footer>
+      <footer class="dialog-foot"><button class="button" value="cancel">关闭</button><button class="button" type="button" id="detail-back-review" hidden>退回待审核</button><button class="button primary" type="button" id="detail-regenerate" hidden>保存并重新生成</button><button class="button danger" type="button" id="detail-cancel">取消任务</button></footer>
     </form>
   </dialog>
 
@@ -307,24 +317,22 @@
           <div class="review-content"><div class="review-player" id="review-player"><video id="review-video" controls hidden></video><div class="video-placeholder" id="review-video-placeholder">生成成片预览</div></div><section class="script-panel"><div class="script-head"><div><strong>分镜脚本</strong><span>口播内容与中文翻译</span></div><span>英语（美国）</span></div><div id="script-content"></div></section></div>
         </section>
         <section class="review-block">
-          <div class="review-section-head"><div><h3>创作配置</h3><p>标题可直接修改；帐号或脚本类型变更后需要重新生成</p></div></div>
+          <div class="review-section-head"><div><h3>创作配置</h3><p>默认继承当前视频配置，仅在点击重做后应用于下一次生成</p></div></div>
           <div class="review-config-grid">
             <label class="review-config-field"><span>帐号</span><select id="review-handle"><option>@user167630490</option><option>@dailyhome.us</option><option>@smartfinds.lab</option><option>@test-mx-02</option></select></label>
             <label class="review-config-field"><span>脚本类型</span><select id="review-script"><option>合照C位2</option><option>产品卖点口播</option><option>场景体验分享</option></select></label>
             <label class="review-config-field title"><span>标题</span><textarea id="review-video-title"></textarea></label>
+            <label class="review-config-field"><span>视频模型</span><select id="review-model"><option>OmniFlash</option><option>Seedance 2.0</option><option>Veo 3.1</option></select></label>
+            <label class="review-config-field"><span>生成模式</span><select id="review-generation"><option>独立模式</option><option>连续模式</option></select></label>
+            <label class="review-config-field"><span>画面比例</span><select id="review-ratio"><option>9:16</option><option>1:1</option><option>16:9</option></select></label>
+            <label class="review-config-field"><span>参考图</span><select id="review-reference"><option value="人物+商品">人物 + 商品</option><option>仅商品</option><option>人物形象</option></select></label>
           </div>
-          <div class="review-stats"><div class="review-stat"><span>视频模型</span><strong id="review-model">OmniFlash</strong></div><div class="review-stat"><span>生成模式</span><strong id="review-generation">独立模式</strong></div><div class="review-stat"><span>画面比例</span><strong id="review-ratio">9:16</strong></div><div class="review-stat"><span>参考图</span><strong id="review-reference">人物 + 商品</strong></div></div>
-          <p class="review-change-note" id="review-change-note">当前配置与生成成片一致。</p>
+          <label class="redo-requirement-field"><span>重做要求（选填）</span><textarea class="redo-requirement" id="review-redo-requirement" placeholder="补充下一次生成需要调整的内容"></textarea><small class="review-note">将作为下一次生成提示词的补充要求。</small></label>
+          <p class="review-change-note" id="review-change-note">默认继承当前视频配置，点击重做后用于下一次生成。</p>
         </section>
-        <section class="review-block">
-          <div class="review-section-head"><div><h3>视频提示词</h3><p>按生成片段查看本次任务使用的完整提示词</p></div></div>
-          <div class="prompt-list">
-            <details open><summary>视频提示词 · 第 1 段 · 8s</summary><div class="prompt-copy"><p><strong>人物形象：</strong>人物参考图中的帐号主角为唯一商品使用主体，保留脸部识别度、成年年龄段与自然舒展的肢体类型。</p><p><strong>整体设定：</strong>9:16 真实竖版短视频，墨西哥普通社区家居修补店傍晚。镜头平稳，绿色叶片、可见橄榄果与白色圆盆保持稳定。</p><p><strong>分镜：</strong>主角站在人工橄榄树旁介绍商品，展示树干、叶片与花盆细节，并说“¿Cuánto cuesta este olivo? Me encanta para mi entrada.”</p><p><strong>留白与约束：</strong>画面无平台 Logo、水印、App 界面、用户名、二维码或价格贴纸。</p></div></details>
-            <details><summary>视频提示词 · 第 2 段 · 8s</summary><div class="prompt-copy"><p><strong>延续要求：</strong>保持主角、服装、场景、商品 SKU 和光线连续。主角移动到收银台方向，展示白色圆盆与完整树冠。</p><p><strong>具体对白：</strong>“Antes de decidir, revisa la opción en línea. Tiene tronco grueso y frutos muy reales.”</p><p><strong>画面约束：</strong>产品始终完整可见，无变形、无额外肢体、无文字覆盖主体。</p></div></details>
-          </div>
-        </section>
+        <section class="review-block" id="review-prompt-section"></section>
       </div>
-      <footer class="dialog-foot review-foot"><label class="reject-reason-field"><span>拒绝原因（选填）</span><textarea class="reject-reason" id="reject-reason" placeholder="填写后 AI 将按原因定向重做"></textarea><small class="review-note">不填写原因也可以直接拒绝。</small></label><div class="decision-actions"><button class="button primary" type="button" id="review-regenerate" hidden>保存并重新生成</button><button class="button danger" type="button" id="review-reject">拒绝</button><button class="button primary" type="button" id="review-approve">通过</button></div></footer>
+      <footer class="dialog-foot"><div class="decision-actions"><button class="button danger" type="button" id="review-redo">重做</button><button class="button primary" type="button" id="review-approve">通过</button></div></footer>
     </form>
   </dialog>
 
@@ -370,7 +378,7 @@
       { id:"VT-779CAD30", product:"Artificial Olive Tree for Living Room", handle:"@dailyhome.us", title:"The corner that finally feels finished", status:"pending_publish", preview:"tree", progress:100, created:"2026-08-16 18:20", country:"美国", model:"OmniFlash", script:"家居布置", publishTime:"—" },
       { id:"VT-UPLOAD8A", product:"未挂链商品", handle:"@user167630490", title:"My weekend kitchen setup", status:"pending_publish", preview:"tool", progress:100, created:"2026-08-17 15:20", country:"美国", model:"本地上传", script:"上传成片", publishTime:"—", manualUpload:true },
       { id:"VT-26BA881D", product:"Ergonomic Office Chair with Lumbar Support", handle:"@smartfinds.lab", title:"Your back will notice this one change", status:"pending_publish", preview:"chair", progress:100, created:"2026-08-16 17:10", country:"英国", model:"Veo 3.1", script:"办公好物", publishTime:"2026-08-18 20:30" },
-      { id:"VT-009DC134", product:"Compact Air Compressor for Car", handle:"@garagekit.us", title:"Never wait for roadside help again", status:"published", preview:"tool", progress:100, created:"2026-08-15 16:48", country:"美国", model:"OmniFlash", script:"汽车工具", publishTime:"2026-08-16 09:00" },
+      { id:"VT-009DC134", product:"Compact Air Compressor for Car", handle:"@garagekit.us", title:"Never wait for roadside help again", status:"published", preview:"tool", progress:100, created:"2026-08-15 16:48", country:"美国", model:"OmniFlash", script:"汽车工具", generation:"独立模式", ratio:"9:16", reference:"人物+商品", publishTime:"2026-08-16 09:00", tkVideoUrl:"https://www.tiktok.com/@garagekit.us/video/7539016842103479557" },
       { id:"VT-B4821DE9", product:"Minimal Travel Backpack", handle:"@everydayupgrade", title:"The one bag that keeps the airport simple", status:"publish_failed", preview:"jacket", progress:100, created:"2026-08-15 14:26", country:"美国", model:"Seedance 2.0", script:"旅行收纳", publishTime:"2026-08-16 21:00" }
     ];
     const selectedFailed = new Set();
@@ -455,17 +463,19 @@
         pending_configuration:{ action:"configure", label:"配置", icon:"⚙", tone:"configure", canDelete:true },
         generating:{ action:"edit", label:"查看进度", showEdit:false },
         generation_failed:{ action:"retry", label:"重试生成", icon:"↻", tone:"retry", showEdit:true },
-        pending_review:{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:false },
-        pending_publish:{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showEdit:true },
-        published:{ action:"edit", label:"编辑", showEdit:false },
-        publish_failed:{ action:"retry-publish", label:"重试发布", icon:"↻", tone:"retry", showEdit:true }
+        pending_review:{ action:"review", label:"审核", icon:"✓", tone:"review", showEdit:false, canDelete:true },
+        pending_publish:{ action:"publish", label:"设置发布", icon:"↗", tone:"publish", showView:true },
+        published:{ action:"view-published", label:"查看详情", showEdit:false },
+        publish_failed:{ action:"retry-publish", label:"重试发布", icon:"↻", tone:"retry", canReturnReview:true }
       };
       const configuration = configurations[task.status];
       const edit = configuration.showEdit ? `<button class="row-detail" type="button" data-action="edit" data-id="${task.id}">编辑</button>` : "";
+      const view = configuration.showView ? `<button class="row-detail" type="button" data-action="view-pending-publish" data-id="${task.id}">查看详情</button>` : "";
+      const returnReview = configuration.canReturnReview ? `<button class="row-detail" type="button" data-action="return-review" data-id="${task.id}">退回审核</button>` : "";
       const remove = configuration.canDelete ? `<button class="row-delete" type="button" data-action="delete" data-id="${task.id}">删除</button>` : "";
-      const primaryClass = configuration.action === "edit" ? "row-detail" : `row-primary ${configuration.tone}`;
+      const primaryClass = ["edit","view-published"].includes(configuration.action) ? "row-detail" : `row-primary ${configuration.tone}`;
       const primaryIcon = configuration.icon ? `<span aria-hidden="true">${configuration.icon}</span>` : "";
-      return `<div class="row-actions"><button class="${primaryClass}" type="button" data-action="${configuration.action}" data-id="${task.id}">${primaryIcon}${configuration.label}</button>${edit}${remove}</div>`;
+      return `<div class="row-actions"><button class="${primaryClass}" type="button" data-action="${configuration.action}" data-id="${task.id}">${primaryIcon}${configuration.label}</button>${edit}${view}${returnReview}${remove}</div>`;
     }
 
     function renderTasks() {
@@ -487,7 +497,7 @@
       document.querySelector("table").hidden = visible.length === 0;
       document.querySelector("#result-summary").textContent = `共 ${visible.length} 条任务`;
       const failedCount = tasks.filter(task => task.status === "generation_failed").length;
-      batchEntry.hidden = failureMode || failedCount === 0;
+      batchEntry.hidden = activeStage !== "generation" || failureMode || failedCount === 0;
       batchBar.hidden = !failureMode;
       updateBatchControls(visible);
     }
@@ -515,11 +525,81 @@
       document.querySelector("#detail-title").textContent = `${task.id} · 编辑视频任务`;
       document.querySelector("#detail-meta").textContent = `${task.created} · 商品国家 ${task.country} · 帐号语言 英语（美国）`;
       const detailCancel = document.querySelector("#detail-cancel");
+      const detailRegenerate = document.querySelector("#detail-regenerate");
+      const detailBackReview = document.querySelector("#detail-back-review");
       detailCancel.hidden = task.status !== "generating";
+      detailRegenerate.hidden = task.status !== "generation_failed";
+      detailBackReview.hidden = true;
       const waitingConfiguration = task.status === "pending_configuration";
+      const editableConfiguration = task.status === "generation_failed";
       const generationCopy = waitingConfiguration ? "等待填写创作配置" : `${task.model} · AI 决策 · ${task.status === "generating" ? "处理中" : "已完成生成"}`;
       const materialStatus = waitingConfiguration ? "等待配置" : task.status === "generation_failed" ? "生成失败" : task.progress < 100 ? "处理中" : "已完成";
-      document.querySelector("#detail-body").innerHTML = `<section class="detail-overview"><div class="detail-preview">${task.status === "generating" ? `生成中 ${task.progress}%` : statusLabels[task.status]}</div><div class="detail-copy"><h3>成片预览</h3><p>${generationCopy}</p><div class="progress-track"><span style="width:${task.progress}%"></span></div><p style="margin-top:9px">${waitingConfiguration ? "尚未开始生成" : `当前进度 ${task.progress}%`}</p></div></section><div class="detail-grid"><section class="detail-section"><h4>任务基础</h4><dl class="kv"><dt>商品</dt><dd>${escapeMarkup(task.product)}</dd><dt>任务 ID</dt><dd>${task.id}</dd><dt>Handle</dt><dd>${task.handle}</dd><dt>状态</dt><dd>${statusLabels[task.status]}</dd></dl></section><section class="detail-section"><h4>创作配置</h4><dl class="kv"><dt>脚本类型</dt><dd>${task.script}</dd><dt>视频模型</dt><dd>${task.model}</dd><dt>视频标题</dt><dd>${escapeMarkup(task.title)}</dd><dt>发布时间</dt><dd>${task.publishTime || "—"}</dd></dl></section><section class="detail-section"><h4>素材与生成</h4><dl class="kv"><dt>素材状态</dt><dd>${materialStatus}</dd><dt>AI 质检</dt><dd>${waitingConfiguration ? "未开始" : task.progress < 100 ? "待检" : "已通过"}</dd></dl></section><section class="detail-section"><h4>运行记录</h4><div class="log-list"><div class="log-item"><span>${task.created.slice(11)}</span><span>${waitingConfiguration ? "待配置视频任务已创建" : "任务已创建，配置校验通过"}</span></div>${waitingConfiguration ? "" : `<div class="log-item"><span>+ 1 min</span><span>${task.status === "generation_failed" ? "视频生成失败，可重试任务" : "生成服务正在处理视频片段"}</span></div>`}</div></section></div>`;
+      const editableMarkup = `<section class="detail-edit-section"><div class="review-section-head"><div><h3>创作配置</h3><p>修改配置后保存并重新生成视频</p></div></div><div class="review-config-grid"><label class="review-config-field"><span>帐号</span><select id="detail-edit-handle"><option>@user167630490</option><option>@dailyhome.us</option><option>@smartfinds.lab</option><option>@test-mx-01</option><option>@test-mx-02</option></select></label><label class="review-config-field"><span>脚本类型</span><select id="detail-edit-script"><option>合照C位2</option><option>产品卖点口播</option><option>场景体验分享</option><option>厨房实测</option><option>家居布置</option><option>办公好物</option></select></label><label class="review-config-field title"><span>视频标题</span><textarea id="detail-edit-title"></textarea></label><label class="review-config-field"><span>视频模型</span><select id="detail-edit-model"><option>OmniFlash</option><option>Seedance 2.0</option><option>Veo 3.1</option></select></label><label class="review-config-field"><span>生成模式</span><select id="detail-edit-generation"><option>独立模式</option><option>连续模式</option></select></label><label class="review-config-field"><span>画面比例</span><select id="detail-edit-ratio"><option>9:16</option><option>1:1</option><option>16:9</option></select></label><label class="review-config-field"><span>参考图</span><select id="detail-edit-reference"><option value="人物+商品">人物 + 商品</option><option>仅商品</option><option>人物形象</option></select></label></div></section>`;
+      const readOnlyConfiguration = `<section class="detail-section"><h4>创作配置</h4><dl class="kv"><dt>脚本类型</dt><dd>${escapeMarkup(task.script)}</dd><dt>视频模型</dt><dd>${escapeMarkup(task.model)}</dd><dt>视频标题</dt><dd>${escapeMarkup(task.title)}</dd><dt>发布时间</dt><dd>${task.publishTime || "—"}</dd></dl></section>`;
+      const detailSections = `<div class="detail-grid"><section class="detail-section"><h4>任务基础</h4><dl class="kv"><dt>商品</dt><dd>${escapeMarkup(task.product)}</dd><dt>任务 ID</dt><dd>${task.id}</dd><dt>Handle</dt><dd>${escapeMarkup(task.handle)}</dd><dt>状态</dt><dd>${statusLabels[task.status]}</dd></dl></section>${readOnlyConfiguration}<section class="detail-section"><h4>素材与生成</h4><dl class="kv"><dt>素材状态</dt><dd>${materialStatus}</dd><dt>AI 质检</dt><dd>${waitingConfiguration ? "未开始" : task.progress < 100 ? "待检" : "已通过"}</dd></dl></section><section class="detail-section"><h4>运行记录</h4><div class="log-list"><div class="log-item"><span>${task.created.slice(11)}</span><span>${waitingConfiguration ? "待配置视频任务已创建" : "任务已创建，配置校验通过"}</span></div>${waitingConfiguration ? "" : `<div class="log-item"><span>+ 1 min</span><span>${task.status === "generation_failed" ? "视频生成失败，可调整配置后重新生成" : "生成服务已完成视频处理"}</span></div>`}</div></section></div>`;
+      document.querySelector("#detail-body").innerHTML = `<section class="detail-overview"><div class="detail-preview">${task.status === "generating" ? `生成中 ${task.progress}%` : statusLabels[task.status]}</div><div class="detail-copy"><h3>成片预览</h3><p>${generationCopy}</p><div class="progress-track"><span style="width:${task.progress}%"></span></div><p style="margin-top:9px">${waitingConfiguration ? "尚未开始生成" : `当前进度 ${task.progress}%`}</p></div></section>${editableConfiguration ? editableMarkup : detailSections}`;
+      if (editableConfiguration) {
+        setConfigurationSelect("#detail-edit-handle",task.handle);
+        setConfigurationSelect("#detail-edit-script",task.script);
+        setConfigurationSelect("#detail-edit-model",task.model || "OmniFlash");
+        setConfigurationSelect("#detail-edit-generation",task.generation || "独立模式");
+        setConfigurationSelect("#detail-edit-ratio",task.ratio || "9:16");
+        setConfigurationSelect("#detail-edit-reference",task.reference || "人物+商品");
+        document.querySelector("#detail-edit-title").value = task.title;
+      }
+      editorDrawer.showModal();
+    }
+
+    function saveDetailEditFields() {
+      const title = document.querySelector("#detail-edit-title").value.trim();
+      if (!title) { showToast("视频标题不能为空"); return false; }
+      activeTask.handle = document.querySelector("#detail-edit-handle").value;
+      activeTask.script = document.querySelector("#detail-edit-script").value;
+      activeTask.model = document.querySelector("#detail-edit-model").value;
+      activeTask.generation = document.querySelector("#detail-edit-generation").value;
+      activeTask.ratio = document.querySelector("#detail-edit-ratio").value;
+      activeTask.reference = document.querySelector("#detail-edit-reference").value;
+      activeTask.title = title;
+      renderHandleOptions();
+      return true;
+    }
+
+    function readOnlyTaskConfiguration(task, includePublishTime = false) {
+      const reference = (task.reference || "人物+商品").replace("+"," + ");
+      const publishTime = includePublishTime ? `<div class="published-field"><span>发布时间</span><strong>${escapeMarkup(task.publishTime || "未设置")}</strong></div>` : "";
+      return `<section class="published-section"><h3>任务配置</h3><div class="published-config"><div class="published-field wide"><span>商品</span><strong>${escapeMarkup(task.product)}</strong></div><div class="published-field"><span>帐号</span><strong>${escapeMarkup(task.handle)}</strong></div><div class="published-field"><span>脚本类型</span><strong>${escapeMarkup(task.script)}</strong></div><div class="published-field wide"><span>视频标题</span><strong>${escapeMarkup(task.title)}</strong></div><div class="published-field"><span>视频模型</span><strong>${escapeMarkup(task.model)}</strong></div><div class="published-field"><span>生成模式</span><strong>${escapeMarkup(task.generation || "独立模式")}</strong></div><div class="published-field"><span>画面比例</span><strong>${escapeMarkup(task.ratio || "9:16")}</strong></div><div class="published-field"><span>参考图</span><strong>${escapeMarkup(reference)}</strong></div>${publishTime}</div></section>`;
+    }
+
+    function promptContentMarkup() {
+      return `<div class="review-section-head"><div><h3>视频提示词</h3><p>按生成片段查看本次任务使用的完整提示词</p></div></div><div class="prompt-list"><details open><summary>视频提示词 · 第 1 段 · 8s</summary><div class="prompt-copy"><p><strong>人物形象：</strong>人物参考图中的帐号主角为唯一商品使用主体，保留脸部识别度、成年年龄段与自然舒展的肢体类型。</p><p><strong>整体设定：</strong>9:16 真实竖版短视频，墨西哥普通社区家居修补店傍晚。镜头平稳，绿色叶片、可见橄榄果与白色圆盆保持稳定。</p><p><strong>分镜：</strong>主角站在人工橄榄树旁介绍商品，展示树干、叶片与花盆细节，并说“¿Cuánto cuesta este olivo? Me encanta para mi entrada.”</p><p><strong>留白与约束：</strong>画面无平台 Logo、水印、App 界面、用户名、二维码或价格贴纸。</p></div></details><details><summary>视频提示词 · 第 2 段 · 8s</summary><div class="prompt-copy"><p><strong>延续要求：</strong>保持主角、服装、场景、商品 SKU 和光线连续。主角移动到收银台方向，展示白色圆盆与完整树冠。</p><p><strong>具体对白：</strong>“Antes de decidir, revisa la opción en línea. Tiene tronco grueso y frutos muy reales.”</p><p><strong>画面约束：</strong>产品始终完整可见，无变形、无额外肢体、无文字覆盖主体。</p></div></details></div>`;
+    }
+
+    function readOnlyPromptSection() {
+      return `<section class="published-section detail-prompt-section">${promptContentMarkup()}</section>`;
+    }
+
+    function openPendingPublishDetails(task) {
+      activeTask = task;
+      document.querySelector("#detail-status").textContent = statusLabels[task.status];
+      document.querySelector("#detail-title").textContent = `${task.id} · 查看任务详情`;
+      document.querySelector("#detail-meta").textContent = `${task.created} · ${task.handle}`;
+      document.querySelector("#detail-cancel").hidden = true;
+      document.querySelector("#detail-regenerate").hidden = true;
+      document.querySelector("#detail-back-review").hidden = false;
+      document.querySelector("#detail-body").innerHTML = `<div class="published-details">${readOnlyTaskConfiguration(task,true)}${readOnlyPromptSection()}</div>`;
+      editorDrawer.showModal();
+    }
+
+    function openPublishedDetails(task) {
+      activeTask = task;
+      document.querySelector("#detail-status").textContent = "已发布";
+      document.querySelector("#detail-title").textContent = `${task.id} · 查看任务详情`;
+      document.querySelector("#detail-meta").textContent = `${task.created} · ${task.handle}`;
+      document.querySelector("#detail-cancel").hidden = true;
+      document.querySelector("#detail-regenerate").hidden = true;
+      document.querySelector("#detail-back-review").hidden = true;
+      const videoLink = task.tkVideoUrl ? `<a class="tk-video-link" href="${escapeMarkup(task.tkVideoUrl)}" target="_blank" rel="noopener noreferrer">${escapeMarkup(task.tkVideoUrl)} <span aria-hidden="true">↗</span></a>` : "—";
+      document.querySelector("#detail-body").innerHTML = `<div class="published-details"><section class="published-section"><h3>TikTok 视频</h3>${videoLink}</section>${readOnlyTaskConfiguration(task)}${readOnlyPromptSection()}</div>`;
       editorDrawer.showModal();
     }
 
@@ -575,41 +655,52 @@
       replacementStatus.textContent = task.replacementFile ? `当前使用替换成片：${task.replacementFile}` : "当前使用 AI 生成成片";
       replacementStatus.classList.toggle("replaced",Boolean(task.replacementFile));
       document.querySelector("#script-content").innerHTML = scriptSegments.map(segment => `<section class="script-segment"><div class="segment-meta">${segment[0]}</div><div class="script-row"><strong>原文</strong><span>${segment[1]}</span></div><div class="script-row"><strong>中文翻译</strong><span>${segment[2]}</span></div></section>`).join("");
+      document.querySelector("#review-prompt-section").innerHTML = promptContentMarkup();
       setConfigurationSelect("#review-handle",task.handle);
       setConfigurationSelect("#review-script",task.script);
       document.querySelector("#review-video-title").value = task.title;
-      document.querySelector("#review-model").textContent = task.model || "OmniFlash";
-      document.querySelector("#review-generation").textContent = task.generation || "独立模式";
-      document.querySelector("#review-ratio").textContent = task.ratio || "9:16";
-      document.querySelector("#review-reference").textContent = (task.reference || "人物+商品").replace("+"," + ");
-      reviewOriginalConfig = { handle:task.handle, script:task.script };
-      document.querySelector("#reject-reason").value = "";
+      setConfigurationSelect("#review-model",task.model || "OmniFlash");
+      setConfigurationSelect("#review-generation",task.generation || "独立模式");
+      setConfigurationSelect("#review-ratio",task.ratio || "9:16");
+      setConfigurationSelect("#review-reference",task.reference || "人物+商品");
+      reviewOriginalConfig = { handle:task.handle, script:task.script, model:task.model || "OmniFlash", generation:task.generation || "独立模式", ratio:task.ratio || "9:16", reference:task.reference || "人物+商品" };
+      document.querySelector("#review-redo-requirement").value = "";
       document.querySelector("#review-replacement").value = "";
       syncReviewMode();
       reviewDialog.showModal();
     }
 
-    function reviewNeedsRegeneration() {
-      return Boolean(reviewOriginalConfig && (document.querySelector("#review-handle").value !== reviewOriginalConfig.handle || document.querySelector("#review-script").value !== reviewOriginalConfig.script));
+    function reviewSettingsChanged() {
+      if (!reviewOriginalConfig) return false;
+      const currentConfig = { handle:document.querySelector("#review-handle").value, script:document.querySelector("#review-script").value, model:document.querySelector("#review-model").value, generation:document.querySelector("#review-generation").value, ratio:document.querySelector("#review-ratio").value, reference:document.querySelector("#review-reference").value };
+      return Object.keys(currentConfig).some(key => currentConfig[key] !== reviewOriginalConfig[key]);
     }
 
     function syncReviewMode() {
-      const needsRegeneration = reviewNeedsRegeneration();
+      const settingsChanged = reviewSettingsChanged();
+      const hasRedoRequirement = Boolean(document.querySelector("#review-redo-requirement").value.trim());
       const hasTitle = Boolean(document.querySelector("#review-video-title").value.trim());
       const note = document.querySelector("#review-change-note");
-      const regenerate = document.querySelector("#review-regenerate");
-      regenerate.hidden = !needsRegeneration;
-      regenerate.disabled = !hasTitle;
-      document.querySelector("#review-approve").disabled = needsRegeneration || !hasTitle;
-      note.classList.toggle("warning",needsRegeneration || !hasTitle);
-      note.textContent = !hasTitle ? "视频标题不能为空。" : needsRegeneration ? "帐号或脚本类型已修改，需要重新生成后再审核。" : "当前配置与生成成片一致。";
+      document.querySelector("#review-redo").disabled = !hasTitle;
+      document.querySelector("#review-approve").disabled = !hasTitle;
+      note.classList.toggle("warning",settingsChanged || hasRedoRequirement || !hasTitle);
+      note.textContent = !hasTitle ? "视频标题不能为空。" : settingsChanged || hasRedoRequirement ? "创作配置或重做要求已调整，点击重做后应用。" : "默认继承当前视频配置，点击重做后用于下一次生成。";
     }
 
     function saveReviewFields() {
       activeTask.handle = document.querySelector("#review-handle").value;
       activeTask.script = document.querySelector("#review-script").value;
+      activeTask.model = document.querySelector("#review-model").value;
+      activeTask.generation = document.querySelector("#review-generation").value;
+      activeTask.ratio = document.querySelector("#review-ratio").value;
+      activeTask.reference = document.querySelector("#review-reference").value;
       activeTask.title = document.querySelector("#review-video-title").value.trim();
+      activeTask.redoRequirement = document.querySelector("#review-redo-requirement").value.trim();
       renderHandleOptions();
+    }
+
+    function saveReviewTitle() {
+      activeTask.title = document.querySelector("#review-video-title").value.trim();
     }
 
     function openPublish(task) {
@@ -665,19 +756,22 @@
       const copy = event.target.closest("[data-copy]");
       if (copy) { try { await navigator.clipboard.writeText(copy.dataset.copy); showToast("商品名称已复制"); } catch { showToast("浏览器阻止了复制"); } return; }
       const preview = event.target.closest("[data-preview]");
-      if (preview) { const task = tasks.find(item => item.id === preview.dataset.preview); task.status === "pending_review" ? openReview(task) : openTaskEditor(task); return; }
+      if (preview) { const task = tasks.find(item => item.id === preview.dataset.preview); task.status === "pending_review" ? openReview(task) : ["pending_publish","publish_failed"].includes(task.status) ? openPendingPublishDetails(task) : task.status === "published" ? openPublishedDetails(task) : openTaskEditor(task); return; }
       const action = event.target.closest("[data-action]");
       if (!action) return;
       const task = tasks.find(item => item.id === action.dataset.id);
       if (action.dataset.action === "edit") openTaskEditor(task);
+      if (action.dataset.action === "view-pending-publish") openPendingPublishDetails(task);
+      if (action.dataset.action === "view-published") openPublishedDetails(task);
       if (action.dataset.action === "configure") openConfiguration(task);
       if (action.dataset.action === "review") openReview(task);
       if (action.dataset.action === "publish") openPublish(task);
       if (action.dataset.action === "retry") updateTaskStatus(task,"generating","任务已重新进入生成中");
       if (action.dataset.action === "retry-publish") { task.status = "pending_publish"; renderTabs(); renderTasks(); showToast("已重新进入待发布"); }
-      if (action.dataset.action === "delete" && confirm(`删除待配置任务 ${task.id}？`)) {
+      if (action.dataset.action === "return-review") updateTaskStatus(task,"pending_review","任务已退回待审核");
+      if (action.dataset.action === "delete" && confirm(`删除任务 ${task.id}？`)) {
         tasks.splice(tasks.indexOf(task), 1);
-        renderHandleOptions(); renderTabs(); renderTasks(); showToast("待配置任务已删除");
+        renderHandleOptions(); renderTabs(); renderTasks(); showToast("任务已删除");
       }
     });
 
@@ -705,8 +799,24 @@
       if (!activeTask || !confirm(`取消任务 ${activeTask.id}？`)) return;
       tasks.splice(tasks.indexOf(activeTask),1); editorDrawer.close(); renderTabs(); renderTasks(); showToast("任务已取消");
     };
+    document.querySelector("#detail-regenerate").onclick = () => {
+      if (!activeTask || !saveDetailEditFields()) return;
+      editorDrawer.close();
+      activeStage = "generation";
+      stageStatusFilter = "all";
+      renderStageStatusFilter();
+      updateTaskStatus(activeTask,"generating","配置已保存，任务重新进入生成中");
+    };
+    document.querySelector("#detail-back-review").onclick = () => {
+      if (!activeTask) return;
+      editorDrawer.close();
+      activeStage = "review";
+      stageStatusFilter = "all";
+      renderStageStatusFilter();
+      updateTaskStatus(activeTask,"pending_review","任务已退回待审核");
+    };
     document.querySelectorAll('[data-close="review"]').forEach(button => button.onclick = () => reviewDialog.close());
-    ["#review-handle","#review-script","#review-video-title"].forEach(id => document.querySelector(id).addEventListener("input",syncReviewMode));
+    ["#review-handle","#review-script","#review-video-title","#review-model","#review-generation","#review-ratio","#review-reference","#review-redo-requirement"].forEach(id => document.querySelector(id).addEventListener("input",syncReviewMode));
     document.querySelector("#review-download").onclick = () => {
       if (!activeTask) return;
       const generatedUrl = activeTask.replacementVideoUrl || URL.createObjectURL(new Blob([`Prototype video for ${activeTask.id}`],{ type:"video/mp4" }));
@@ -737,26 +847,20 @@
       status.classList.add("replaced");
       showToast("替换成片已上传");
     });
-    document.querySelector("#review-regenerate").onclick = () => {
+    document.querySelector("#review-redo").onclick = () => {
       if (!document.querySelector("#review-video-title").value.trim()) return;
       saveReviewFields();
       reviewDialog.close();
       activeStage = "generation";
       stageStatusFilter = "all";
       renderStageStatusFilter();
-      updateTaskStatus(activeTask,"generating","配置已保存，任务重新进入生成中");
+      updateTaskStatus(activeTask,"generating","创作配置已保存，任务进入生成中");
     };
     document.querySelector("#review-approve").onclick = () => {
-      if (reviewNeedsRegeneration() || !document.querySelector("#review-video-title").value.trim()) return;
-      saveReviewFields();
+      if (!document.querySelector("#review-video-title").value.trim()) return;
+      saveReviewTitle();
       reviewDialog.close();
       updateTaskStatus(activeTask,"pending_publish","审核已通过，任务进入待发布");
-    };
-    document.querySelector("#review-reject").onclick = () => {
-      const reason = document.querySelector("#reject-reason").value.trim();
-      saveReviewFields();
-      reviewDialog.close();
-      updateTaskStatus(activeTask,"generating",reason ? "已按拒绝原因重新生成" : "已拒绝，任务重新进入生成中");
     };
     document.querySelectorAll("[data-publish-mode]").forEach(button => button.onclick = () => {
       publishMode = button.dataset.publishMode;

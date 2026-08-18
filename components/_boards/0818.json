@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "projectId": "0818",
+  "slug": "0818",
+  "title": "0818-视频制作&管理交互优化",
+  "revision": "20260818030254",
+  "updatedAt": "2026-08-18T03:03:33.657Z",
+  "state": {
+    "version": 9,
+    "camera": {
+      "x": 432.3039929196427,
+      "y": -554.8838040302976,
+      "zoom": 0.4531138257103541
+    },
+    "items": [
+      {
+        "id": "frame-qtazd1d",
+        "type": "frame",
+        "title": "商品导入流程 · 桌面",
+        "device": "desktop",
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 800,
+        "componentId": "product-import-flow",
+        "componentPath": "./components/product-import-flow/index.html"
+      },
+      {
+        "id": "note-r1r215w",
+        "type": "note",
+        "annotationKey": "product-import-entry",
+        "x": 1260,
+        "y": 40,
+        "width": 250,
+        "height": 168,
+        "text": "主入口只保留两类商品来源；具体导入方式在抽屉内选择。"
+      },
+      {
+        "id": "note-jteoxxg",
+        "type": "note",
+        "annotationKey": "product-import-failure",
+        "x": 1260,
+        "y": 260,
+        "width": 250,
+        "height": 184,
+        "text": "商品先进入准备中；系统处理完成后转为可用或物料缺失，缺失字段可在商品详情中补充。"
+      },
+      {
+        "id": "note-7wq85ak",
+        "type": "note",
+        "annotationKey": "product-detail-conditional-fields",
+        "x": 1260,
+        "y": 500,
+        "width": 280,
+        "height": 220,
+        "text": "详情基础信息按适用性展示：商品 ID、国家固定显示；类目有识别结果时显示；挂链状态仅适用商品显示，二维码仅生成后显示。独立站另显示推广站点名称。"
+      },
+      {
+        "id": "arrow-bay84d2",
+        "type": "arrow",
+        "annotationKey": "product-import-entry-arrow",
+        "x": 1180,
+        "y": 140,
+        "x2": 1260,
+        "y2": 124
+      },
+      {
+        "id": "arrow-c74dxky",
+        "type": "arrow",
+        "annotationKey": "product-import-failure-arrow",
+        "x": 1180,
+        "y": 390,
+        "x2": 1260,
+        "y2": 350
+      },
+      {
+        "id": "arrow-qnqmtz6",
+        "type": "arrow",
+        "annotationKey": "product-detail-conditional-fields-arrow",
+        "x": 1180,
+        "y": 570,
+        "x2": 1260,
+        "y2": 610
+      },
+      {
+        "id": "frame-pmji9m2",
+        "type": "frame",
+        "title": "矩阵视频创作流程（0817）",
+        "device": "desktop",
+        "x": -3.552039940453426,
+        "y": 1041.3738272411258,
+        "width": 1200,
+        "height": 800,
+        "componentId": "matrix-video-creation-0817",
+        "componentPath": "./components/matrix-video-creation-0817/index.html"
+      },
+      {
+        "id": "frame-geuwo5g",
+        "type": "frame",
+        "title": "视频任务管理",
+        "device": "desktop",
+        "x": -13.397794332004722,
+        "y": 1992.9663723688946,
+        "width": 1200,
+        "height": 800,
+        "componentId": "task-management",
+        "componentPath": "./components/task-management/index.html"
+      }
+    ]
+  }
+}

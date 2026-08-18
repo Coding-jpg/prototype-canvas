@@ -650,7 +650,10 @@
       <div class="actions">
         <button class="icon-button" type="button" id="fit-board" title="适应画板"><i data-lucide="scan"></i></button>
         <button class="icon-button" type="button" id="reset-board" title="恢复示例"><i data-lucide="rotate-ccw"></i></button>
-        <button class="command-button primary" type="button" id="share-board" title="复制分享链接"><i data-lucide="share-2"></i><span>分享</span></button>
+        <input type="file" id="board-file-input" accept=".json,application/json" hidden>
+        <button class="icon-button" type="button" id="import-board" title="导入画板 JSON"><i data-lucide="upload"></i></button>
+        <button class="icon-button" type="button" id="copy-board-link" title="复制公开链接" hidden><i data-lucide="link"></i></button>
+        <button class="command-button primary" type="button" id="export-board" title="导出画板 JSON"><i data-lucide="download"></i><span>导出 JSON</span></button>
       </div>
     </header>
 
@@ -718,6 +721,29 @@
     </form>
   </dialog>
 
+  <dialog id="export-dialog">
+    <form method="dialog" id="export-form">
+      <div class="dialog-head">
+        <h2>导出画板 JSON</h2>
+        <button class="icon-button" type="button" id="close-export-dialog" title="关闭"><i data-lucide="x"></i></button>
+      </div>
+      <div class="dialog-body">
+        <div class="field-row">
+          <label>项目名称
+            <input id="export-project-title" name="title" required maxlength="80">
+          </label>
+          <label>项目标识
+            <input id="export-project-id" name="projectId" required pattern="[a-z0-9](?:[a-z0-9]|-){0,63}" maxlength="64">
+          </label>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button class="command-button" type="button" id="cancel-export">取消</button>
+        <button class="command-button primary" type="submit"><i data-lucide="download"></i><span>导出 JSON</span></button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script>
     (async () => {
@@ -763,6 +789,11 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       const libraryTab = document.getElementById("library-tab");
       const htmlTab = document.getElementById("html-tab");
       const addHtmlComponentButton = document.getElementById("add-html-component");
+      const exportDialog = document.getElementById("export-dialog");
+      const exportForm = document.getElementById("export-form");
+      const exportProjectTitle = document.getElementById("export-project-title");
+      const exportProjectId = document.getElementById("export-project-id");
+      const boardFileInput = document.getElementById("board-file-input");
 
       let state = loadState();
       let componentPreferences = loadComponentPreferences();
@@ -774,6 +805,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       let componentCatalog = [];
       let libraryRevision = "";
       let namedBoard = null;
+      let draftProject = null;
 
       function uid(prefix) {
         return prefix + "-" + Math.random().toString(36).slice(2, 9);
@@ -956,6 +988,8 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           if (!boardState || !Array.isArray(boardState.items) || !boardState.camera) throw new Error("Invalid board state");
           state = migrateState(boardState);
           namedBoard = { slug, title: typeof payload.title === "string" && payload.title.trim() ? payload.title.trim() : slug };
+          draftProject = { id: payload.projectId || slug, title: namedBoard.title, revision: payload.revision || "" };
+          document.getElementById("copy-board-link").hidden = false;
           saveStatus.textContent = `画板：${namedBoard.title}`;
           document.title = `${namedBoard.title} · Prototype Canvas`;
         } catch (error) {
@@ -982,6 +1016,67 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         toast.classList.add("show");
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+
+      function projectSlug(value) {
+        const normalized = String(value || "").trim().toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 64);
+        return normalized || `board-${new Date().toISOString().slice(0, 10)}`;
+      }
+
+      function projectRevision() {
+        return new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
+      }
+
+      function boardDocument(projectId, title) {
+        return {
+          schemaVersion: 1,
+          projectId,
+          title,
+          revision: projectRevision(),
+          exportedAt: new Date().toISOString(),
+          state
+        };
+      }
+
+      function downloadBoardJson(projectId, title) {
+        const documentData = boardDocument(projectId, title);
+        const blobUrl = URL.createObjectURL(new Blob([`${JSON.stringify(documentData, null, 2)}\n`], { type: "application/json;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = `${projectId}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        draftProject = { id: projectId, title, revision: documentData.revision };
+      }
+
+      async function importBoardJson(file) {
+        const payload = JSON.parse(await file.text());
+        const boardState = payload.state || payload;
+        if (!boardState || !Array.isArray(boardState.items) || !boardState.camera) throw new Error("Invalid board JSON");
+        state = migrateState(boardState);
+        namedBoard = null;
+        draftProject = {
+          id: typeof payload.projectId === "string" ? payload.projectId : projectSlug(file.name.replace(/\.json$/i, "")),
+          title: typeof payload.title === "string" && payload.title.trim() ? payload.title.trim() : file.name.replace(/\.json$/i, ""),
+          revision: typeof payload.revision === "string" ? payload.revision : ""
+        };
+        selectedId = null;
+        document.getElementById("copy-board-link").hidden = true;
+        const cleanUrl = new URL(location.href);
+        cleanUrl.searchParams.delete("board");
+        cleanUrl.hash = "";
+        history.replaceState(null, "", cleanUrl);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        document.title = "Prototype Canvas · 可分享交互原型";
+        saveStatus.textContent = `已导入：${draftProject.title}`;
+        renderCamera();
+        renderItems();
+        showToast("画板 JSON 已导入");
       }
 
       function setTool(nextTool) {
@@ -1662,21 +1757,52 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         dialog.close();
       });
 
-      document.getElementById("share-board").addEventListener("click", async () => {
+      document.getElementById("export-board").addEventListener("click", () => {
+        exportProjectTitle.value = draftProject?.title || namedBoard?.title || "未命名画板";
+        exportProjectId.value = draftProject?.id || namedBoard?.slug || projectSlug(exportProjectTitle.value);
+        if (draftProject || namedBoard) exportProjectId.dataset.edited = "true";
+        else delete exportProjectId.dataset.edited;
+        exportDialog.showModal();
+      });
+      exportProjectTitle.addEventListener("input", () => {
+        if (!exportProjectId.dataset.edited) exportProjectId.value = projectSlug(exportProjectTitle.value);
+      });
+      exportProjectId.addEventListener("input", () => { exportProjectId.dataset.edited = "true"; });
+      document.getElementById("close-export-dialog").addEventListener("click", () => exportDialog.close());
+      document.getElementById("cancel-export").addEventListener("click", () => exportDialog.close());
+      exportForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const title = exportProjectTitle.value.trim();
+        const projectId = exportProjectId.value.trim();
+        if (!title || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(projectId)) return;
+        downloadBoardJson(projectId, title);
+        exportDialog.close();
+        showToast("画板 JSON 已导出");
+      });
+
+      document.getElementById("import-board").addEventListener("click", () => boardFileInput.click());
+      boardFileInput.addEventListener("change", async () => {
+        const [file] = boardFileInput.files;
+        if (!file) return;
         try {
-          let url;
-          if (namedBoard) {
-            const stableUrl = new URL(location.href);
-            stableUrl.search = "";
-            stableUrl.searchParams.set("board", namedBoard.slug);
-            stableUrl.hash = "";
-            url = stableUrl.toString();
-          } else {
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-            url = location.href.split("#")[0] + "#board=" + encoded;
-          }
-          await navigator.clipboard.writeText(url);
-          showToast(namedBoard ? "命名画板链接已复制" : "分享链接已复制");
+          await importBoardJson(file);
+        } catch (error) {
+          console.warn("Could not import board JSON", error);
+          showToast("画板 JSON 无效");
+        } finally {
+          boardFileInput.value = "";
+        }
+      });
+
+      document.getElementById("copy-board-link").addEventListener("click", async () => {
+        try {
+          if (!namedBoard) return;
+          const stableUrl = new URL(location.href);
+          stableUrl.search = "";
+          stableUrl.searchParams.set("board", namedBoard.slug);
+          stableUrl.hash = "";
+          await navigator.clipboard.writeText(stableUrl.toString());
+          showToast("命名画板链接已复制");
         } catch (error) {
           showToast("浏览器阻止了复制，请从地址栏复制链接");
         }

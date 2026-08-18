@@ -418,6 +418,74 @@
       gap: 12px;
     }
 
+    .share-lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .share-flow {
+      display: grid;
+      border-top: 1px solid var(--border);
+    }
+
+    .share-step {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .share-step-index {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .share-step h3 {
+      margin: 2px 0 3px;
+      font-size: 13px;
+    }
+
+    .share-step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .share-link-preview {
+      display: block;
+      margin-top: 7px;
+      overflow: hidden;
+      color: var(--text);
+      font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .published-share {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+      padding: 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .published-share[hidden] { display: none; }
+    .published-share input { font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
     label {
       display: grid;
       gap: 6px;
@@ -650,10 +718,7 @@
       <div class="actions">
         <button class="icon-button" type="button" id="fit-board" title="适应画板"><i data-lucide="scan"></i></button>
         <button class="icon-button" type="button" id="reset-board" title="恢复示例"><i data-lucide="rotate-ccw"></i></button>
-        <input type="file" id="board-file-input" accept=".json,application/json" hidden>
-        <button class="icon-button" type="button" id="import-board" title="导入画板 JSON"><i data-lucide="upload"></i></button>
-        <button class="icon-button" type="button" id="copy-board-link" title="复制公开链接" hidden><i data-lucide="link"></i></button>
-        <button class="command-button primary" type="button" id="export-board" title="导出画板 JSON"><i data-lucide="download"></i><span>导出 JSON</span></button>
+        <button class="command-button primary" type="button" id="share-board" title="分享画板"><i data-lucide="share-2"></i><span>分享</span></button>
       </div>
     </header>
 
@@ -721,25 +786,46 @@
     </form>
   </dialog>
 
-  <dialog id="export-dialog">
-    <form method="dialog" id="export-form">
+  <dialog id="share-dialog">
+    <form method="dialog" id="share-form">
       <div class="dialog-head">
-        <h2>导出画板 JSON</h2>
-        <button class="icon-button" type="button" id="close-export-dialog" title="关闭"><i data-lucide="x"></i></button>
+        <h2>分享画板</h2>
+        <button class="icon-button" type="button" id="close-share-dialog" title="关闭"><i data-lucide="x"></i></button>
       </div>
       <div class="dialog-body">
+        <p class="share-lead">将当前画板发布为固定链接，其他人打开后会看到相同的组件、文字、便签和连线。</p>
         <div class="field-row">
           <label>项目名称
-            <input id="export-project-title" name="title" required maxlength="80">
+            <input id="share-project-title" name="title" required maxlength="80">
           </label>
           <label>项目标识
-            <input id="export-project-id" name="projectId" required pattern="[a-z0-9](?:[a-z0-9]|-){0,63}" maxlength="64">
+            <input id="share-project-id" name="projectId" required pattern="[a-z0-9](?:[a-z0-9]|-){0,63}" maxlength="64">
           </label>
+        </div>
+        <div class="share-flow" aria-label="分享流程">
+          <section class="share-step">
+            <span class="share-step-index">1</span>
+            <div><h3>下载项目 JSON</h3><p id="share-download-status">保存当前画板状态，用于发布和后续更新。</p></div>
+          </section>
+          <section class="share-step">
+            <span class="share-step-index">2</span>
+            <div><h3>发送给 Codex</h3><p>把下载的 JSON 发给 Codex，并说明“发布这个画板项目”。Codex 会将项目写入仓库并同步线上。</p></div>
+          </section>
+          <section class="share-step">
+            <span class="share-step-index">3</span>
+            <div><h3>获得公开链接</h3><p>发布完成后，通过下面的固定地址访问。</p><code class="share-link-preview" id="share-link-preview"></code></div>
+          </section>
+        </div>
+        <div class="published-share" id="published-share" hidden>
+          <label>已发布链接
+            <input id="published-board-link" readonly>
+          </label>
+          <button class="command-button" type="button" id="copy-published-link" title="复制已发布链接"><i data-lucide="copy"></i><span>复制链接</span></button>
         </div>
       </div>
       <div class="dialog-actions">
-        <button class="command-button" type="button" id="cancel-export">取消</button>
-        <button class="command-button primary" type="submit"><i data-lucide="download"></i><span>导出 JSON</span></button>
+        <button class="command-button" type="button" id="cancel-share">关闭</button>
+        <button class="command-button primary" type="submit" title="下载项目 JSON"><i data-lucide="download"></i><span>下载 JSON</span></button>
       </div>
     </form>
   </dialog>
@@ -789,11 +875,13 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       const libraryTab = document.getElementById("library-tab");
       const htmlTab = document.getElementById("html-tab");
       const addHtmlComponentButton = document.getElementById("add-html-component");
-      const exportDialog = document.getElementById("export-dialog");
-      const exportForm = document.getElementById("export-form");
-      const exportProjectTitle = document.getElementById("export-project-title");
-      const exportProjectId = document.getElementById("export-project-id");
-      const boardFileInput = document.getElementById("board-file-input");
+      const shareDialog = document.getElementById("share-dialog");
+      const shareForm = document.getElementById("share-form");
+      const shareProjectTitle = document.getElementById("share-project-title");
+      const shareProjectId = document.getElementById("share-project-id");
+      const shareLinkPreview = document.getElementById("share-link-preview");
+      const publishedShare = document.getElementById("published-share");
+      const publishedBoardLink = document.getElementById("published-board-link");
 
       let state = loadState();
       let componentPreferences = loadComponentPreferences();
@@ -989,7 +1077,6 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           state = migrateState(boardState);
           namedBoard = { slug, title: typeof payload.title === "string" && payload.title.trim() ? payload.title.trim() : slug };
           draftProject = { id: payload.projectId || slug, title: namedBoard.title, revision: payload.revision || "" };
-          document.getElementById("copy-board-link").hidden = false;
           saveStatus.textContent = `画板：${namedBoard.title}`;
           document.title = `${namedBoard.title} · Prototype Canvas`;
         } catch (error) {
@@ -1054,29 +1141,20 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         draftProject = { id: projectId, title, revision: documentData.revision };
       }
 
-      async function importBoardJson(file) {
-        const payload = JSON.parse(await file.text());
-        const boardState = payload.state || payload;
-        if (!boardState || !Array.isArray(boardState.items) || !boardState.camera) throw new Error("Invalid board JSON");
-        state = migrateState(boardState);
-        namedBoard = null;
-        draftProject = {
-          id: typeof payload.projectId === "string" ? payload.projectId : projectSlug(file.name.replace(/\.json$/i, "")),
-          title: typeof payload.title === "string" && payload.title.trim() ? payload.title.trim() : file.name.replace(/\.json$/i, ""),
-          revision: typeof payload.revision === "string" ? payload.revision : ""
-        };
-        selectedId = null;
-        document.getElementById("copy-board-link").hidden = true;
-        const cleanUrl = new URL(location.href);
-        cleanUrl.searchParams.delete("board");
-        cleanUrl.hash = "";
-        history.replaceState(null, "", cleanUrl);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        document.title = "Prototype Canvas · 可分享交互原型";
-        saveStatus.textContent = `已导入：${draftProject.title}`;
-        renderCamera();
-        renderItems();
-        showToast("画板 JSON 已导入");
+      function stableBoardUrl(slug) {
+        const url = new URL(location.href);
+        url.search = "";
+        url.searchParams.set("board", slug);
+        url.hash = "";
+        return url.toString();
+      }
+
+      function updateShareLinks() {
+        const projectId = shareProjectId.value.trim();
+        shareLinkPreview.textContent = projectId ? stableBoardUrl(projectId) : "填写项目标识后生成链接";
+        const isPublishedProject = Boolean(namedBoard && projectId === namedBoard.slug);
+        publishedShare.hidden = !isPublishedProject;
+        publishedBoardLink.value = isPublishedProject ? stableBoardUrl(namedBoard.slug) : "";
       }
 
       function setTool(nextTool) {
@@ -1757,52 +1835,39 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         dialog.close();
       });
 
-      document.getElementById("export-board").addEventListener("click", () => {
-        exportProjectTitle.value = draftProject?.title || namedBoard?.title || "未命名画板";
-        exportProjectId.value = draftProject?.id || namedBoard?.slug || projectSlug(exportProjectTitle.value);
-        if (draftProject || namedBoard) exportProjectId.dataset.edited = "true";
-        else delete exportProjectId.dataset.edited;
-        exportDialog.showModal();
+      document.getElementById("share-board").addEventListener("click", () => {
+        shareProjectTitle.value = draftProject?.title || namedBoard?.title || "未命名画板";
+        shareProjectId.value = draftProject?.id || namedBoard?.slug || projectSlug(shareProjectTitle.value);
+        document.getElementById("share-download-status").textContent = "保存当前画板状态，用于发布和后续更新。";
+        if (draftProject || namedBoard) shareProjectId.dataset.edited = "true";
+        else delete shareProjectId.dataset.edited;
+        updateShareLinks();
+        shareDialog.showModal();
       });
-      exportProjectTitle.addEventListener("input", () => {
-        if (!exportProjectId.dataset.edited) exportProjectId.value = projectSlug(exportProjectTitle.value);
+      shareProjectTitle.addEventListener("input", () => {
+        if (!shareProjectId.dataset.edited) shareProjectId.value = projectSlug(shareProjectTitle.value);
+        updateShareLinks();
       });
-      exportProjectId.addEventListener("input", () => { exportProjectId.dataset.edited = "true"; });
-      document.getElementById("close-export-dialog").addEventListener("click", () => exportDialog.close());
-      document.getElementById("cancel-export").addEventListener("click", () => exportDialog.close());
-      exportForm.addEventListener("submit", event => {
+      shareProjectId.addEventListener("input", () => {
+        shareProjectId.dataset.edited = "true";
+        updateShareLinks();
+      });
+      document.getElementById("close-share-dialog").addEventListener("click", () => shareDialog.close());
+      document.getElementById("cancel-share").addEventListener("click", () => shareDialog.close());
+      shareForm.addEventListener("submit", event => {
         event.preventDefault();
-        const title = exportProjectTitle.value.trim();
-        const projectId = exportProjectId.value.trim();
+        const title = shareProjectTitle.value.trim();
+        const projectId = shareProjectId.value.trim();
         if (!title || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(projectId)) return;
         downloadBoardJson(projectId, title);
-        exportDialog.close();
-        showToast("画板 JSON 已导出");
+        document.getElementById("share-download-status").textContent = `已下载 ${projectId}.json，请发送给 Codex 发布。`;
+        showToast("项目 JSON 已下载");
       });
 
-      document.getElementById("import-board").addEventListener("click", () => boardFileInput.click());
-      boardFileInput.addEventListener("change", async () => {
-        const [file] = boardFileInput.files;
-        if (!file) return;
+      document.getElementById("copy-published-link").addEventListener("click", async () => {
         try {
-          await importBoardJson(file);
-        } catch (error) {
-          console.warn("Could not import board JSON", error);
-          showToast("画板 JSON 无效");
-        } finally {
-          boardFileInput.value = "";
-        }
-      });
-
-      document.getElementById("copy-board-link").addEventListener("click", async () => {
-        try {
-          if (!namedBoard) return;
-          const stableUrl = new URL(location.href);
-          stableUrl.search = "";
-          stableUrl.searchParams.set("board", namedBoard.slug);
-          stableUrl.hash = "";
-          await navigator.clipboard.writeText(stableUrl.toString());
-          showToast("命名画板链接已复制");
+          await navigator.clipboard.writeText(publishedBoardLink.value);
+          showToast("公开链接已复制");
         } catch (error) {
           showToast("浏览器阻止了复制，请从地址栏复制链接");
         }

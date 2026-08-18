@@ -46,8 +46,8 @@ Push to `main`. GitHub Actions validates the component metadata, generates `comp
 The base page keeps each visitor's working board in browser storage. Use a named board when a curated subset needs a stable public link.
 
 1. Arrange the board and remove frames that should not be shown.
-2. Click **Export JSON** and download the project file.
-3. Save it into the repository:
+2. Click **Share** and download the project JSON.
+3. Send the JSON to Codex and ask it to publish the board. Codex saves it into the repository with:
 
 ```bash
 node scripts/save-board.mjs task-review ./task-review.json 'Task review'
@@ -59,4 +59,4 @@ node scripts/save-board.mjs task-review ./task-review.json 'Task review'
 https://coding-jpg.github.io/prototype-canvas/?board=task-review
 ```
 
-Recipients can also use **Import JSON** to open the file directly. Named-board edits in the browser are temporary; update the JSON through the same workflow when the shared layout changes. Legacy `#board=` links remain readable.
+After deployment, the **Share** dialog exposes the stable link for copying. Named-board edits in the browser are temporary; download a new JSON through the same workflow when the shared layout changes. Legacy `#board=` links remain readable.

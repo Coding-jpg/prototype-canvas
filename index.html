@@ -720,7 +720,7 @@
 
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script>
-    (() => {
+    (async () => {
       const STORAGE_KEY = "prototype-canvas-v1";
       const COMPONENT_PREFERENCES_KEY = "prototype-canvas-component-preferences-v1";
       const DEVICE_SIZES = {
@@ -773,6 +773,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       let toastTimer = null;
       let componentCatalog = [];
       let libraryRevision = "";
+      let namedBoard = null;
 
       function uid(prefix) {
         return prefix + "-" + Math.random().toString(36).slice(2, 9);
@@ -939,7 +940,35 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         }
       }
 
+      async function loadNamedBoard() {
+        const slug = new URLSearchParams(location.search).get("board");
+        if (!slug) return;
+        if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(slug)) {
+          showToast("画板名称无效");
+          return;
+        }
+
+        try {
+          const response = await fetch(`./components/_boards/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          const boardState = payload.state || payload;
+          if (!boardState || !Array.isArray(boardState.items) || !boardState.camera) throw new Error("Invalid board state");
+          state = migrateState(boardState);
+          namedBoard = { slug, title: typeof payload.title === "string" && payload.title.trim() ? payload.title.trim() : slug };
+          saveStatus.textContent = `画板：${namedBoard.title}`;
+          document.title = `${namedBoard.title} · Prototype Canvas`;
+        } catch (error) {
+          console.warn("Could not load named board", error);
+          showToast("命名画板加载失败");
+        }
+      }
+
       function queueSave() {
+        if (namedBoard) {
+          saveStatus.textContent = `${namedBoard.title} · 本地修改未发布`;
+          return;
+        }
         saveStatus.textContent = "保存中…";
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
@@ -1635,16 +1664,29 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
       document.getElementById("share-board").addEventListener("click", async () => {
         try {
-          const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-          const url = location.href.split("#")[0] + "#board=" + encoded;
+          let url;
+          if (namedBoard) {
+            const stableUrl = new URL(location.href);
+            stableUrl.search = "";
+            stableUrl.searchParams.set("board", namedBoard.slug);
+            stableUrl.hash = "";
+            url = stableUrl.toString();
+          } else {
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+            url = location.href.split("#")[0] + "#board=" + encoded;
+          }
           await navigator.clipboard.writeText(url);
-          showToast("分享链接已复制");
+          showToast(namedBoard ? "命名画板链接已复制" : "分享链接已复制");
         } catch (error) {
           showToast("浏览器阻止了复制，请从地址栏复制链接");
         }
       });
 
       document.getElementById("reset-board").addEventListener("click", () => {
+        if (namedBoard) {
+          if (confirm("恢复已发布的命名画板？当前本地修改将丢失。")) location.reload();
+          return;
+        }
         if (!confirm("恢复初始示例？当前画板内容将被替换。")) return;
         state = defaultState();
         selectedId = null;
@@ -1667,6 +1709,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       });
 
       htmlInput.value = filterTemplate;
+      await loadNamedBoard();
       renderCamera();
       renderItems();
       loadComponentLibrary();

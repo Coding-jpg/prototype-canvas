@@ -8,7 +8,7 @@ const outputPath = path.join(rootDir, "component-library.json");
 const validDevices = new Set(["desktop", "tablet", "mobile"]);
 
 const entries = await readdir(componentsDir, { withFileTypes: true });
-const directories = entries.filter((entry) => entry.isDirectory()).sort((a, b) => a.name.localeCompare(b.name));
+const directories = entries.filter((entry) => entry.isDirectory() && !entry.name.startsWith("_")).sort((a, b) => a.name.localeCompare(b.name));
 const components = [];
 const ids = new Set();
 

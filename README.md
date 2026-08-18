@@ -40,3 +40,23 @@ Open `http://127.0.0.1:8765`.
 ## Deploy
 
 Push to `main`. GitHub Actions validates the component metadata, generates `components.json`, and deploys the site to GitHub Pages.
+
+## Named boards
+
+The base page keeps each visitor's working board in browser storage. Use a named board when a curated subset needs a stable public link.
+
+1. Arrange the board and remove frames that should not be shown.
+2. Click **Share** to copy the temporary `#board=` link.
+3. Save it into the repository:
+
+```bash
+node scripts/save-board.mjs task-review '<copied-share-link>' 'Task review'
+```
+
+4. Commit and push. The stable link is:
+
+```text
+https://coding-jpg.github.io/prototype-canvas/?board=task-review
+```
+
+Named-board edits in the browser are temporary. Update the JSON through the same workflow when the shared layout changes.

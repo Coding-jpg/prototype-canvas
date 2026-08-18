@@ -19,13 +19,19 @@ test("the seven matrix video task states are available", () => {
 });
 
 test("top navigation groups task states by workflow stage", () => {
-  assert.match(html, /\{ id:"configuration", label:"待配置", statuses:\["pending_configuration"\] \}/);
+  assert.match(html, /\{ id:"configuration", label:"待配置", statuses:\["pending_configuration"\], pendingStatus:"pending_configuration" \}/);
   assert.match(html, /\{ id:"generation", label:"生成", statuses:\["generating","generation_failed"\] \}/);
-  assert.match(html, /\{ id:"review", label:"待审核", statuses:\["pending_review"\] \}/);
-  assert.match(html, /\{ id:"publish", label:"待发布", statuses:\["pending_publish","publish_failed"\] \}/);
+  assert.match(html, /\{ id:"review", label:"待审核", statuses:\["pending_review"\], pendingStatus:"pending_review" \}/);
+  assert.match(html, /\{ id:"publish", label:"待发布", statuses:\["pending_publish","publish_failed"\], pendingStatus:"pending_publish" \}/);
   assert.match(html, /\{ id:"completed", label:"已完成", statuses:\["published"\] \}/);
   assert.match(html, /data-stage="\$\{stage\.id\}"/);
   assert.doesNotMatch(html, /data-status="\$\{status\.id\}"/);
+});
+
+test("only human-action stages show remaining unfinished counts", () => {
+  assert.match(html, /stage\.pendingStatus \? tasks\.filter\(task => task\.status === stage\.pendingStatus\)\.length : null/);
+  assert.match(html, /class="pending-count" aria-label="\$\{pendingCount\} 项待处理"/);
+  assert.doesNotMatch(html, /class="count"/);
 });
 
 test("pending configuration tasks expose only configure and delete actions", () => {

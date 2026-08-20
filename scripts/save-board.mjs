@@ -32,7 +32,7 @@ if (!state || !Array.isArray(state.items) || !state.camera) {
 
 const board = {
   schemaVersion: 1,
-  projectId: slug,
+  boardId: slug,
   slug,
   title: String(titleArgument || payload.title || slug).trim() || slug,
   revision: payload.revision || new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14),

@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const html = await readFile(new URL("../components/task-management/index.html", import.meta.url), "utf8");
-const metadata = JSON.parse(await readFile(new URL("../components/task-management/meta.json", import.meta.url), "utf8"));
+const html = await readFile(new URL("../components/reelflock/task-management/index.html", import.meta.url), "utf8");
+const metadata = JSON.parse(await readFile(new URL("../components/reelflock/task-management/meta.json", import.meta.url), "utf8"));
 
 test("task management is published to the shared board", () => {
   assert.equal(metadata.id, "task-management");

@@ -1,8 +1,7 @@
 {
-  "schemaVersion": 1,
-  "boardId": "0818",
-  "slug": "0818",
-  "title": "0818-视频制作&管理交互优化",
+  "schemaVersion": 2,
+  "projectId": "reelflock",
+  "title": "ReelFlock",
   "revision": "20260818030254",
   "updatedAt": "2026-08-18T03:03:33.657Z",
   "state": {

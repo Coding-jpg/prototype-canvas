@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const html = await readFile(new URL("../components/product-import-flow/index.html", import.meta.url), "utf8");
+const html = await readFile(new URL("../components/reelflock/product-import-flow/index.html", import.meta.url), "utf8");
 
 test("product library keeps only quick-check fields and a leading status marker", () => {
   assert.match(html, /visually-hidden">商品状态<\/span><\/th><th>商品信息<\/th><th>国家<\/th><th>操作/);

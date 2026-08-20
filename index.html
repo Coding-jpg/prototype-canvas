@@ -91,6 +91,19 @@
       white-space: nowrap;
     }
 
+    .project-select {
+      width: min(170px, 28vw);
+      height: 34px;
+      padding: 0 28px 0 9px;
+      color: var(--text);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
     .tools,
     .actions,
     .zoom-controls {
@@ -576,11 +589,47 @@
 
     .library-list {
       display: grid;
-      gap: 1px;
+      gap: 0;
       overflow: hidden;
       border: 1px solid var(--border);
       border-radius: 6px;
-      background: var(--border);
+      background: var(--panel);
+    }
+
+    .library-project + .library-project {
+      border-top: 8px solid var(--panel-2);
+    }
+
+    .library-project-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 54px;
+      padding: 9px 12px;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .library-project-copy {
+      min-width: 0;
+    }
+
+    .library-project-copy h3,
+    .library-project-copy p {
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .library-project-copy h3 { font-size: 14px; }
+    .library-project-copy p { margin-top: 3px; color: var(--muted); font-size: 12px; }
+
+    .library-project-count {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 12px;
     }
 
     .library-item {
@@ -592,6 +641,8 @@
       padding: 10px 12px;
       background: var(--panel);
     }
+
+    .library-item + .library-item { border-top: 1px solid var(--border); }
 
     .library-actions {
       display: flex;
@@ -680,6 +731,8 @@
       }
 
       .brand { grid-column: 1; grid-row: 1; }
+      .brand-title { display: none; }
+      .project-select { width: 132px; }
       .actions { grid-column: 2; grid-row: 1; }
       .tools {
         grid-column: 1 / -1;
@@ -694,6 +747,8 @@
 
       .command-button span { display: none; }
       .command-button { width: 34px; padding: 0; }
+      .dialog-actions .command-button { width: auto; padding: 0 10px; }
+      .dialog-actions .command-button span { display: inline; }
       .field-row { grid-template-columns: 1fr; }
       .statusbar { grid-template-columns: 1fr auto; }
       #selection-status { display: none; }
@@ -705,7 +760,10 @@
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true"><i data-lucide="panels-top-left"></i></span>
-        <span>Prototype Canvas</span>
+        <span class="brand-title">Prototype Canvas</span>
+        <select class="project-select" id="project-select" aria-label="切换项目" disabled>
+          <option>正在读取项目…</option>
+        </select>
       </div>
 
       <nav class="tools" aria-label="画板工具">
@@ -793,39 +851,39 @@
         <button class="icon-button" type="button" id="close-share-dialog" title="关闭"><i data-lucide="x"></i></button>
       </div>
       <div class="dialog-body">
-        <p class="share-lead">将当前画板发布为固定链接，其他人打开后会看到相同的组件、文字、便签和连线。</p>
+        <p class="share-lead">每个仓库项目对应一个固定画板和分享链接。</p>
         <div class="field-row">
-          <label>项目名称
-            <input id="share-project-title" name="title" required maxlength="80">
+          <label>项目
+            <input id="share-project-title" name="title" readonly>
           </label>
           <label>项目标识
-            <input id="share-project-id" name="projectId" required pattern="[a-z0-9](?:[a-z0-9]|-){0,63}" maxlength="64">
+            <input id="share-project-id" name="projectId" readonly>
           </label>
         </div>
         <div class="share-flow" aria-label="分享流程">
           <section class="share-step">
             <span class="share-step-index">1</span>
-            <div><h3>下载项目 JSON</h3><p id="share-download-status">保存当前画板状态，用于发布和后续更新。</p></div>
+            <div><h3>复制项目画板链接</h3><p>项目路由固定，可直接发给其他人访问。</p><code class="share-link-preview" id="share-link-preview"></code></div>
           </section>
           <section class="share-step">
             <span class="share-step-index">2</span>
-            <div><h3>发送给 Codex</h3><p>把下载的 JSON 发给 Codex，并说明“发布这个画板项目”。Codex 会将项目写入仓库并同步线上。</p></div>
+            <div><h3>下载画板 JSON</h3><p id="share-download-status">保存当前项目画板状态，用于更新仓库文件。</p></div>
           </section>
           <section class="share-step">
             <span class="share-step-index">3</span>
-            <div><h3>获得公开链接</h3><p>发布完成后，通过下面的固定地址访问。</p><code class="share-link-preview" id="share-link-preview"></code></div>
+            <div><h3>发送给 Codex</h3><p>把下载的 JSON 发给 Codex，并说明“更新这个项目画板”。</p></div>
           </section>
         </div>
-        <div class="published-share" id="published-share" hidden>
-          <label>已发布链接
+        <div class="published-share" id="published-share">
+          <label>项目画板链接
             <input id="published-board-link" readonly>
           </label>
-          <button class="command-button" type="button" id="copy-published-link" title="复制已发布链接"><i data-lucide="copy"></i><span>复制链接</span></button>
+          <button class="command-button" type="button" id="copy-published-link" title="复制项目画板链接"><i data-lucide="copy"></i><span>复制链接</span></button>
         </div>
       </div>
       <div class="dialog-actions">
         <button class="command-button" type="button" id="cancel-share">关闭</button>
-        <button class="command-button primary" type="submit" title="下载项目 JSON"><i data-lucide="download"></i><span>下载 JSON</span></button>
+        <button class="command-button primary" type="submit" title="下载画板 JSON"><i data-lucide="download"></i><span>下载 JSON</span></button>
       </div>
     </form>
   </dialog>
@@ -834,6 +892,7 @@
   <script>
     (async () => {
       const STORAGE_KEY = "prototype-canvas-v1";
+      const PROJECT_STORAGE_PREFIX = "prototype-canvas-project-v1:";
       const COMPONENT_PREFERENCES_KEY = "prototype-canvas-component-preferences-v1";
       const DEVICE_SIZES = {
         desktop: { width: 1200, height: 800 },
@@ -882,18 +941,20 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       const shareLinkPreview = document.getElementById("share-link-preview");
       const publishedShare = document.getElementById("published-share");
       const publishedBoardLink = document.getElementById("published-board-link");
+      const projectSelect = document.getElementById("project-select");
 
-      let state = loadState();
+      let state = defaultState();
       let componentPreferences = loadComponentPreferences();
       let tool = null;
       let selectedId = null;
       let pointerAction = null;
       let saveTimer = null;
       let toastTimer = null;
+      let componentProjects = [];
       let componentCatalog = [];
       let libraryRevision = "";
       let namedBoard = null;
-      let draftProject = null;
+      let activeProject = null;
 
       function uid(prefix) {
         return prefix + "-" + Math.random().toString(36).slice(2, 9);
@@ -916,18 +977,19 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       }
 
       function componentDisplayName(component) {
-        return componentPreferences.names[component.id] || component.name;
+        const preferenceKey = component.projectId ? `${component.projectId}/${component.id}` : component.id;
+        return componentPreferences.names[preferenceKey] || componentPreferences.names[component.id] || component.name;
       }
 
       function defaultState() {
         return {
-          version: 9,
+          version: 10,
           camera: { x: 76, y: 64, zoom: 0.72 },
           items: [
-            { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" },
-            { id: uid("frame"), type: "frame", title: "帐号管理流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, componentId: "account-management-flow", componentPath: "./components/account-management-flow/index.html" },
-            { id: uid("frame"), type: "frame", title: "矩阵视频创作流程 · 桌面", device: "desktop", x: 0, y: 2080, width: 1200, height: 800, componentId: "matrix-video-creation", componentPath: "./components/matrix-video-creation/index.html" },
-            { id: uid("frame"), type: "frame", title: "视频任务管理 · 桌面", device: "desktop", x: 0, y: 3120, width: 1200, height: 800, componentId: "task-management", componentPath: "./components/task-management/index.html" },
+            { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 0, width: 1200, height: 800, projectId: "reelflock", componentId: "product-import-flow", componentPath: "./components/reelflock/product-import-flow/index.html" },
+            { id: uid("frame"), type: "frame", title: "帐号管理流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, projectId: "reelflock", componentId: "account-management-flow", componentPath: "./components/reelflock/account-management-flow/index.html" },
+            { id: uid("frame"), type: "frame", title: "矩阵视频创作流程 · 桌面", device: "desktop", x: 0, y: 2080, width: 1200, height: 800, projectId: "reelflock", componentId: "matrix-video-creation", componentPath: "./components/reelflock/matrix-video-creation/index.html" },
+            { id: uid("frame"), type: "frame", title: "视频任务管理 · 桌面", device: "desktop", x: 0, y: 3120, width: 1200, height: 800, projectId: "reelflock", componentId: "task-management", componentPath: "./components/reelflock/task-management/index.html" },
             { id: uid("note"), type: "note", annotationKey: "product-import-entry", x: 1260, y: 40, width: 250, height: 168, text: "主入口只保留两类商品来源；具体导入方式在抽屉内选择。" },
             { id: uid("note"), type: "note", annotationKey: "product-import-failure", x: 1260, y: 260, width: 250, height: 184, text: "商品先进入准备中；系统处理完成后转为可用或物料缺失，缺失字段可在商品详情中补充。" },
             { id: uid("note"), type: "note", annotationKey: "product-detail-conditional-fields", x: 1260, y: 500, width: 280, height: 220, text: "详情基础信息按适用性展示：商品 ID、国家固定显示；类目有识别结果时显示；挂链状态仅适用商品显示，二维码仅生成后显示。独立站另显示推广站点名称。" },
@@ -938,27 +1000,46 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         };
       }
 
-      function migrateState(savedState) {
-        if (!savedState || !Array.isArray(savedState.items)) return defaultState();
+      function projectDefaultState(projectId) {
+        if (projectId === "reelflock") return defaultState();
+        return { version: 10, camera: { x: 76, y: 64, zoom: 0.72 }, items: [] };
+      }
+
+      function migrateState(savedState, projectId = "reelflock") {
+        if (!savedState || !Array.isArray(savedState.items)) return projectDefaultState(projectId);
         const savedVersion = savedState.version || 1;
-        if (savedVersion >= 9) return savedState;
+        savedState.items.forEach(item => {
+          if (item.type !== "frame" || !item.componentId) return;
+          if (!item.projectId) item.projectId = projectId;
+          if (projectId === "reelflock" && /^\.\/components\/[^/]+\/index\.html$/.test(item.componentPath || "")) {
+            item.componentPath = `./components/reelflock/${item.componentId}/index.html`;
+          }
+        });
+        if (projectId !== "reelflock") {
+          savedState.version = 10;
+          return savedState;
+        }
+        if (savedVersion >= 9) {
+          savedState.version = 10;
+          return savedState;
+        }
 
         function ensureAccountManagementFrame() {
           if (savedState.items.some(item => item.componentId === "account-management-flow")) return;
           const frameBottom = savedState.items.reduce((bottom, item) => item.type === "frame" ? Math.max(bottom, (Number.isFinite(item.y) ? item.y : 0) + (item.height || 800)) : bottom, 0);
-          savedState.items.push({ id: uid("frame"), type: "frame", title: "帐号管理流程 · 桌面", device: "desktop", x: 0, y: frameBottom + 240, width: 1200, height: 800, componentId: "account-management-flow", componentPath: "./components/account-management-flow/index.html" });
+          savedState.items.push({ id: uid("frame"), type: "frame", title: "帐号管理流程 · 桌面", device: "desktop", x: 0, y: frameBottom + 240, width: 1200, height: 800, projectId: "reelflock", componentId: "account-management-flow", componentPath: "./components/reelflock/account-management-flow/index.html" });
         }
 
         function ensureMatrixVideoCreationFrame() {
           if (savedState.items.some(item => item.componentId === "matrix-video-creation")) return;
           const frameBottom = savedState.items.reduce((bottom, item) => item.type === "frame" ? Math.max(bottom, (Number.isFinite(item.y) ? item.y : 0) + (item.height || 800)) : bottom, 0);
-          savedState.items.push({ id: uid("frame"), type: "frame", title: "矩阵视频创作流程 · 桌面", device: "desktop", x: 0, y: frameBottom + 240, width: 1200, height: 800, componentId: "matrix-video-creation", componentPath: "./components/matrix-video-creation/index.html" });
+          savedState.items.push({ id: uid("frame"), type: "frame", title: "矩阵视频创作流程 · 桌面", device: "desktop", x: 0, y: frameBottom + 240, width: 1200, height: 800, projectId: "reelflock", componentId: "matrix-video-creation", componentPath: "./components/reelflock/matrix-video-creation/index.html" });
         }
 
         function ensureTaskManagementFrame() {
           if (savedState.items.some(item => item.componentId === "task-management")) return;
           const frameBottom = savedState.items.reduce((bottom, item) => item.type === "frame" ? Math.max(bottom, (Number.isFinite(item.y) ? item.y : 0) + (item.height || 800)) : bottom, 0);
-          savedState.items.push({ id: uid("frame"), type: "frame", title: "视频任务管理 · 桌面", device: "desktop", x: 0, y: frameBottom + 240, width: 1200, height: 800, componentId: "task-management", componentPath: "./components/task-management/index.html" });
+          savedState.items.push({ id: uid("frame"), type: "frame", title: "视频任务管理 · 桌面", device: "desktop", x: 0, y: frameBottom + 240, width: 1200, height: 800, projectId: "reelflock", componentId: "task-management", componentPath: "./components/reelflock/task-management/index.html" });
         }
 
         const legacyFrameIds = new Set();
@@ -982,12 +1063,12 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           ensureAccountManagementFrame();
           ensureMatrixVideoCreationFrame();
           ensureTaskManagementFrame();
-          savedState.version = 9;
+          savedState.version = 10;
           return savedState;
         }
         let frame = savedState.items.find(item => item.componentId === "product-import-flow");
         if (!frame) {
-          frame = { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" };
+          frame = { id: uid("frame"), type: "frame", title: "商品导入流程 · 桌面", device: "desktop", x: 0, y: 1040, width: 1200, height: 800, projectId: "reelflock", componentId: "product-import-flow", componentPath: "./components/reelflock/product-import-flow/index.html" };
           savedState.items.push(frame);
         }
 
@@ -1029,18 +1110,32 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         ensureAccountManagementFrame();
         ensureMatrixVideoCreationFrame();
         ensureTaskManagementFrame();
-        savedState.version = 9;
+        savedState.version = 10;
         return savedState;
       }
 
-      function loadState() {
+      function projectStorageKey(projectId) {
+        return `${PROJECT_STORAGE_PREFIX}${projectId}`;
+      }
+
+      async function repositoryProjectState(project) {
+        const response = await fetch(componentUrl(project.boardPath), { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        if (payload.projectId !== project.id || !payload.state || !Array.isArray(payload.state.items) || !payload.state.camera) {
+          throw new Error("Invalid project board");
+        }
+        return migrateState(payload.state, project.id);
+      }
+
+      async function loadProjectState(project) {
+        const storageKey = projectStorageKey(project.id);
         const shared = location.hash.startsWith("#board=") ? location.hash.slice(7) : "";
         if (shared) {
           try {
             const decoded = decodeURIComponent(escape(atob(shared)));
-            const parsed = JSON.parse(decoded);
-            const migrated = migrateState(parsed);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+            const migrated = migrateState(JSON.parse(decoded), project.id);
+            localStorage.setItem(storageKey, JSON.stringify(migrated));
             history.replaceState(null, "", location.pathname + location.search);
             return migrated;
           } catch (error) {
@@ -1049,23 +1144,64 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         }
 
         try {
-          const stored = localStorage.getItem(STORAGE_KEY);
-          if (!stored) return defaultState();
-          const migrated = migrateState(JSON.parse(stored));
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-          return migrated;
+          const scopedState = localStorage.getItem(storageKey);
+          const legacyState = project.id === "reelflock" ? localStorage.getItem(STORAGE_KEY) : null;
+          const stored = scopedState || legacyState;
+          if (stored) {
+            const migrated = migrateState(JSON.parse(stored), project.id);
+            localStorage.setItem(storageKey, JSON.stringify(migrated));
+            if (!scopedState && legacyState) localStorage.removeItem(STORAGE_KEY);
+            return migrated;
+          }
+          return await repositoryProjectState(project);
         } catch (error) {
-          console.warn("Could not load board", error);
-          return defaultState();
+          console.warn("Could not load project board", error);
+          return projectDefaultState(project.id);
         }
+      }
+
+      function projectUrl(projectId) {
+        const url = new URL(location.href);
+        url.search = "";
+        url.searchParams.set("project", projectId);
+        url.hash = "";
+        return url;
+      }
+
+      function populateProjectSelect() {
+        projectSelect.replaceChildren();
+        componentProjects.forEach(project => {
+          const option = document.createElement("option");
+          option.value = project.id;
+          option.textContent = project.name;
+          projectSelect.appendChild(option);
+        });
+        projectSelect.disabled = componentProjects.length < 2;
+      }
+
+      async function activateProject(projectId, replaceRoute = true) {
+        const project = componentProjects.find(entry => entry.id === projectId) || componentProjects[0];
+        if (!project) throw new Error("No repository projects available");
+        activeProject = project;
+        namedBoard = null;
+        componentCatalog = project.components;
+        projectSelect.value = project.id;
+        state = await loadProjectState(project);
+        selectedId = null;
+        saveStatus.textContent = `${project.name} · 已保存`;
+        document.title = `${project.name} · Prototype Canvas`;
+        if (replaceRoute) history.replaceState(null, "", projectUrl(project.id));
+        renderCamera();
+        renderItems();
+        renderComponentLibrary();
       }
 
       async function loadNamedBoard() {
         const slug = new URLSearchParams(location.search).get("board");
-        if (!slug) return;
+        if (!slug) return false;
         if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(slug)) {
           showToast("画板名称无效");
-          return;
+          return false;
         }
 
         try {
@@ -1074,14 +1210,19 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           const payload = await response.json();
           const boardState = payload.state || payload;
           if (!boardState || !Array.isArray(boardState.items) || !boardState.camera) throw new Error("Invalid board state");
-          state = migrateState(boardState);
+          const projectId = payload.projectId || boardState.items.find(item => item.projectId)?.projectId;
+          activeProject = componentProjects.find(project => project.id === projectId) || componentProjects[0] || null;
+          state = migrateState(boardState, activeProject?.id || "reelflock");
           namedBoard = { slug, title: typeof payload.title === "string" && payload.title.trim() ? payload.title.trim() : slug };
-          draftProject = { id: payload.projectId || slug, title: namedBoard.title, revision: payload.revision || "" };
+          componentCatalog = activeProject?.components || [];
+          if (activeProject) projectSelect.value = activeProject.id;
           saveStatus.textContent = `画板：${namedBoard.title}`;
           document.title = `${namedBoard.title} · Prototype Canvas`;
+          return true;
         } catch (error) {
           console.warn("Could not load named board", error);
           showToast("命名画板加载失败");
+          return false;
         }
       }
 
@@ -1093,8 +1234,8 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         saveStatus.textContent = "保存中…";
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          saveStatus.textContent = "已保存";
+          if (activeProject) localStorage.setItem(projectStorageKey(activeProject.id), JSON.stringify(state));
+          saveStatus.textContent = activeProject ? `${activeProject.name} · 已保存` : "已保存";
         }, 180);
       }
 
@@ -1105,24 +1246,16 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
       }
 
-      function projectSlug(value) {
-        const normalized = String(value || "").trim().toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "")
-          .slice(0, 64);
-        return normalized || `board-${new Date().toISOString().slice(0, 10)}`;
-      }
-
-      function projectRevision() {
+      function boardRevision() {
         return new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
       }
 
       function boardDocument(projectId, title) {
         return {
-          schemaVersion: 1,
+          schemaVersion: 2,
           projectId,
           title,
-          revision: projectRevision(),
+          revision: boardRevision(),
           exportedAt: new Date().toISOString(),
           state
         };
@@ -1133,28 +1266,18 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         const blobUrl = URL.createObjectURL(new Blob([`${JSON.stringify(documentData, null, 2)}\n`], { type: "application/json;charset=utf-8" }));
         const link = document.createElement("a");
         link.href = blobUrl;
-        link.download = `${projectId}.json`;
+        link.download = `${projectId}-board.json`;
         document.body.appendChild(link);
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-        draftProject = { id: projectId, title, revision: documentData.revision };
-      }
-
-      function stableBoardUrl(slug) {
-        const url = new URL(location.href);
-        url.search = "";
-        url.searchParams.set("board", slug);
-        url.hash = "";
-        return url.toString();
       }
 
       function updateShareLinks() {
-        const projectId = shareProjectId.value.trim();
-        shareLinkPreview.textContent = projectId ? stableBoardUrl(projectId) : "填写项目标识后生成链接";
-        const isPublishedProject = Boolean(namedBoard && projectId === namedBoard.slug);
-        publishedShare.hidden = !isPublishedProject;
-        publishedBoardLink.value = isPublishedProject ? stableBoardUrl(namedBoard.slug) : "";
+        const url = activeProject ? projectUrl(activeProject.id).toString() : "";
+        shareLinkPreview.textContent = url;
+        publishedShare.hidden = !url;
+        publishedBoardLink.value = url;
       }
 
       function setTool(nextTool) {
@@ -1608,12 +1731,27 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           const response = await fetch(`./component-library.json?_=${Date.now()}`, { cache: "no-store" });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const manifest = await response.json();
-          if (!Array.isArray(manifest.components)) throw new Error("Invalid component manifest");
-          componentCatalog = manifest.components;
+          if (!Array.isArray(manifest.projects)) throw new Error("Invalid component manifest");
+          componentProjects = manifest.projects.map(project => {
+            if (!project || typeof project.id !== "string" || typeof project.name !== "string" || typeof project.boardPath !== "string" || !Array.isArray(project.components)) {
+              throw new Error("Invalid project in component manifest");
+            }
+            return {
+              ...project,
+              components: project.components.map(component => ({ ...component, projectId: project.id }))
+            };
+          });
+          populateProjectSelect();
+          if (activeProject) {
+            activeProject = componentProjects.find(project => project.id === activeProject.id) || componentProjects[0] || null;
+            componentCatalog = activeProject?.components || [];
+            if (activeProject) projectSelect.value = activeProject.id;
+          }
           libraryRevision = manifest.generatedAt || "";
           renderComponentLibrary();
           renderItems();
         } catch (error) {
+          componentProjects = [];
           componentCatalog = [];
           librarySummary.textContent = "组件库不可用";
           libraryList.innerHTML = `<div class="library-empty">${location.protocol === "file:" ? "请通过本地 HTTP 服务或 GitHub Pages 打开画布。" : "无法读取组件清单。"}</div>`;
@@ -1622,18 +1760,48 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       }
 
       function renderComponentLibrary() {
-        librarySummary.textContent = `${componentCatalog.length} 个可用`;
+        const visibleProjects = activeProject ? [activeProject] : [];
+        librarySummary.textContent = activeProject ? `${activeProject.name} · ${componentCatalog.length} 个组件` : "请选择项目";
         libraryList.replaceChildren();
-        if (!componentCatalog.length) {
+        if (!visibleProjects.length) {
           libraryList.innerHTML = '<div class="library-empty">组件库为空</div>';
           return;
         }
 
-        componentCatalog.forEach(component => renderLibraryItem(component));
+        visibleProjects.forEach(project => {
+          const section = document.createElement("section");
+          section.className = "library-project";
+          section.dataset.projectId = project.id;
+
+          const header = document.createElement("header");
+          header.className = "library-project-head";
+          const copy = document.createElement("div");
+          copy.className = "library-project-copy";
+          const name = document.createElement("h3");
+          name.textContent = project.name;
+          const description = document.createElement("p");
+          description.textContent = project.description;
+          const count = document.createElement("span");
+          count.className = "library-project-count";
+          count.textContent = `${project.components.length} 个组件`;
+          copy.append(name, description);
+          header.append(copy, count);
+          section.appendChild(header);
+
+          if (project.components.length) {
+            project.components.forEach(component => renderLibraryItem(component, section));
+          } else {
+            const empty = document.createElement("div");
+            empty.className = "library-empty";
+            empty.textContent = "该项目暂无已发布组件";
+            section.appendChild(empty);
+          }
+          libraryList.appendChild(section);
+        });
         if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
       }
 
-      function renderLibraryItem(component) {
+      function renderLibraryItem(component, projectSection) {
           const row = document.createElement("article");
           row.className = "library-item";
           const copy = document.createElement("div");
@@ -1654,11 +1822,14 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           const addButton = document.createElement("button");
           addButton.type = "button";
           addButton.className = "command-button";
+          addButton.title = `添加${componentDisplayName(component)}`;
+          addButton.setAttribute("aria-label", `添加${componentDisplayName(component)}`);
           addButton.innerHTML = '<i data-lucide="plus"></i><span>添加</span>';
           addButton.addEventListener("click", () => {
             addComponentFrame({
               title: componentDisplayName(component),
               device: component.device,
+              projectId: component.projectId,
               componentId: component.id,
               componentPath: component.path
             });
@@ -1675,7 +1846,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
 
           actions.append(addButton, renameButton);
           row.append(copy, device, actions);
-          libraryList.appendChild(row);
+          projectSection.appendChild(row);
       }
 
       function renameLibraryComponent(component) {
@@ -1684,9 +1855,10 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         if (nextName === null) return;
         const name = nextName.trim();
         if (!name || name === oldName) return;
-        componentPreferences.names[component.id] = name;
+        const preferenceKey = component.projectId ? `${component.projectId}/${component.id}` : component.id;
+        componentPreferences.names[preferenceKey] = name;
         state.items.forEach(item => {
-          if (item.type === "frame" && item.componentId === component.id && item.title.startsWith(oldName)) {
+          if (item.type === "frame" && item.componentId === component.id && (!item.projectId || item.projectId === component.projectId) && item.title.startsWith(oldName)) {
             item.title = name + item.title.slice(oldName.length);
           }
         });
@@ -1713,6 +1885,7 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
           height: size.height
         };
         if (component.html) item.html = component.html;
+        if (component.projectId) item.projectId = component.projectId;
         if (component.componentId) item.componentId = component.componentId;
         if (component.componentPath) item.componentPath = component.componentPath;
         state.items.push(item);
@@ -1826,6 +1999,9 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       document.getElementById("reload-library").addEventListener("click", loadComponentLibrary);
       libraryTab.addEventListener("click", () => setDialogTab("library"));
       htmlTab.addEventListener("click", () => setDialogTab("html"));
+      projectSelect.addEventListener("change", () => {
+        location.assign(projectUrl(projectSelect.value));
+      });
 
       document.querySelectorAll("[data-template]").forEach(button => {
         button.addEventListener("click", () => {
@@ -1849,21 +2025,11 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       });
 
       document.getElementById("share-board").addEventListener("click", () => {
-        shareProjectTitle.value = draftProject?.title || namedBoard?.title || "未命名画板";
-        shareProjectId.value = draftProject?.id || namedBoard?.slug || projectSlug(shareProjectTitle.value);
-        document.getElementById("share-download-status").textContent = "保存当前画板状态，用于发布和后续更新。";
-        if (draftProject || namedBoard) shareProjectId.dataset.edited = "true";
-        else delete shareProjectId.dataset.edited;
+        shareProjectTitle.value = activeProject?.name || namedBoard?.title || "";
+        shareProjectId.value = activeProject?.id || "";
+        document.getElementById("share-download-status").textContent = "保存当前项目画板状态，用于更新仓库文件。";
         updateShareLinks();
         shareDialog.showModal();
-      });
-      shareProjectTitle.addEventListener("input", () => {
-        if (!shareProjectId.dataset.edited) shareProjectId.value = projectSlug(shareProjectTitle.value);
-        updateShareLinks();
-      });
-      shareProjectId.addEventListener("input", () => {
-        shareProjectId.dataset.edited = "true";
-        updateShareLinks();
       });
       document.getElementById("close-share-dialog").addEventListener("click", () => shareDialog.close());
       document.getElementById("cancel-share").addEventListener("click", () => shareDialog.close());
@@ -1871,10 +2037,10 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         event.preventDefault();
         const title = shareProjectTitle.value.trim();
         const projectId = shareProjectId.value.trim();
-        if (!title || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(projectId)) return;
+        if (!title || !activeProject || projectId !== activeProject.id) return;
         downloadBoardJson(projectId, title);
-        document.getElementById("share-download-status").textContent = `已下载 ${projectId}.json，请发送给 Codex 发布。`;
-        showToast("项目 JSON 已下载");
+        document.getElementById("share-download-status").textContent = `已下载 ${projectId}-board.json，请发送给 Codex 更新。`;
+        showToast("画板 JSON 已下载");
       });
 
       document.getElementById("copy-published-link").addEventListener("click", async () => {
@@ -1886,13 +2052,14 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
         }
       });
 
-      document.getElementById("reset-board").addEventListener("click", () => {
+      document.getElementById("reset-board").addEventListener("click", async () => {
         if (namedBoard) {
           if (confirm("恢复已发布的命名画板？当前本地修改将丢失。")) location.reload();
           return;
         }
-        if (!confirm("恢复初始示例？当前画板内容将被替换。")) return;
-        state = defaultState();
+        if (!activeProject || !confirm(`恢复 ${activeProject.name} 的仓库画板？当前本地修改将被替换。`)) return;
+        localStorage.removeItem(projectStorageKey(activeProject.id));
+        state = await repositoryProjectState(activeProject);
         selectedId = null;
         renderCamera();
         renderItems();
@@ -1913,10 +2080,16 @@ const m=document.querySelector('#modal'),c=document.querySelector('#confirm'),p=
       });
 
       htmlInput.value = filterTemplate;
-      await loadNamedBoard();
-      renderCamera();
-      renderItems();
-      loadComponentLibrary();
+      await loadComponentLibrary();
+      const loadedLegacyBoard = await loadNamedBoard();
+      if (!loadedLegacyBoard) {
+        const requestedProject = new URLSearchParams(location.search).get("project");
+        await activateProject(requestedProject);
+      } else {
+        renderCamera();
+        renderItems();
+        renderComponentLibrary();
+      }
       if (window.lucide) window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
     })();
   </script>

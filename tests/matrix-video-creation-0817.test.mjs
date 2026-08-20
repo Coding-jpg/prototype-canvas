@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const html = await readFile(new URL("../components/matrix-video-creation-0817/index.html", import.meta.url), "utf8");
-const metadata = JSON.parse(await readFile(new URL("../components/matrix-video-creation-0817/meta.json", import.meta.url), "utf8"));
+const html = await readFile(new URL("../components/reelflock/matrix-video-creation-0817/index.html", import.meta.url), "utf8");
+const metadata = JSON.parse(await readFile(new URL("../components/reelflock/matrix-video-creation-0817/meta.json", import.meta.url), "utf8"));
 
 function section(start, end) {
   const startIndex = html.indexOf(start);

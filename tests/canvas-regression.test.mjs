@@ -6,7 +6,7 @@ const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const framedComponentPaths = [
   "account-management-flow", "filter-panel", "matrix-video-creation-0817", "matrix-video-creation", "product-import-flow", "release-confirm", "task-management"
 ];
-const framedComponents = await Promise.all(framedComponentPaths.map(path => readFile(new URL(`../components/${path}/index.html`, import.meta.url), "utf8")));
+const framedComponents = await Promise.all(framedComponentPaths.map(path => readFile(new URL(`../components/reelflock/${path}/index.html`, import.meta.url), "utf8")));
 
 function section(start, end) {
   const startIndex = html.indexOf(start);
@@ -51,7 +51,7 @@ test("component library preferences persist aliases without deletion state", () 
 
 test("component library supports rename without deletion controls", () => {
   const management = section("function renameLibraryComponent(component)", "function addComponentFrame(component)");
-  assert.match(management, /componentPreferences\.names\[component\.id\] = name/);
+  assert.match(management, /componentPreferences\.names\[preferenceKey\] = name/);
   assert.match(management, /saveComponentPreferences\(\)/);
   assert.doesNotMatch(html, /删除组件|deleteLibraryComponent|restoreLibraryComponent|data-delete/);
 });
@@ -133,23 +133,43 @@ test("download filenames are safe and keep the html extension", () => {
 
 test("the default board showcases the four published flows", () => {
   const defaultState = section("function defaultState()", "function migrateState");
-  assert.match(defaultState, /version: 9/);
+  assert.match(defaultState, /version: 10/);
   assert.match(defaultState, /componentId: "product-import-flow"/);
-  assert.match(defaultState, /components\/product-import-flow\/index\.html/);
+  assert.match(defaultState, /components\/reelflock\/product-import-flow\/index\.html/);
   assert.match(defaultState, /componentId: "account-management-flow"/);
-  assert.match(defaultState, /components\/account-management-flow\/index\.html/);
+  assert.match(defaultState, /components\/reelflock\/account-management-flow\/index\.html/);
   assert.match(defaultState, /componentId: "matrix-video-creation"/);
-  assert.match(defaultState, /components\/matrix-video-creation\/index\.html/);
+  assert.match(defaultState, /components\/reelflock\/matrix-video-creation\/index\.html/);
   assert.match(defaultState, /componentId: "task-management"/);
-  assert.match(defaultState, /components\/task-management\/index\.html/);
+  assert.match(defaultState, /components\/reelflock\/task-management\/index\.html/);
   assert.match(defaultState, /product-import-entry-arrow/);
   assert.match(defaultState, /product-import-failure-arrow/);
   assert.match(defaultState, /product-detail-conditional-fields/);
   assert.match(defaultState, /类目有识别结果时显示/);
 });
 
+test("version 9 boards migrate repository components into ReelFlock", () => {
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
+  const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-new`);
+  const board = {
+    version: 9,
+    camera: { x: 0, y: 0, zoom: 1 },
+    items: [
+      { id: "frame-product", type: "frame", componentId: "product-import-flow", componentPath: "./components/product-import-flow/index.html" },
+      { id: "user-note", type: "note", text: "保留" }
+    ]
+  };
+
+  migrateState(board);
+
+  assert.equal(board.version, 10);
+  assert.equal(board.items[0].projectId, "reelflock");
+  assert.equal(board.items[0].componentPath, "./components/reelflock/product-import-flow/index.html");
+  assert.equal(board.items[1].text, "保留");
+});
+
 test("legacy boards receive the product import frame without replacing their items", () => {
-  const migration = section("function migrateState(savedState)", "function loadState");
+  const migration = section("function migrateState(savedState, projectId", "function projectStorageKey");
   assert.match(migration, /savedState\.items\.push/);
   assert.match(migration, /componentId === "product-import-flow"/);
   assert.match(migration, /product-import-entry/);
@@ -158,7 +178,7 @@ test("legacy boards receive the product import frame without replacing their ite
 });
 
 test("product import annotations are added once to a version 2 board", () => {
-  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
   let sequence = 0;
   const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-${++sequence}`);
   const userNote = { id: "note-user", type: "note", text: "用户自己的批注" };
@@ -175,7 +195,7 @@ test("product import annotations are added once to a version 2 board", () => {
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 9);
+  assert.equal(board.version, 10);
   assert.equal(board.items.length, itemCount);
   assert.equal(board.items.filter(item => item.annotationKey?.startsWith("product-import-")).length, 4);
   assert.equal(board.items.filter(item => item.type === "note" && item.annotationKey?.startsWith("product-import-")).length, 2);
@@ -183,7 +203,7 @@ test("product import annotations are added once to a version 2 board", () => {
 });
 
 test("version 3 boards replace the task-center annotation with product readiness", () => {
-  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
   const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-new`);
   const board = {
     version: 3,
@@ -196,13 +216,13 @@ test("version 3 boards replace the task-center annotation with product readiness
 
   migrateState(board);
 
-  assert.equal(board.version, 9);
+  assert.equal(board.version, 10);
   assert.match(board.items.find(item => item.annotationKey === "product-import-failure").text, /准备中.*可用.*物料缺失/);
   assert.doesNotMatch(board.items.find(item => item.annotationKey === "product-import-failure").text, /任务中心/);
 });
 
 test("version 4 boards receive the conditional detail fields annotation once", () => {
-  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
   let sequence = 0;
   const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-${++sequence}`);
   const userNote = { id: "user-note", type: "note", text: "保留我的说明" };
@@ -219,7 +239,7 @@ test("version 4 boards receive the conditional detail fields annotation once", (
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 9);
+  assert.equal(board.version, 10);
   assert.equal(board.items.length, itemCount);
   assert.equal(board.items.filter(item => item.annotationKey === "product-detail-conditional-fields").length, 1);
   assert.equal(board.items.filter(item => item.annotationKey === "product-detail-conditional-fields-arrow").length, 1);
@@ -229,7 +249,7 @@ test("version 4 boards receive the conditional detail fields annotation once", (
 });
 
 test("version 5 boards remove only the retired showcase components", () => {
-  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
   const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-new`);
   const productFrame = { id: "frame-product", type: "frame", title: "商品导入流程 · 桌面", componentId: "product-import-flow" };
   const userFrame = { id: "frame-user", type: "frame", title: "我的组件", componentId: "custom-component" };
@@ -253,7 +273,7 @@ test("version 5 boards remove only the retired showcase components", () => {
   const itemCount = board.items.length;
   migrateState(board);
 
-  assert.equal(board.version, 9);
+  assert.equal(board.version, 10);
   assert.equal(board.items.length, itemCount);
   assert.deepEqual(board.items.slice(0, 4), [productFrame, userFrame, userNote, productNote]);
   assert.equal(board.items.filter(item => item.componentId === "account-management-flow").length, 1);
@@ -262,7 +282,7 @@ test("version 5 boards remove only the retired showcase components", () => {
 });
 
 test("legacy embedded showcase frames are removed by their exact titles", () => {
-  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
   const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-new`);
   const similarlyNamedUserFrame = { id: "frame-similar", type: "frame", title: "项目筛选 · 自定义" };
   const board = {
@@ -276,7 +296,7 @@ test("legacy embedded showcase frames are removed by their exact titles", () => 
 
   migrateState(board);
 
-  assert.equal(board.version, 9);
+  assert.equal(board.version, 10);
   assert.equal(board.items[0], similarlyNamedUserFrame);
   assert.equal(board.items.filter(item => item.componentId === "account-management-flow").length, 1);
   assert.equal(board.items.filter(item => item.componentId === "matrix-video-creation").length, 1);
@@ -284,7 +304,7 @@ test("legacy embedded showcase frames are removed by their exact titles", () => 
 });
 
 test("version 6 boards receive the account management frame once", () => {
-  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
   let sequence = 0;
   const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-${++sequence}`);
   const productFrame = { id: "frame-product", type: "frame", x: 0, y: 0, width: 1200, height: 800, componentId: "product-import-flow" };
@@ -297,10 +317,10 @@ test("version 6 boards receive the account management frame once", () => {
   migrateState(board);
 
   const accountFrames = board.items.filter(item => item.componentId === "account-management-flow");
-  assert.equal(board.version, 9);
+  assert.equal(board.version, 10);
   assert.equal(board.items.length, itemCount);
   assert.equal(accountFrames.length, 1);
-  assert.equal(accountFrames[0].componentPath, "./components/account-management-flow/index.html");
+  assert.equal(accountFrames[0].componentPath, "./components/reelflock/account-management-flow/index.html");
   assert.ok(accountFrames[0].y >= 1040);
   assert.ok(board.items.includes(productFrame));
   assert.ok(board.items.includes(userFrame));
@@ -308,7 +328,7 @@ test("version 6 boards receive the account management frame once", () => {
 });
 
 test("version 7 boards receive the matrix video creation frame once", () => {
-  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
   let sequence = 0;
   const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-${++sequence}`);
   const accountFrame = { id: "frame-account", type: "frame", x: 0, y: 1040, width: 1200, height: 800, componentId: "account-management-flow" };
@@ -320,17 +340,17 @@ test("version 7 boards receive the matrix video creation frame once", () => {
   migrateState(board);
 
   const matrixFrames = board.items.filter(item => item.componentId === "matrix-video-creation");
-  assert.equal(board.version, 9);
+  assert.equal(board.version, 10);
   assert.equal(board.items.length, itemCount);
   assert.equal(matrixFrames.length, 1);
-  assert.equal(matrixFrames[0].componentPath, "./components/matrix-video-creation/index.html");
+  assert.equal(matrixFrames[0].componentPath, "./components/reelflock/matrix-video-creation/index.html");
   assert.ok(matrixFrames[0].y >= 2080);
   assert.ok(board.items.includes(accountFrame));
   assert.ok(board.items.includes(userNote));
 });
 
 test("version 8 boards receive the task management frame once", () => {
-  const migrationSource = section("function migrateState(savedState)", "function loadState");
+  const migrationSource = section("function migrateState(savedState, projectId", "function projectStorageKey");
   let sequence = 0;
   const migrateState = new Function("uid", `${migrationSource}; return migrateState;`)(prefix => `${prefix}-${++sequence}`);
   const matrixFrame = { id: "frame-matrix", type: "frame", x: 0, y: 2080, width: 1200, height: 800, componentId: "matrix-video-creation" };
@@ -342,10 +362,10 @@ test("version 8 boards receive the task management frame once", () => {
   migrateState(board);
 
   const taskFrames = board.items.filter(item => item.componentId === "task-management");
-  assert.equal(board.version, 9);
+  assert.equal(board.version, 10);
   assert.equal(board.items.length, itemCount);
   assert.equal(taskFrames.length, 1);
-  assert.equal(taskFrames[0].componentPath, "./components/task-management/index.html");
+  assert.equal(taskFrames[0].componentPath, "./components/reelflock/task-management/index.html");
   assert.ok(taskFrames[0].y >= 3120);
   assert.ok(board.items.includes(matrixFrame));
   assert.ok(board.items.includes(userNote));

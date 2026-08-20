@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const html = await readFile(new URL("../components/matrix-video-creation/index.html", import.meta.url), "utf8");
-const metadata = JSON.parse(await readFile(new URL("../components/matrix-video-creation/meta.json", import.meta.url), "utf8"));
+const html = await readFile(new URL("../components/reelflock/matrix-video-creation/index.html", import.meta.url), "utf8");
+const metadata = JSON.parse(await readFile(new URL("../components/reelflock/matrix-video-creation/meta.json", import.meta.url), "utf8"));
 
 test("matrix creation is published to the shared board", () => {
   assert.equal(metadata.id, "matrix-video-creation");

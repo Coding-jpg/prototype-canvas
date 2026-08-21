@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>FameSquared · 创建项目</title>
+  <style>
+    :root {
+      --ink: #101828;
+      --muted: #667085;
+      --line: #dfe6ef;
+      --line-strong: #cbd5e1;
+      --blue: #1687f8;
+      --blue-dark: #0875e1;
+      --blue-soft: #edf6ff;
+      --green: #2db45a;
+      --surface: #ffffff;
+      --canvas: #f2f7fd;
+      --danger: #e5484d;
+    }
+    * { box-sizing: border-box; letter-spacing: 0; }
+    html, body { width: 760px; height: 760px; overflow: hidden; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    button, input, textarea { font: inherit; letter-spacing: 0; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; }
+    .dialog {
+      width: 100%;
+      height: 100%;
+      background: var(--surface);
+      border: 1px solid #dce4ee;
+      display: grid;
+      grid-template-rows: 84px 1fr 78px;
+      overflow: hidden;
+    }
+    .dialog-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 22px 26px 18px;
+      border-bottom: 1px solid #edf1f6;
+    }
+    .dialog-head h1 { margin: 0; font-size: 23px; line-height: 1.25; font-weight: 750; }
+    .dialog-head p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 8px;
+      background: #f5f7fa;
+      color: #475467;
+      font-size: 22px;
+      line-height: 1;
+    }
+    .icon-button:hover { background: #e9eef5; color: var(--ink); }
+    .form-body {
+      min-height: 0;
+      padding: 20px 26px 18px;
+      overflow: hidden;
+    }
+    .field { display: grid; gap: 7px; min-width: 0; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    .label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    label, .field-label { font-size: 13px; font-weight: 700; color: #344054; }
+    .required { color: var(--danger); }
+    .ai-mark { display: none; color: #0875e1; font-size: 11px; font-weight: 700; }
+    .ai-filled .ai-mark { display: inline; }
+    input, textarea, .tag-control {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 160ms, box-shadow 160ms;
+    }
+    input { height: 42px; padding: 0 12px; }
+    textarea { height: 82px; padding: 10px 12px; resize: none; line-height: 1.55; }
+    input:focus, textarea:focus, .tag-control:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22, 135, 248, 0.12); }
+    input::placeholder, textarea::placeholder { color: #98a2b3; }
+    .domain-line { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+    .ai-button {
+      height: 42px;
+      padding: 0 16px;
+      border: 1px solid #9acbff;
+      border-radius: 8px;
+      background: var(--blue-soft);
+      color: #0875e1;
+      font-weight: 750;
+      min-width: 156px;
+    }
+    .ai-button:hover { background: #e0f0ff; }
+    .ai-button[aria-busy="true"] { color: #4a5f78; background: #f3f7fb; border-color: var(--line); }
+    .analysis-strip {
+      height: 54px;
+      margin-top: 12px;
+      border: 1px solid #d8eafb;
+      border-radius: 8px;
+      background: #f7fbff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 14px;
+      color: #52657a;
+    }
+    .analysis-strip strong { color: #1c4f7b; font-size: 13px; }
+    .analysis-copy { display: grid; gap: 1px; }
+    .analysis-copy span { font-size: 12px; color: #718399; }
+    .step-icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: #e4f2ff;
+      color: var(--blue);
+      font-weight: 800;
+    }
+    .analysis-strip.loading .step-icon { animation: pulse 900ms ease-in-out infinite alternate; }
+    .analysis-strip.done { background: #f2fbf5; border-color: #ccebd5; }
+    .analysis-strip.done .step-icon { color: var(--green); background: #ddf5e5; }
+    @keyframes pulse { to { transform: scale(1.12); background: #cce7ff; } }
+    .tag-control {
+      min-height: 42px;
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      position: relative;
+    }
+    .tag-control input { border: 0; box-shadow: none; min-width: 95px; height: 28px; padding: 0 4px; flex: 1; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 28px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #edf5ff;
+      color: #116bbf;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .tag button { border: 0; background: transparent; color: inherit; padding: 0; font-size: 15px; line-height: 1; }
+    .country-wrap { position: relative; }
+    .country-trigger { min-height: 42px; cursor: pointer; }
+    .country-trigger .placeholder { padding: 5px 4px; color: #98a2b3; }
+    .country-menu {
+      position: absolute;
+      z-index: 5;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 14px 30px rgba(31, 51, 73, 0.15);
+      display: none;
+    }
+    .country-menu.open { display: grid; }
+    .country-option { border: 0; background: #fff; border-radius: 6px; padding: 8px 9px; text-align: left; color: #344054; }
+    .country-option:hover, .country-option.selected { background: #edf6ff; color: #0875e1; }
+    .dialog-foot {
+      border-top: 1px solid #edf1f6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 26px;
+      background: #fbfcfe;
+    }
+    .foot-note { color: var(--muted); font-size: 12px; max-width: 390px; }
+    .foot-actions { display: flex; gap: 10px; }
+    .secondary, .primary { height: 42px; border-radius: 8px; padding: 0 17px; font-weight: 750; }
+    .secondary { border: 1px solid var(--line-strong); background: #fff; color: #344054; }
+    .primary { border: 0; background: var(--blue); color: #fff; min-width: 164px; box-shadow: 0 5px 12px rgba(22, 135, 248, 0.23); }
+    .primary:hover { background: var(--blue-dark); }
+    .primary:disabled { color: #98a2b3; background: #e4e9ef; box-shadow: none; }
+    .primary.created { background: var(--green); }
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 92px;
+      transform: translate(-50%, 12px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 11px 15px;
+      border-radius: 8px;
+      background: #11263a;
+      color: white;
+      font-size: 13px;
+      box-shadow: 0 12px 28px rgba(16, 24, 40, 0.2);
+      transition: opacity 180ms, transform 180ms;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  </style>
+</head>
+<body>
+  <main class="dialog" aria-label="创建项目表单">
+    <header class="dialog-head">
+      <div>
+        <h1>创建项目</h1>
+        <p>填写产品信息，建立后续 SEO 工作共用的项目档案。</p>
+      </div>
+      <button class="icon-button" type="button" title="关闭" aria-label="关闭">×</button>
+    </header>
+
+    <form class="form-body" id="projectForm">
+      <div class="field">
+        <div class="label-row"><label for="domain">网站域名 <span class="required">*</span></label></div>
+        <div class="domain-line">
+          <input id="domain" value="famesquared.com" autocomplete="off" aria-required="true">
+          <button class="ai-button" id="analyze" type="button"><span aria-hidden="true">✦</span> AI 分析并填写</button>
+        </div>
+      </div>
+
+      <div class="analysis-strip" id="analysisStrip" aria-live="polite">
+        <span class="step-icon" id="stepIcon">AI</span>
+        <div class="analysis-copy"><strong id="analysisTitle">AI 可快速预填产品信息</strong><span id="analysisDetail">只读取官网首页，全部结果均可编辑</span></div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" id="productField">
+          <div class="label-row"><label for="productName">产品名称 <span class="required">*</span></label><span class="ai-mark">AI</span></div>
+          <input id="productName" placeholder="输入产品名称" aria-required="true">
+        </div>
+        <div class="field country-wrap" id="marketField">
+          <div class="label-row"><span class="field-label">目标国家 <span class="required">*</span></span><span class="ai-mark">AI</span></div>
+          <div class="tag-control country-trigger" id="countryTrigger" role="button" tabindex="0" aria-expanded="false">
+            <span class="placeholder" id="countryPlaceholder">选择目标国家</span>
+          </div>
+          <div class="country-menu" id="countryMenu" role="listbox" aria-label="目标国家">
+            <button type="button" class="country-option" data-country="美国">美国</button>
+            <button type="button" class="country-option" data-country="英国">英国</button>
+            <button type="button" class="country-option" data-country="加拿大">加拿大</button>
+            <button type="button" class="country-option" data-country="澳大利亚">澳大利亚</button>
+            <button type="button" class="country-option" data-country="新加坡">新加坡</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" id="usersField" style="margin-top:14px">
+        <div class="label-row"><span class="field-label">目标用户 <span class="required">*</span></span><span class="ai-mark">AI</span></div>
+        <div class="tag-control" id="userTags"><input id="userInput" placeholder="输入后按 Enter 添加"></div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" id="painField">
+          <div class="label-row"><label for="painPoints">用户痛点 <span class="required">*</span></label><span class="ai-mark">AI</span></div>
+          <textarea id="painPoints" placeholder="每行填写一个用户痛点"></textarea>
+        </div>
+        <div class="field" id="casesField">
+          <div class="label-row"><label for="useCases">使用场景 <span class="required">*</span></label><span class="ai-mark">AI</span></div>
+          <textarea id="useCases" placeholder="每行填写一个具体场景"></textarea>
+        </div>
+      </div>
+
+      <div class="field" id="solutionField" style="margin-top:14px">
+        <div class="label-row"><label for="solution">解决方案 <span class="required">*</span></label><span class="ai-mark">AI</span></div>
+        <textarea id="solution" placeholder="说明产品如何解决以上问题"></textarea>
+      </div>
+    </form>
+
+    <footer class="dialog-foot">
+      <span class="foot-note">确认后将产品档案写入 Brain AI，并自动开始 Technical SEO 分析。</span>
+      <div class="foot-actions">
+        <button class="secondary" type="button">取消</button>
+        <button class="primary" id="createProject" type="button" disabled>确认并创建项目</button>
+      </div>
+    </footer>
+    <div class="toast" id="toast" role="status">项目已创建，Technical SEO 分析已开始</div>
+  </main>
+
+  <script>
+    const analyze = document.querySelector("#analyze");
+    const strip = document.querySelector("#analysisStrip");
+    const title = document.querySelector("#analysisTitle");
+    const detail = document.querySelector("#analysisDetail");
+    const stepIcon = document.querySelector("#stepIcon");
+    const createProject = document.querySelector("#createProject");
+    const toast = document.querySelector("#toast");
+    const userInput = document.querySelector("#userInput");
+    const userTags = document.querySelector("#userTags");
+    const countryTrigger = document.querySelector("#countryTrigger");
+    const countryMenu = document.querySelector("#countryMenu");
+    const countryPlaceholder = document.querySelector("#countryPlaceholder");
+    const users = [];
+    const countries = [];
+
+    function addTag(container, list, value, onRemove) {
+      if (!value || list.includes(value)) return;
+      list.push(value);
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.dataset.value = value;
+      tag.innerHTML = `<span>${value}</span><button type="button" aria-label="删除 ${value}">×</button>`;
+      tag.querySelector("button").onclick = () => {
+        list.splice(list.indexOf(value), 1);
+        tag.remove();
+        onRemove?.(value);
+        validate();
+      };
+      const input = container.querySelector("input");
+      container.insertBefore(tag, input || container.firstChild);
+    }
+
+    function setCountries(next) {
+      countries.splice(0, countries.length, ...next);
+      countryTrigger.querySelectorAll(".tag").forEach((node) => node.remove());
+      countryPlaceholder.style.display = countries.length ? "none" : "inline";
+      countries.forEach((country) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.innerHTML = `<span>${country}</span><button type="button" aria-label="删除 ${country}">×</button>`;
+        tag.querySelector("button").onclick = (event) => {
+          event.stopPropagation();
+          setCountries(countries.filter((item) => item !== country));
+        };
+        countryTrigger.appendChild(tag);
+      });
+      countryMenu.querySelectorAll(".country-option").forEach((option) => option.classList.toggle("selected", countries.includes(option.dataset.country)));
+      validate();
+    }
+
+    userInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      const value = userInput.value.trim();
+      addTag(userTags, users, value);
+      userInput.value = "";
+      validate();
+    });
+
+    countryTrigger.onclick = () => {
+      const open = countryMenu.classList.toggle("open");
+      countryTrigger.setAttribute("aria-expanded", String(open));
+    };
+    countryTrigger.onkeydown = (event) => { if (event.key === "Enter" || event.key === " ") countryTrigger.click(); };
+    countryMenu.querySelectorAll(".country-option").forEach((option) => {
+      option.onclick = (event) => {
+        event.stopPropagation();
+        const country = option.dataset.country;
+        const next = countries.includes(country) ? countries.filter((item) => item !== country) : [...countries, country];
+        setCountries(next);
+      };
+    });
+    document.addEventListener("click", (event) => {
+      if (!document.querySelector("#marketField").contains(event.target)) {
+        countryMenu.classList.remove("open");
+        countryTrigger.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    function fillUsers(values) {
+      users.splice(0, users.length);
+      userTags.querySelectorAll(".tag").forEach((node) => node.remove());
+      values.forEach((value) => addTag(userTags, users, value));
+    }
+
+    function validate() {
+      const valid = document.querySelector("#domain").value.trim()
+        && document.querySelector("#productName").value.trim()
+        && users.length
+        && document.querySelector("#painPoints").value.trim()
+        && document.querySelector("#useCases").value.trim()
+        && document.querySelector("#solution").value.trim()
+        && countries.length;
+      createProject.disabled = !valid;
+    }
+    document.querySelectorAll("input, textarea").forEach((node) => node.addEventListener("input", validate));
+
+    analyze.onclick = () => {
+      if (!document.querySelector("#domain").value.trim() || analyze.getAttribute("aria-busy") === "true") return;
+      analyze.setAttribute("aria-busy", "true");
+      analyze.disabled = true;
+      analyze.textContent = "AI 分析中";
+      strip.className = "analysis-strip loading";
+      const steps = [
+        ["01", "正在读取官网首页", "获取首页 Markdown 与 metadata"],
+        ["02", "正在分析产品定位与使用场景", "识别用户、痛点、功能与目标国家"],
+        ["03", "正在生成产品信息", "整理为固定 product_profile 字段"]
+      ];
+      let index = 0;
+      function drawStep() {
+        const [icon, heading, sub] = steps[index];
+        stepIcon.textContent = icon;
+        title.textContent = heading;
+        detail.textContent = sub;
+        index += 1;
+        if (index < steps.length) {
+          window.setTimeout(drawStep, 850);
+        } else {
+          window.setTimeout(completeAnalysis, 850);
+        }
+      }
+      drawStep();
+    };
+
+    function completeAnalysis() {
+      document.querySelector("#productName").value = "FameSquared";
+      fillUsers(["SEO 团队", "内容营销团队"]);
+      document.querySelector("#painPoints").value = "SEO 工具与流程分散，难以持续执行\n跨模块数据无法形成统一上下文";
+      document.querySelector("#useCases").value = "持续检查网站 Technical SEO 状态\n研究关键词并推进内容和外链工作";
+      document.querySelector("#solution").value = "通过统一的 SEO Agent 工作台连接技术审查、关键词、内容和外链流程，并持续记录执行结果。";
+      setCountries(["美国", "英国"]);
+      ["productField", "marketField", "usersField", "painField", "casesField", "solutionField"].forEach((id) => document.querySelector(`#${id}`).classList.add("ai-filled"));
+      strip.className = "analysis-strip done";
+      stepIcon.textContent = "✓";
+      title.textContent = "产品信息已填写";
+      detail.textContent = "请检查并补充，确认后创建项目";
+      analyze.removeAttribute("aria-busy");
+      analyze.disabled = false;
+      analyze.innerHTML = '<span aria-hidden="true">↻</span> 重新分析';
+      validate();
+    }
+
+    createProject.onclick = () => {
+      if (createProject.disabled) return;
+      createProject.classList.add("created");
+      createProject.textContent = "已创建 · SEO 分析中";
+      createProject.disabled = true;
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 3200);
+    };
+
+    window.addEventListener("wheel", event => {
+      if (window.parent === window || (!event.ctrlKey && !event.metaKey)) return;
+      event.preventDefault();
+      window.parent.postMessage({ type:"prototype-canvas:frame-zoom", deltaY:event.deltaY, clientX:event.clientX, clientY:event.clientY }, "*");
+    }, { passive:false });
+  </script>
+</body>
+</html>

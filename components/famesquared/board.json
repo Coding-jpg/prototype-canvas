@@ -1,0 +1,513 @@
+{
+  "schemaVersion": 2,
+  "projectId": "famesquared",
+  "title": "FameSquared v0.5",
+  "revision": "202608210001",
+  "updatedAt": "2026-08-21T10:30:00.000Z",
+  "state": {
+    "version": 10,
+    "camera": {
+      "x": 90,
+      "y": 70,
+      "zoom": 0.62
+    },
+    "items": [
+      {
+        "id": "frame-famesquared-create-project",
+        "type": "frame",
+        "title": "创建项目 · AI 预填",
+        "device": "desktop",
+        "x": 0,
+        "y": 0,
+        "width": 760,
+        "height": 800,
+        "projectId": "famesquared",
+        "componentId": "create-project",
+        "componentPath": "./components/famesquared/create-project/index.html"
+      },
+      {
+        "id": "note-create-ai",
+        "type": "note",
+        "annotationKey": "create-ai-logic",
+        "x": 820,
+        "y": 55,
+        "width": 290,
+        "height": 190,
+        "text": "AI 分析输入：规范化域名、界面语言、Firecrawl 首页 Markdown 与 metadata。模型一次输出产品名称、目标用户、痛点、使用场景、解决方案和目标国家。"
+      },
+      {
+        "id": "note-create-confirm",
+        "type": "note",
+        "annotationKey": "create-confirm-logic",
+        "x": 820,
+        "y": 310,
+        "width": 290,
+        "height": 180,
+        "text": "AI 只负责预填写。全部字段允许手动修改；目标国家以 Tag 多选。用户确认后的 product_profile.json 才写入 Brain AI。"
+      },
+      {
+        "id": "note-create-audit",
+        "type": "note",
+        "annotationKey": "create-audit-logic",
+        "x": 820,
+        "y": 550,
+        "width": 290,
+        "height": 160,
+        "text": "确认创建项目后，系统立即创建 technical_seo_audit 任务，并复用当前 Technical SEO 执行逻辑。"
+      },
+      {
+        "id": "arrow-create-ai",
+        "type": "arrow",
+        "annotationKey": "create-ai-arrow",
+        "x": 735,
+        "y": 165,
+        "x2": 820,
+        "y2": 145
+      },
+      {
+        "id": "arrow-create-confirm",
+        "type": "arrow",
+        "annotationKey": "create-confirm-arrow",
+        "x": 735,
+        "y": 470,
+        "x2": 820,
+        "y2": 400
+      },
+      {
+        "id": "arrow-create-audit",
+        "type": "arrow",
+        "annotationKey": "create-audit-arrow",
+        "x": 735,
+        "y": 685,
+        "x2": 820,
+        "y2": 630
+      },
+      {
+        "id": "frame-famesquared-overview",
+        "type": "frame",
+        "title": "总览 · SEO 数据看板",
+        "device": "desktop",
+        "x": 0,
+        "y": 960,
+        "width": 1440,
+        "height": 1120,
+        "projectId": "famesquared",
+        "componentId": "overview",
+        "componentPath": "./components/famesquared/overview/index.html"
+      },
+      {
+        "id": "note-overview-gsc",
+        "type": "note",
+        "annotationKey": "overview-gsc-logic",
+        "x": 1490,
+        "y": 1040,
+        "width": 310,
+        "height": 210,
+        "text": "总体效果读取 GSC，只展示总曝光、总点击、CTR、平均排名和趋势。默认最近 28 天，支持 24 小时、7 天、28 天、3 个月。点击“查看详细数据”进入数据分析的搜索表现，并沿用当前时间范围。"
+      },
+      {
+        "id": "note-overview-modules",
+        "type": "note",
+        "annotationKey": "overview-modules-logic",
+        "x": 1490,
+        "y": 1580,
+        "width": 310,
+        "height": 190,
+        "text": "模块概要只展示四项：Technical SEO 总分、核心关键词总数、有效外链数量、已收录页面总数。整张卡片作为模块入口。"
+      },
+      {
+        "id": "note-overview-tasks",
+        "type": "note",
+        "annotationKey": "overview-tasks-logic",
+        "x": 1490,
+        "y": 1900,
+        "width": 310,
+        "height": 200,
+        "text": "任务队列只展示 queued、running、opening_pr、needs_approval，字段为任务名称与简要说明，按 created_at 从新到旧排列；终态任务立即移除。"
+      },
+      {
+        "id": "arrow-overview-gsc",
+        "type": "arrow",
+        "annotationKey": "overview-gsc-arrow",
+        "x": 1410,
+        "y": 1380,
+        "x2": 1490,
+        "y2": 1135
+      },
+      {
+        "id": "arrow-overview-modules",
+        "type": "arrow",
+        "annotationKey": "overview-modules-arrow",
+        "x": 1410,
+        "y": 1790,
+        "x2": 1490,
+        "y2": 1675
+      },
+      {
+        "id": "arrow-overview-tasks",
+        "type": "arrow",
+        "annotationKey": "overview-tasks-arrow",
+        "x": 1410,
+        "y": 2090,
+        "x2": 1490,
+        "y2": 2000
+      },
+      {
+        "id": "frame-famesquared-competitor-research",
+        "type": "frame",
+        "title": "竞品研究 · 竞品详情",
+        "device": "desktop",
+        "x": 0,
+        "y": 2400,
+        "width": 1440,
+        "height": 1000,
+        "projectId": "famesquared",
+        "componentId": "competitor-research",
+        "componentPath": "./components/famesquared/competitor-research/index.html"
+      },
+      {
+        "id": "note-competitor-navigation",
+        "type": "note",
+        "annotationKey": "competitor-navigation-logic",
+        "x": 1490,
+        "y": 2445,
+        "width": 310,
+        "height": 190,
+        "text": "左侧导航按竞品名单保存顺序排列，默认选中第一个竞品。每项只展示网站 Logo 和域名；右侧展示产品名称，并将月自然流量与方向箭头、变化百分比合并为一个指标，避免重复。"
+      },
+      {
+        "id": "note-competitor-switch",
+        "type": "note",
+        "annotationKey": "competitor-switch-logic",
+        "x": 1490,
+        "y": 2695,
+        "width": 310,
+        "height": 205,
+        "text": "点击竞品后更新右侧全部详情，并保留当前 Tab 与目标市场。搜索、排序和分页重置为新竞品的默认状态。"
+      },
+      {
+        "id": "note-competitor-tabs",
+        "type": "note",
+        "annotationKey": "competitor-tabs-logic",
+        "x": 1490,
+        "y": 2960,
+        "width": 310,
+        "height": 235,
+        "text": "默认打开高流量页面。该 Tab 只展示页面 URL 与月自然流量，保留 URL 搜索和流量排序。高价值外链只展示引用域名、引用域名月自然流量和 Domain Rank。"
+      },
+      {
+        "id": "note-competitor-filters",
+        "type": "note",
+        "annotationKey": "competitor-filters-logic",
+        "x": 1490,
+        "y": 3235,
+        "width": 310,
+        "height": 190,
+        "text": "目标市场是整个竞品研究模块的 DataForSEO location + language 上下文。高价值外链详情针对当前竞品，不提供筛选和搜索。引用域名月自然流量是该域名自身在当前市场的 DataForSEO organic ETV；切换市场时该值更新，Domain Rank 不变。"
+      },
+      {
+        "id": "arrow-competitor-navigation",
+        "type": "arrow",
+        "annotationKey": "competitor-navigation-arrow",
+        "x": 1410,
+        "y": 2580,
+        "x2": 1490,
+        "y2": 2540
+      },
+      {
+        "id": "arrow-competitor-switch",
+        "type": "arrow",
+        "annotationKey": "competitor-switch-arrow",
+        "x": 1410,
+        "y": 2800,
+        "x2": 1490,
+        "y2": 2795
+      },
+      {
+        "id": "arrow-competitor-tabs",
+        "type": "arrow",
+        "annotationKey": "competitor-tabs-arrow",
+        "x": 1410,
+        "y": 3070,
+        "x2": 1490,
+        "y2": 3075
+      },
+      {
+        "id": "arrow-competitor-filters",
+        "type": "arrow",
+        "annotationKey": "competitor-filters-arrow",
+        "x": 1410,
+        "y": 3290,
+        "x2": 1490,
+        "y2": 3315
+      },
+      {
+        "id": "frame-famesquared-competitor-initial-state",
+        "type": "frame",
+        "title": "竞品研究 · 首批示例数据",
+        "device": "desktop",
+        "x": 0,
+        "y": 3600,
+        "width": 1440,
+        "height": 1000,
+        "projectId": "famesquared",
+        "componentId": "competitor-research",
+        "componentPath": "./components/famesquared/competitor-research/index.html?state=idle"
+      },
+      {
+        "id": "note-competitor-init-states",
+        "type": "note",
+        "annotationKey": "competitor-init-states-logic",
+        "x": 1490,
+        "y": 3645,
+        "width": 320,
+        "height": 210,
+        "text": "无 artifacts 且无初始化任务时显示 idle 示例和“获取竞品数据”。任务 queued/running 时继续展示示例、进度和“查看任务”。初始化失败时保留示例并显示“重新获取”。原型状态：?state=idle、loading、failed、ready。"
+      },
+      {
+        "id": "note-competitor-init-task",
+        "type": "note",
+        "annotationKey": "competitor-init-task-logic",
+        "x": 1490,
+        "y": 3915,
+        "width": 320,
+        "height": 205,
+        "text": "获取按钮只在没有 competitor_research 初始化任务时创建任务。queued/running 阶段不得重复创建。首次获取和系统失败后的重新获取均不消耗手动刷新额度。"
+      },
+      {
+        "id": "note-competitor-fixture-safety",
+        "type": "note",
+        "annotationKey": "competitor-fixture-safety-logic",
+        "x": 1490,
+        "y": 4180,
+        "width": 320,
+        "height": 205,
+        "text": "示例 fixture 固定为前端展示数据，所有示例态均明确标记“示例数据”。fixture 不写入 workspace 或 Brain AI，不生成 artifact，不得被关键词、内容、外链等后续模块读取。"
+      },
+      {
+        "id": "note-competitor-ready-gate",
+        "type": "note",
+        "annotationKey": "competitor-ready-gate-logic",
+        "x": 1490,
+        "y": 4445,
+        "width": 320,
+        "height": 150,
+        "text": "competitor-list.json、competitor-pages.json、competitor-keywords.json、competitor-backlinks.json 四份真实 artifacts 全部通过 Schema 校验后，整体替换示例并进入 ready 页面。"
+      },
+      {
+        "id": "arrow-competitor-init-states",
+        "type": "arrow",
+        "annotationKey": "competitor-init-states-arrow",
+        "x": 1410,
+        "y": 3720,
+        "x2": 1490,
+        "y2": 3750
+      },
+      {
+        "id": "arrow-competitor-init-task",
+        "type": "arrow",
+        "annotationKey": "competitor-init-task-arrow",
+        "x": 1410,
+        "y": 3980,
+        "x2": 1490,
+        "y2": 4015
+      },
+      {
+        "id": "arrow-competitor-fixture-safety",
+        "type": "arrow",
+        "annotationKey": "competitor-fixture-safety-arrow",
+        "x": 1410,
+        "y": 4250,
+        "x2": 1490,
+        "y2": 4280
+      },
+      {
+        "id": "arrow-competitor-ready-gate",
+        "type": "arrow",
+        "annotationKey": "competitor-ready-gate-arrow",
+        "x": 1410,
+        "y": 4505,
+        "x2": 1490,
+        "y2": 4520
+      },
+      {
+        "id": "frame-famesquared-data-analysis-search",
+        "type": "frame",
+        "title": "数据分析 · 搜索表现",
+        "device": "desktop",
+        "x": 0,
+        "y": 4800,
+        "width": 1440,
+        "height": 1180,
+        "projectId": "famesquared",
+        "componentId": "data-analysis",
+        "componentPath": "./components/famesquared/data-analysis/index.html?view=search"
+      },
+      {
+        "id": "note-analysis-filters",
+        "type": "note",
+        "annotationKey": "analysis-filters-logic",
+        "x": 1490,
+        "y": 4845,
+        "width": 320,
+        "height": 215,
+        "text": "时间范围、目标市场、设备与上一周期对比是模块级筛选，在搜索表现和页面表现之间保持一致。24 小时使用小时粒度，其余范围使用日粒度。"
+      },
+      {
+        "id": "note-analysis-search-data",
+        "type": "note",
+        "annotationKey": "analysis-search-data-logic",
+        "x": 1490,
+        "y": 5120,
+        "width": 320,
+        "height": 235,
+        "text": "搜索表现读取 GSC Search Analytics，按日期/小时 × Query × 页面 × 国家 × 设备保存。指标卡控制折线显隐，至少保留一条折线；本版本只展示数据，不生成 AI 判断或建议。"
+      },
+      {
+        "id": "note-analysis-query",
+        "type": "note",
+        "annotationKey": "analysis-query-logic",
+        "x": 1490,
+        "y": 5420,
+        "width": 320,
+        "height": 225,
+        "text": "点击 Query 后，它成为当前筛选条件，四项指标和趋势同步更新，并展示关联页面数量。“查看对应页面”切换到页面表现，只保留该 Query 产生曝光的页面。"
+      },
+      {
+        "id": "note-analysis-sync",
+        "type": "note",
+        "annotationKey": "analysis-sync-logic",
+        "x": 1490,
+        "y": 5705,
+        "width": 320,
+        "height": 205,
+        "text": "Search Analytics 每日同步。未连接时不展示业务数据；同步中继续展示上次有效数据；同步失败保留旧数据并标明时间。原型状态：?state=unconnected、syncing、failed。"
+      },
+      {
+        "id": "arrow-analysis-filters",
+        "type": "arrow",
+        "annotationKey": "analysis-filters-arrow",
+        "x": 1410,
+        "y": 4960,
+        "x2": 1490,
+        "y2": 4950
+      },
+      {
+        "id": "arrow-analysis-search-data",
+        "type": "arrow",
+        "annotationKey": "analysis-search-data-arrow",
+        "x": 1410,
+        "y": 5300,
+        "x2": 1490,
+        "y2": 5235
+      },
+      {
+        "id": "arrow-analysis-query",
+        "type": "arrow",
+        "annotationKey": "analysis-query-arrow",
+        "x": 1410,
+        "y": 5580,
+        "x2": 1490,
+        "y2": 5530
+      },
+      {
+        "id": "arrow-analysis-sync",
+        "type": "arrow",
+        "annotationKey": "analysis-sync-arrow",
+        "x": 1410,
+        "y": 5820,
+        "x2": 1490,
+        "y2": 5810
+      },
+      {
+        "id": "frame-famesquared-data-analysis-pages",
+        "type": "frame",
+        "title": "数据分析 · 页面表现",
+        "device": "desktop",
+        "x": 0,
+        "y": 6200,
+        "width": 1440,
+        "height": 1180,
+        "projectId": "famesquared",
+        "componentId": "data-analysis",
+        "componentPath": "./components/famesquared/data-analysis/index.html?view=pages"
+      },
+      {
+        "id": "note-analysis-page-merge",
+        "type": "note",
+        "annotationKey": "analysis-page-merge-logic",
+        "x": 1490,
+        "y": 6245,
+        "width": 320,
+        "height": 240,
+        "text": "页面清单按规范化 URL 合并内容模块、Sitemap、站点抓取、Search Analytics 和 URL Inspection。未分配关键词直接显示“未分配”，系统不使用 AI 补充。"
+      },
+      {
+        "id": "note-analysis-page-list",
+        "type": "note",
+        "annotationKey": "analysis-page-list-logic",
+        "x": 1490,
+        "y": 6545,
+        "width": 320,
+        "height": 225,
+        "text": "左侧列表集中检索和选择页面，支持 URL、内容批次、收录状态、发布时间筛选及指标排序。右侧只展示当前页的规划、索引、目标关键词和实际 Query。"
+      },
+      {
+        "id": "note-analysis-query-map",
+        "type": "note",
+        "annotationKey": "analysis-query-map-logic",
+        "x": 1490,
+        "y": 6830,
+        "width": 320,
+        "height": 245,
+        "text": "气泡图横轴为平均排名、纵轴为 CTR、大小为曝光，并按排名区间着色。贡献榜在曝光和点击间切换；点击 Query 后只陈列指标和趋势，不输出匹配结论。"
+      },
+      {
+        "id": "note-analysis-inspection",
+        "type": "note",
+        "annotationKey": "analysis-inspection-logic",
+        "x": 1490,
+        "y": 7135,
+        "width": 320,
+        "height": 225,
+        "text": "URL Inspection 按页面缓存。新页面立即首次检查，未收录页面每 7 天检查，已收录页面每 30 天检查；手动刷新只更新当前页索引信息，不刷新 Search Analytics。"
+      },
+      {
+        "id": "arrow-analysis-page-merge",
+        "type": "arrow",
+        "annotationKey": "analysis-page-merge-arrow",
+        "x": 1410,
+        "y": 6350,
+        "x2": 1490,
+        "y2": 6365
+      },
+      {
+        "id": "arrow-analysis-page-list",
+        "type": "arrow",
+        "annotationKey": "analysis-page-list-arrow",
+        "x": 1410,
+        "y": 6635,
+        "x2": 1490,
+        "y2": 6655
+      },
+      {
+        "id": "arrow-analysis-query-map",
+        "type": "arrow",
+        "annotationKey": "analysis-query-map-arrow",
+        "x": 1410,
+        "y": 6970,
+        "x2": 1490,
+        "y2": 6950
+      },
+      {
+        "id": "arrow-analysis-inspection",
+        "type": "arrow",
+        "annotationKey": "analysis-inspection-arrow",
+        "x": 1410,
+        "y": 7250,
+        "x2": 1490,
+        "y2": 7245
+      }
+    ]
+  }
+}

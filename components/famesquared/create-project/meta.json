@@ -1,0 +1,8 @@
+{
+  "id": "create-project",
+  "name": "创建项目",
+  "published": true,
+  "device": "desktop",
+  "category": "项目创建",
+  "description": "通过 AI 分析官网首页预填产品信息，用户确认后创建项目并启动 Technical SEO。"
+}

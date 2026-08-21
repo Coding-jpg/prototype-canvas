@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>FameSquared · 总览</title>
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #627086;
+      --line: #dfe6ef;
+      --line-soft: #edf1f6;
+      --canvas: #f2f7fd;
+      --surface: #ffffff;
+      --blue: #1687f8;
+      --blue-soft: #edf6ff;
+      --green: #2db45a;
+      --orange: #f29a38;
+      --purple: #7d5fff;
+      --teal: #00a7b5;
+    }
+    * { box-sizing: border-box; letter-spacing: 0; }
+    html, body { width: 1440px; min-height: 1120px; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+    button, input { font: inherit; letter-spacing: 0; }
+    button { cursor: pointer; }
+    .page { width: 100%; height: 1120px; padding: 32px 42px 40px; overflow: hidden; }
+    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; min-height: 80px; }
+    h1 { margin: 0; font-size: 38px; line-height: 1.15; font-weight: 780; }
+    .subtitle { margin: 9px 0 0; color: var(--muted); font-size: 16px; }
+    .top-actions { display: flex; gap: 12px; align-items: center; }
+    .search {
+      width: 250px;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.92);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      box-shadow: 0 8px 22px rgba(27, 59, 92, 0.08);
+    }
+    .search span { color: #7a8799; font-size: 20px; line-height: 1; }
+    .search input { border: 0; outline: 0; background: transparent; width: 100%; color: var(--ink); }
+    .search input::placeholder { color: #748096; }
+    .run-button { height: 44px; padding: 0 22px; border: 0; border-radius: 14px; background: var(--blue); color: #fff; font-weight: 750; box-shadow: 0 8px 18px rgba(22, 135, 248, 0.24); }
+    .run-button:hover { background: #0875e1; }
+    .surface { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 10px 28px rgba(28, 58, 92, 0.06); }
+    .performance { margin-top: 18px; overflow: hidden; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px 14px; }
+    .section-title { display: flex; align-items: center; gap: 10px; }
+    .section-title h2 { margin: 0; font-size: 18px; font-weight: 760; }
+    .section-title p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .performance-actions { display: flex; align-items: center; gap: 14px; }
+    .time-range { display: inline-flex; align-items: center; height: 34px; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: #fff; }
+    .time-button { height: 100%; min-width: 58px; padding: 0 12px; border: 0; border-right: 1px solid var(--line); background: #fff; color: #536176; font-size: 12px; font-weight: 680; }
+    .time-button:last-child { border-right: 0; }
+    .time-button:hover { background: #f6f9fc; }
+    .time-button.active { background: #e5f3ff; color: #075fae; box-shadow: inset 0 -2px 0 var(--blue); }
+    .gsc-badge { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 999px; background: #f0fbf3; color: #238a46; font-size: 12px; font-weight: 700; }
+    .gsc-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+    .metric { min-width: 0; padding: 16px 22px; position: relative; border: 0; background: #fff; color: inherit; text-align: left; }
+    .metric + .metric { border-left: 1px solid var(--line-soft); }
+    .metric:hover { background: #f8fbff; }
+    .metric.active { background: var(--metric-soft); box-shadow: inset 0 3px 0 var(--metric-color); }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 650; }
+    .metric-label::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 7px; border: 1.5px solid #a5afbc; border-radius: 2px; vertical-align: -1px; }
+    .metric.active .metric-label::before { border-color: var(--metric-color); background: var(--metric-color); box-shadow: inset 0 0 0 2px #fff; }
+    .metric-value { margin-top: 5px; font-size: 26px; line-height: 1.2; font-weight: 770; font-variant-numeric: tabular-nums; }
+    .metric-trend { margin-left: 7px; color: var(--green); font-size: 11px; font-weight: 700; }
+    .chart-wrap { position: relative; height: 226px; padding: 16px 20px 8px; border-bottom: 1px solid var(--line-soft); background: #fff; }
+    .chart-title { position: absolute; left: 22px; top: 11px; z-index: 1; color: #66758a; font-size: 11px; font-weight: 650; }
+    #trendChart { display: block; width: 100%; height: 100%; }
+    .chart-tooltip { position: absolute; display: none; min-width: 138px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,0.98); color: #344054; font-size: 11px; line-height: 1.6; box-shadow: 0 8px 20px rgba(24,48,76,0.14); pointer-events: none; }
+    .chart-tooltip.show { display: block; }
+    .detail-link { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 22px; color: #116bbf; text-decoration: none; background: #fbfdff; font-weight: 720; }
+    .detail-link:hover { background: var(--blue-soft); }
+    .detail-link small { color: var(--muted); font-weight: 550; }
+    .detail-link strong { display: inline-flex; align-items: center; gap: 8px; }
+    .module-section { margin-top: 20px; }
+    .band-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .band-head h2 { margin: 0; font-size: 18px; }
+    .band-head span { color: var(--muted); font-size: 12px; }
+    .modules { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .module-card {
+      min-height: 126px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 17px 18px;
+      text-align: left;
+      box-shadow: 0 8px 20px rgba(28, 58, 92, 0.05);
+      transition: transform 150ms, box-shadow 150ms, border-color 150ms;
+    }
+    .module-card:hover { transform: translateY(-2px); border-color: #bfd1e5; box-shadow: 0 12px 24px rgba(28, 58, 92, 0.09); }
+    .module-top { display: flex; align-items: center; justify-content: space-between; }
+    .module-name { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 750; }
+    .module-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; font-size: 12px; font-weight: 800; }
+    .module-arrow { color: #98a2b3; font-size: 18px; }
+    .module-value { margin-top: 13px; font-size: 27px; line-height: 1; font-weight: 780; font-variant-numeric: tabular-nums; }
+    .module-label { margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .technical .module-icon { background: #edf9f0; color: var(--green); }
+    .keywords .module-icon { background: #f1eeff; color: var(--purple); }
+    .backlinks .module-icon { background: #eaf8fa; color: var(--teal); }
+    .content .module-icon { background: #fff4e8; color: var(--orange); }
+    .tasks { margin-top: 20px; overflow: hidden; }
+    .task-list { border-top: 1px solid var(--line-soft); }
+    .task-row { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 64px; padding: 10px 22px; color: inherit; text-decoration: none; background: #fff; }
+    .task-row + .task-row { border-top: 1px solid var(--line-soft); }
+    .task-row:hover { background: #f8fbff; }
+    .task-state { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; background: #edf6ff; color: var(--blue); font-size: 12px; font-weight: 800; }
+    .task-state.running span { width: 9px; height: 9px; border: 2px solid #1687f8; border-right-color: transparent; border-radius: 50%; animation: spin 850ms linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .task-name { font-size: 14px; font-weight: 730; }
+    .task-summary { margin-top: 2px; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .task-arrow { color: #98a2b3; font-size: 18px; }
+    .toast { position: fixed; right: 42px; bottom: 34px; padding: 10px 13px; border-radius: 9px; background: #12263a; color: #fff; opacity: 0; transform: translateY(8px); transition: opacity 160ms, transform 160ms; pointer-events: none; box-shadow: 0 10px 25px rgba(17, 24, 39, 0.2); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div>
+        <h1>总览</h1>
+        <p class="subtitle">查看网站整体 SEO 效果、模块进度和当前任务。</p>
+      </div>
+      <div class="top-actions">
+        <label class="search"><span aria-hidden="true">⌕</span><input placeholder="搜索任务和模块" aria-label="搜索任务和模块"></label>
+        <button class="run-button" id="runTask">运行</button>
+      </div>
+    </header>
+
+    <section class="surface performance" aria-labelledby="performanceTitle">
+      <div class="section-head">
+        <div class="section-title">
+          <div><h2 id="performanceTitle">SEO 总体效果</h2><p>Google 搜索中的实际曝光和访问表现</p></div>
+        </div>
+        <div class="performance-actions">
+          <div class="time-range" aria-label="统计时间段">
+            <button class="time-button" data-range="24h">24 小时</button>
+            <button class="time-button" data-range="7d">7 天</button>
+            <button class="time-button active" data-range="28d">28 天</button>
+            <button class="time-button" data-range="3m">3 个月</button>
+          </div>
+          <span class="gsc-badge">Google Search Console 已连接</span>
+        </div>
+      </div>
+
+      <div class="metrics" id="metrics">
+        <button class="metric active" style="--metric-color:#1687f8;--metric-soft:#edf6ff" data-series="impressions"><div class="metric-label">总曝光</div><div class="metric-value"><span data-metric="impressions">1,284,930</span><small class="metric-trend">+18.4%</small></div></button>
+        <button class="metric active" style="--metric-color:#7d5fff;--metric-soft:#f3f0ff" data-series="clicks"><div class="metric-label">总点击</div><div class="metric-value"><span data-metric="clicks">42,681</span><small class="metric-trend">+12.7%</small></div></button>
+        <button class="metric" style="--metric-color:#00a7b5;--metric-soft:#eaf8fa" data-series="ctr"><div class="metric-label">点击率</div><div class="metric-value"><span data-metric="ctr">3.32%</span></div></button>
+        <button class="metric" style="--metric-color:#f29a38;--metric-soft:#fff4e8" data-series="position"><div class="metric-label">平均排名</div><div class="metric-value"><span data-metric="position">11.8</span></div></button>
+      </div>
+
+      <div class="chart-wrap">
+        <span class="chart-title" id="chartTitle">全站趋势 · 28 天</span>
+        <canvas id="trendChart" aria-label="SEO 效果趋势折线图"></canvas>
+        <div class="chart-tooltip" id="chartTooltip"></div>
+      </div>
+
+      <a class="detail-link" id="analyticsLink" href="../data-analysis/index.html?view=search&range=28d">
+        <small>查看 Query、页面和收录状态的完整数据</small>
+        <strong>查看详细数据 <span aria-hidden="true">→</span></strong>
+      </a>
+    </section>
+
+    <section class="module-section" aria-labelledby="moduleTitle">
+      <div class="band-head"><h2 id="moduleTitle">模块进度</h2><span>点击模块查看详细数据</span></div>
+      <div class="modules">
+        <button class="module-card technical" data-module="技术 SEO">
+          <span class="module-top"><span class="module-name"><span class="module-icon">TS</span>技术 SEO</span><span class="module-arrow">›</span></span>
+          <span class="module-value">82<span style="font-size:15px;color:#8490a2">/100</span></span>
+          <span class="module-label">最近一次分析总分</span>
+        </button>
+        <button class="module-card keywords" data-module="关键词研究">
+          <span class="module-top"><span class="module-name"><span class="module-icon">KW</span>关键词研究</span><span class="module-arrow">›</span></span>
+          <span class="module-value">126</span>
+          <span class="module-label">现有核心关键词</span>
+        </button>
+        <button class="module-card backlinks" data-module="外链">
+          <span class="module-top"><span class="module-name"><span class="module-icon">BL</span>外链</span><span class="module-arrow">›</span></span>
+          <span class="module-value">384</span>
+          <span class="module-label">当前有效外链</span>
+        </button>
+        <button class="module-card content" data-module="内容">
+          <span class="module-top"><span class="module-name"><span class="module-icon">CT</span>内容</span><span class="module-arrow">›</span></span>
+          <span class="module-value">218</span>
+          <span class="module-label">已收录页面</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="surface tasks" aria-labelledby="tasksTitle">
+      <div class="section-head">
+        <div class="section-title"><div><h2 id="tasksTitle">进行中任务</h2><p>按创建时间从新到旧排列</p></div></div>
+        <span style="color:#68778b;font-size:12px">3 个任务</span>
+      </div>
+      <div class="task-list">
+        <a class="task-row" href="#task-technical"><span class="task-state running"><span></span></span><span><span class="task-name">Technical SEO 分析</span><span class="task-summary">正在抓取站点并检查 sitemap、robots、索引状态和页面质量。</span></span><span class="task-arrow">›</span></a>
+        <a class="task-row" href="#task-keywords"><span class="task-state running"><span></span></span><span><span class="task-name">核心关键词整理</span><span class="task-summary">正在汇总搜索意图、现有排名和目标页面的关键词分配。</span></span><span class="task-arrow">›</span></a>
+        <a class="task-row" href="#task-content"><span class="task-state">!</span><span><span class="task-name">内容页面发布审批</span><span class="task-summary">页面草稿已准备完成，正在等待发布确认。</span></span><span class="task-arrow">›</span></a>
+      </div>
+    </section>
+    <div class="toast" id="toast" role="status"></div>
+  </main>
+
+  <script>
+    const data = { all: { impressions: "1,284,930", clicks: "42,681", ctr: "3.32%", position: "11.8" } };
+    let currentRange = "28d";
+    const activeSeries = new Set(["impressions", "clicks"]);
+    const rangeLabels = { "24h": "24 小时", "7d": "7 天", "28d": "28 天", "3m": "3 个月" };
+    const seriesMeta = {
+      impressions: { label: "总曝光", color: "#1687f8", base: 46000 },
+      clicks: { label: "总点击", color: "#7d5fff", base: 1520 },
+      ctr: { label: "点击率", color: "#00a7b5", base: 3.32 },
+      position: { label: "平均排名", color: "#f29a38", base: 11.8 }
+    };
+    const toast = document.querySelector("#toast");
+    const canvas = document.querySelector("#trendChart");
+    const chartTooltip = document.querySelector("#chartTooltip");
+    let chartPoints = [];
+
+    function pointCount() { return { "24h": 24, "7d": 7, "28d": 14, "3m": 18 }[currentRange]; }
+
+    function chartData(key) {
+      const count = pointCount();
+      const rangeScale = { "24h": 0.036, "7d": 0.25, "28d": 1, "3m": 3.18 }[currentRange];
+      return Array.from({ length: count }, (_, index) => {
+        const wave = 1 + Math.sin(index * 0.7 + key.length) * 0.13 + Math.cos(index * 0.29) * 0.08 + index / count * 0.12;
+        return seriesMeta[key].base * rangeScale / Math.max(1, count / 14) * wave;
+      });
+    }
+
+    function pointLabel(index) {
+      if (currentRange === "24h") return `${String(index).padStart(2, "0")}:00`;
+      const span = { "7d": 7, "28d": 28, "3m": 90 }[currentRange];
+      const daysAgo = Math.round(span - index * span / Math.max(1, pointCount() - 1));
+      const date = new Date(2026, 7, 20 - daysAgo);
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    }
+
+    function formatSeries(key, value) {
+      if (key === "ctr") return `${value.toFixed(2)}%`;
+      if (key === "position") return value.toFixed(1);
+      return Math.round(value).toLocaleString("zh-CN");
+    }
+
+    function scaleRecord(record) {
+      const factor = { "24h": 0.036, "7d": 0.25, "28d": 1, "3m": 3.18 }[currentRange];
+      const ctrOffset = { "24h": -0.18, "7d": -0.08, "28d": 0, "3m": 0.12 }[currentRange];
+      const positionOffset = { "24h": 0.7, "7d": 0.3, "28d": 0, "3m": -0.4 }[currentRange];
+      return {
+        ...record,
+        impressions: Math.round(Number(record.impressions.replaceAll(",", "")) * factor).toLocaleString("zh-CN"),
+        clicks: Math.round(Number(record.clicks.replaceAll(",", "")) * factor).toLocaleString("zh-CN"),
+        ctr: `${Math.max(0, Number.parseFloat(record.ctr) + ctrOffset).toFixed(2)}%`,
+        position: Math.max(1, Number.parseFloat(record.position) + positionOffset).toFixed(1)
+      };
+    }
+
+    function drawChart() {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * ratio);
+      canvas.height = Math.round(rect.height * ratio);
+      const ctx = canvas.getContext("2d");
+      ctx.scale(ratio, ratio);
+      const width = rect.width, height = rect.height;
+      const pad = { left: 34, right: 16, top: 32, bottom: 26 };
+      const chartW = width - pad.left - pad.right, chartH = height - pad.top - pad.bottom;
+      ctx.clearRect(0, 0, width, height);
+      ctx.strokeStyle = "#e9eef4";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.top + chartH * i / 4;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(width - pad.right, y); ctx.stroke();
+      }
+      ctx.fillStyle = "#8a96a8";
+      ctx.font = "10px Inter, sans-serif";
+      ctx.textAlign = "center";
+      const count = pointCount();
+      const labelIndexes = [0, Math.floor((count - 1) / 3), Math.floor((count - 1) * 2 / 3), count - 1];
+      labelIndexes.forEach((index) => ctx.fillText(pointLabel(index), pad.left + chartW * index / Math.max(1, count - 1), height - 7));
+      chartPoints = [];
+      Array.from(activeSeries).forEach((key) => {
+        const values = chartData(key), min = Math.min(...values) * 0.88, max = Math.max(...values) * 1.08;
+        const points = values.map((value, index) => ({
+          x: pad.left + chartW * index / Math.max(1, values.length - 1),
+          y: pad.top + chartH - (value - min) / Math.max(0.0001, max - min) * chartH,
+          value, key, index
+        }));
+        chartPoints.push(...points);
+        ctx.strokeStyle = seriesMeta[key].color;
+        ctx.lineWidth = 2;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        points.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+        ctx.stroke();
+      });
+      document.querySelector("#chartTitle").textContent = `全站趋势 · ${rangeLabels[currentRange]}`;
+    }
+
+    function setMetrics(record) {
+      const displayRecord = scaleRecord(record);
+      ["impressions", "clicks", "ctr", "position"].forEach((key) => document.querySelector(`[data-metric="${key}"]`).textContent = displayRecord[key]);
+      drawChart();
+    }
+
+    document.querySelectorAll(".time-button").forEach((button) => button.onclick = () => {
+      currentRange = button.dataset.range;
+      document.querySelectorAll(".time-button").forEach((item) => item.classList.toggle("active", item === button));
+      setMetrics(data.all);
+      document.querySelector("#analyticsLink").href = `../data-analysis/index.html?view=search&range=${currentRange}`;
+      showToast(`已切换至${rangeLabels[currentRange]}数据`);
+    });
+    document.querySelectorAll(".metric").forEach((metric) => metric.onclick = () => {
+      const key = metric.dataset.series;
+      if (activeSeries.has(key) && activeSeries.size === 1) return showToast("至少保留一项趋势指标");
+      activeSeries.has(key) ? activeSeries.delete(key) : activeSeries.add(key);
+      metric.classList.toggle("active", activeSeries.has(key));
+      drawChart();
+    });
+    canvas.addEventListener("mousemove", (event) => {
+      if (!chartPoints.length) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const closestIndex = chartPoints.reduce((best, point) => Math.abs(point.x - x) < Math.abs(best.x - x) ? point : best).index;
+      const matches = chartPoints.filter((point) => point.index === closestIndex);
+      chartTooltip.innerHTML = `<strong>${pointLabel(closestIndex)}</strong><br>${matches.map((point) => `<span style="color:${seriesMeta[point.key].color}">●</span> ${seriesMeta[point.key].label}：${formatSeries(point.key, point.value)}`).join("<br>")}`;
+      chartTooltip.style.left = `${Math.min(rect.width - 166, Math.max(8, x + 12))}px`;
+      chartTooltip.style.top = "42px";
+      chartTooltip.classList.add("show");
+    });
+    canvas.addEventListener("mouseleave", () => chartTooltip.classList.remove("show"));
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+    document.querySelectorAll(".module-card").forEach((card) => card.onclick = () => showToast(`进入${card.dataset.module}模块`));
+    document.querySelectorAll(".task-row").forEach((task) => task.onclick = (event) => { event.preventDefault(); showToast("打开任务详情"); });
+    document.querySelector("#runTask").onclick = () => showToast("打开新建任务");
+    drawChart();
+    window.addEventListener("resize", drawChart);
+
+    window.addEventListener("wheel", event => {
+      if (window.parent === window || (!event.ctrlKey && !event.metaKey)) return;
+      event.preventDefault();
+      window.parent.postMessage({ type:"prototype-canvas:frame-zoom", deltaY:event.deltaY, clientX:event.clientX, clientY:event.clientY }, "*");
+    }, { passive:false });
+  </script>
+</body>
+</html>

@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>FameSquared · 竞品研究</title>
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #627086;
+      --line: #dfe6ef;
+      --line-soft: #edf1f6;
+      --canvas: #f2f7fd;
+      --surface: #ffffff;
+      --blue: #1687f8;
+      --blue-dark: #0875e1;
+      --blue-soft: #edf6ff;
+      --green: #259a4e;
+      --red: #dc4c64;
+    }
+    * { box-sizing: border-box; letter-spacing: 0; }
+    html, body { width: 1440px; height: 1000px; overflow: hidden; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    button, input, select { font: inherit; letter-spacing: 0; }
+    button, select { cursor: pointer; }
+    button:disabled { cursor: not-allowed; }
+    .page { width: 100%; height: 100%; padding: 32px 42px 40px; }
+    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; min-height: 86px; }
+    h1 { margin: 0; font-size: 38px; line-height: 1.15; font-weight: 780; }
+    .subtitle { margin: 9px 0 0; color: var(--muted); font-size: 16px; }
+    .top-meta { display: grid; justify-items: end; gap: 8px; }
+    .market-context { display: flex; align-items: center; gap: 10px; }
+    .context-label { color: #536176; font-size: 13px; font-weight: 750; }
+    .market-context select { min-width: 138px; border-color: #b7c7da; box-shadow: 0 5px 14px rgba(35, 65, 96, 0.06); }
+    .updated { display: inline-flex; align-items: center; gap: 8px; color: #6d7b8e; font-size: 12px; }
+    .updated::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #2db45a; }
+    .workspace {
+      height: 824px;
+      display: grid;
+      grid-template-columns: 224px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: 0 10px 28px rgba(28, 58, 92, 0.06);
+    }
+    .workspace.sample-mode { grid-template-rows: 76px minmax(0, 1fr); }
+    .workspace.sample-mode .competitor-nav, .workspace.sample-mode .detail { grid-row: 2; }
+    .state-banner {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 13px;
+      padding: 12px 18px;
+      border-bottom: 1px solid #dbe7f2;
+      background: #f7fbff;
+    }
+    .state-banner[hidden] { display: none; }
+    .state-banner.idle { background: #fffaf0; border-bottom-color: #f2dfb3; }
+    .state-banner.failed { background: #fff5f6; border-bottom-color: #f3cbd1; }
+    .state-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: #e3f1ff; color: #0875e1; font-size: 13px; font-weight: 820; }
+    .state-banner.idle .state-icon { background: #fff0c9; color: #9a6500; }
+    .state-banner.failed .state-icon { background: #ffe2e6; color: #c9344d; }
+    .state-banner.loading .state-icon::before { content: ""; width: 13px; height: 13px; border: 2px solid #1687f8; border-right-color: transparent; border-radius: 50%; animation: spin 850ms linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state-copy { min-width: 0; }
+    .state-title { font-size: 14px; font-weight: 780; color: #26374a; }
+    .state-detail { margin-top: 1px; color: #66758a; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .state-progress { display: flex; align-items: center; gap: 9px; margin-top: 5px; }
+    .state-progress[hidden] { display: none; }
+    .progress-track { width: 170px; height: 5px; overflow: hidden; border-radius: 999px; background: #dce8f4; }
+    .progress-fill { display: block; height: 100%; border-radius: inherit; background: var(--blue); transition: width 240ms ease; }
+    .progress-copy { color: #53718f; font-size: 11px; font-weight: 650; }
+    .state-button { height: 38px; min-width: 118px; padding: 0 15px; border: 0; border-radius: 8px; background: var(--blue); color: #fff; font-size: 12px; font-weight: 760; box-shadow: 0 5px 12px rgba(22, 135, 248, 0.2); }
+    .state-button:hover { background: var(--blue-dark); }
+    .state-banner.loading .state-button { border: 1px solid #b8d9fb; background: #fff; color: #0875e1; box-shadow: none; }
+    .state-banner.failed .state-button { background: #d8445c; box-shadow: 0 5px 12px rgba(216, 68, 92, 0.18); }
+    .sample-mode .metric-main { filter: blur(4px); user-select: none; }
+    .sample-mode tbody tr:nth-child(n+3) td { filter: blur(3px); opacity: 0.66; user-select: none; }
+    .competitor-nav { min-width: 0; border-right: 1px solid var(--line); background: #fbfdff; }
+    .nav-head { height: 67px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 18px; border-bottom: 1px solid var(--line-soft); }
+    .nav-head strong { font-size: 14px; font-weight: 760; }
+    .nav-meta { display: flex; align-items: center; gap: 6px; }
+    .count { min-width: 26px; height: 22px; display: grid; place-items: center; padding: 0 7px; border-radius: 999px; background: #eef2f7; color: #66758a; font-size: 11px; font-weight: 750; }
+    .sample-badge { padding: 3px 7px; border: 1px solid #edcf88; border-radius: 999px; background: #fff8e6; color: #936300; font-size: 10px; font-weight: 760; white-space: nowrap; }
+    .sample-badge[hidden] { display: none; }
+    .competitor-list { padding: 10px; display: grid; gap: 4px; }
+    .competitor {
+      width: 100%;
+      height: 54px;
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #3c4a5d;
+      text-align: left;
+    }
+    .competitor:hover { background: #f2f7fd; }
+    .competitor.active { border-color: #b9dcff; background: var(--blue-soft); color: #075fae; box-shadow: inset 3px 0 0 var(--blue); }
+    .logo { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: white; font-size: 13px; font-weight: 800; box-shadow: 0 2px 6px rgba(35, 55, 75, 0.13); }
+    .domain { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 700; }
+    .detail { min-width: 0; display: grid; grid-template-rows: 138px 53px 64px minmax(0, 1fr) 58px; }
+    .detail-head { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 24px 28px 22px; border-bottom: 1px solid var(--line-soft); }
+    .product-overview { min-width: 0; }
+    .eyebrow { color: #7a8799; font-size: 11px; font-weight: 750; text-transform: uppercase; }
+    .product-line { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+    .product-line h2 { margin: 0; font-size: 25px; line-height: 1.25; font-weight: 780; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .direct-badge { flex: 0 0 auto; padding: 4px 8px; border-radius: 999px; background: #eef8f1; color: #218442; font-size: 11px; font-weight: 750; }
+    .metrics { display: flex; align-items: stretch; flex: 0 0 auto; }
+    .metric { min-width: 270px; padding: 3px 24px; border-left: 1px solid var(--line); }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 650; }
+    .metric-main { display: flex; align-items: baseline; gap: 12px; margin-top: 5px; }
+    .metric-value { font-size: 28px; line-height: 1.2; font-weight: 780; font-variant-numeric: tabular-nums; }
+    .traffic-change { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 780; font-variant-numeric: tabular-nums; }
+    .traffic-change.positive { color: var(--green); }
+    .traffic-change.negative { color: var(--red); }
+    .trend-icon { display: inline-flex; align-items: center; color: inherit; font-size: 14px; line-height: 1; }
+    .tabs { display: flex; align-items: flex-end; gap: 28px; padding: 0 28px; border-bottom: 1px solid var(--line); }
+    .tab { height: 100%; padding: 0 2px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); font-weight: 740; }
+    .tab:hover { color: #344054; }
+    .tab.active { color: var(--blue-dark); border-bottom-color: var(--blue); }
+    .tools { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 28px; border-bottom: 1px solid var(--line-soft); }
+    .filter-group { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .select-wrap { position: relative; }
+    select {
+      height: 36px;
+      min-width: 126px;
+      padding: 0 32px 0 11px;
+      border: 1px solid #cfd8e5;
+      border-radius: 8px;
+      outline: none;
+      background: #fff;
+      color: #344054;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    select:focus, .search:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22, 135, 248, 0.11); }
+    .search { width: 248px; height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 11px; border: 1px solid #cfd8e5; border-radius: 8px; background: #fff; }
+    .search[hidden] { display: none; }
+    .search span { color: #7f8c9f; font-size: 17px; }
+    .search input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: #344054; font-size: 12px; }
+    .search input::placeholder { color: #98a2b3; }
+    .result-count { color: #7a8799; font-size: 12px; white-space: nowrap; }
+    .table-wrap { min-height: 0; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { height: 39px; padding: 0 18px; background: #f8fafc; color: #78869a; font-size: 11px; font-weight: 720; text-align: right; white-space: nowrap; }
+    th:first-child { padding-left: 28px; text-align: left; }
+    th button { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: inherit; padding: 0; font-weight: inherit; }
+    th:not(:first-child) button { justify-content: flex-end; }
+    th button:hover, th button.active { color: var(--blue-dark); }
+    .sort-arrow { width: 10px; color: #9ba7b7; }
+    td { height: 54px; padding: 0 18px; border-top: 1px solid var(--line-soft); color: #344054; text-align: right; font-variant-numeric: tabular-nums; }
+    td:first-child { padding-left: 28px; text-align: left; }
+    tbody tr:hover { background: #f7fbff; }
+    .primary-cell { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1d4d77; font-weight: 660; }
+    .keyword { color: #26374a; font-weight: 700; }
+    .rank { display: inline-grid; place-items: center; min-width: 31px; height: 26px; padding: 0 7px; border-radius: 7px; background: #eef6ff; color: #0875e1; font-weight: 760; }
+    .kd { display: inline-flex; align-items: center; justify-content: flex-end; gap: 9px; min-width: 88px; }
+    .kd-bar { width: 44px; height: 5px; overflow: hidden; border-radius: 999px; background: #e7ecf2; }
+    .kd-bar i { display: block; height: 100%; border-radius: inherit; background: var(--kd-color); }
+    .empty { height: 324px; display: grid; place-items: center; color: #7a8799; }
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 0 28px; border-top: 1px solid var(--line-soft); background: #fbfcfe; }
+    .page-copy { color: #758397; font-size: 12px; }
+    .page-actions { display: flex; align-items: center; gap: 6px; }
+    .page-button { width: 32px; height: 32px; border: 1px solid #d7dfe9; border-radius: 7px; background: #fff; color: #536176; }
+    .page-button:hover:not(:disabled) { border-color: #9acbff; background: var(--blue-soft); color: var(--blue-dark); }
+    .page-button:disabled { color: #b1bac7; background: #f5f7fa; }
+    .page-number { min-width: 32px; height: 32px; display: grid; place-items: center; border-radius: 7px; background: var(--blue); color: white; font-size: 12px; font-weight: 750; }
+    .toast { position: fixed; right: 42px; bottom: 30px; padding: 10px 13px; border-radius: 9px; background: #12263a; color: #fff; opacity: 0; transform: translateY(8px); transition: opacity 160ms, transform 160ms; pointer-events: none; box-shadow: 0 10px 25px rgba(17, 24, 39, 0.2); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div>
+        <h1>竞品研究</h1>
+        <p class="subtitle">查看直接竞品的自然搜索表现与高价值 SEO 资产。</p>
+      </div>
+      <div class="top-meta">
+        <label class="market-context"><span class="context-label">目标市场</span><select id="market" aria-label="目标市场">
+          <option value="us">美国 · English</option>
+          <option value="gb">英国 · English</option>
+          <option value="ca">加拿大 · English</option>
+        </select></label>
+        <span class="updated">数据更新于 2026 年 7 月完整月</span>
+      </div>
+    </header>
+
+    <section class="workspace" id="workspace" aria-label="竞品研究工作区">
+      <div class="state-banner" id="stateBanner" hidden aria-live="polite">
+        <span class="state-icon" id="stateIcon">i</span>
+        <div class="state-copy">
+          <div class="state-title" id="stateTitle"></div>
+          <div class="state-detail" id="stateDetail"></div>
+          <div class="state-progress" id="stateProgress" hidden><span class="progress-track"><span class="progress-fill" id="progressFill"></span></span><span class="progress-copy" id="progressCopy"></span></div>
+        </div>
+        <button class="state-button" id="stateAction" type="button"></button>
+      </div>
+      <aside class="competitor-nav" aria-label="竞品导航">
+        <div class="nav-head"><strong>直接竞品</strong><span class="nav-meta"><span class="sample-badge" id="sampleBadge" hidden>示例数据</span><span class="count" id="competitorCount">6</span></span></div>
+        <div class="competitor-list" id="competitorList"></div>
+      </aside>
+
+      <article class="detail">
+        <header class="detail-head">
+          <div class="product-overview">
+            <span class="eyebrow">当前竞品</span>
+            <div class="product-line"><h2 id="productName">Semrush</h2><span class="direct-badge">直接竞品</span></div>
+          </div>
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">估计月自然流量</div>
+              <div class="metric-main"><span class="metric-value" id="traffic">18.6M</span><span class="traffic-change positive" id="change"><span class="trend-icon"><span>↑</span></span>6.8%</span></div>
+            </div>
+          </div>
+        </header>
+
+        <nav class="tabs" role="tablist" aria-label="竞品数据类型">
+          <button class="tab active" role="tab" aria-selected="true" data-tab="pages">高流量页面</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="keywords">排名关键词</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="backlinks">高价值外链</button>
+        </nav>
+
+        <div class="tools">
+          <div class="filter-group">
+            <label class="search" id="searchControl"><span aria-hidden="true">⌕</span><input id="search" placeholder="搜索页面 URL" aria-label="搜索当前表格"></label>
+          </div>
+          <span class="result-count" id="resultCount">共 20 条数据</span>
+        </div>
+
+        <div class="table-wrap" id="tableWrap"></div>
+
+        <footer class="pagination">
+          <span class="page-copy" id="pageCopy">第 1–6 条，共 20 条</span>
+          <div class="page-actions">
+            <button class="page-button" id="prevPage" type="button" title="上一页" aria-label="上一页">‹</button>
+            <span class="page-number" id="pageNumber">1</span>
+            <button class="page-button" id="nextPage" type="button" title="下一页" aria-label="下一页">›</button>
+          </div>
+        </footer>
+      </article>
+    </section>
+    <div class="toast" id="toast" role="status"></div>
+  </main>
+
+  <script>
+    const competitors = [
+      { id: "semrush", domain: "semrush.com", name: "Semrush", traffic: 18600000, change: 6.8, mark: "S", color: "#ff642d" },
+      { id: "ahrefs", domain: "ahrefs.com", name: "Ahrefs", traffic: 12400000, change: 3.2, mark: "a", color: "#ff8800" },
+      { id: "seranking", domain: "seranking.com", name: "SE Ranking", traffic: 2860000, change: 11.4, mark: "SE", color: "#5968e9" },
+      { id: "moz", domain: "moz.com", name: "Moz Pro", traffic: 5400000, change: -2.1, mark: "M", color: "#1a8cff" },
+      { id: "surfer", domain: "surferseo.com", name: "Surfer", traffic: 1920000, change: 8.7, mark: "S", color: "#6f59ef" },
+      { id: "ubersuggest", domain: "neilpatel.com", name: "Ubersuggest", traffic: 8100000, change: -4.6, mark: "NP", color: "#ff5b35" }
+    ];
+
+    const baseData = {
+      pages: [
+        { value: "https://semrush.com/blog/what-is-seo/", traffic: 483000 },
+        { value: "https://semrush.com/website/", traffic: 327400 },
+        { value: "https://semrush.com/blog/keyword-research/", traffic: 286900 },
+        { value: "https://semrush.com/analytics/keywordoverview/", traffic: 241800 },
+        { value: "https://semrush.com/blog/on-page-seo/", traffic: 196500 },
+        { value: "https://semrush.com/blog/seo-tools/", traffic: 174200 },
+        { value: "https://semrush.com/blog/competitor-analysis/", traffic: 148600 },
+        { value: "https://semrush.com/blog/seo-audit/", traffic: 131900 },
+        { value: "https://semrush.com/blog/backlinks/", traffic: 119400 },
+        { value: "https://semrush.com/blog/search-intent/", traffic: 108700 },
+        { value: "https://semrush.com/blog/technical-seo/", traffic: 97800 },
+        { value: "https://semrush.com/features/site-audit/", traffic: 86300 }
+      ],
+      keywords: [
+        { value: "seo", rank: 3, volume: 201000, kd: 92 },
+        { value: "keyword research", rank: 1, volume: 90500, kd: 81 },
+        { value: "semrush", rank: 1, volume: 74000, kd: 68 },
+        { value: "what is seo", rank: 2, volume: 60500, kd: 86 },
+        { value: "website traffic checker", rank: 1, volume: 49500, kd: 73 },
+        { value: "seo tools", rank: 4, volume: 40500, kd: 88 },
+        { value: "backlink checker", rank: 3, volume: 33100, kd: 77 },
+        { value: "on page seo", rank: 2, volume: 27100, kd: 79 },
+        { value: "competitor analysis", rank: 5, volume: 22200, kd: 72 },
+        { value: "technical seo", rank: 7, volume: 18100, kd: 84 },
+        { value: "search intent", rank: 3, volume: 14800, kd: 66 },
+        { value: "seo audit", rank: 6, volume: 12100, kd: 75 }
+      ],
+      backlinks: [
+        { value: "wikipedia.org", traffic: 1820000000, rank: 96, references: 5 },
+        { value: "forbes.com", traffic: 158000000, rank: 93, references: 4 },
+        { value: "hubspot.com", traffic: 114000000, rank: 91, references: 6 },
+        { value: "shopify.com", traffic: 96200000, rank: 92, references: 3 },
+        { value: "searchenginejournal.com", traffic: 28400000, rank: 88, references: 6 },
+        { value: "backlinko.com", traffic: 12100000, rank: 84, references: 5 },
+        { value: "zapier.com", traffic: 46800000, rank: 89, references: 4 },
+        { value: "webflow.com", traffic: 23900000, rank: 86, references: 3 },
+        { value: "mailchimp.com", traffic: 19400000, rank: 87, references: 2 },
+        { value: "businessinsider.com", traffic: 73100000, rank: 91, references: 4 },
+        { value: "techcrunch.com", traffic: 26900000, rank: 90, references: 3 },
+        { value: "g2.com", traffic: 18600000, rank: 82, references: 6 }
+      ]
+    };
+
+    const tabConfig = {
+      pages: {
+        total: 20,
+        placeholder: "搜索页面 URL",
+        columns: [["value", "页面 URL"], ["traffic", "估计月自然流量"]]
+      },
+      keywords: {
+        total: 100,
+        placeholder: "搜索关键词",
+        columns: [["value", "关键词"], ["rank", "当前自然排名"], ["volume", "搜索量"], ["kd", "Organic KD"]]
+      },
+      backlinks: {
+        total: 100,
+        columns: [["value", "引用域名"], ["traffic", "引用域名月自然流量"], ["rank", "Domain Rank"]]
+      }
+    };
+
+    let currentCompetitor = competitors[0];
+    let currentTab = "pages";
+    let currentPage = 1;
+    let sortKey = "traffic";
+    let sortDirection = "desc";
+    const pageSize = 6;
+
+    const list = document.querySelector("#competitorList");
+    const tableWrap = document.querySelector("#tableWrap");
+    const search = document.querySelector("#search");
+    const searchControl = document.querySelector("#searchControl");
+    const market = document.querySelector("#market");
+    const toast = document.querySelector("#toast");
+    const workspace = document.querySelector("#workspace");
+    const stateBanner = document.querySelector("#stateBanner");
+    const stateIcon = document.querySelector("#stateIcon");
+    const stateTitle = document.querySelector("#stateTitle");
+    const stateDetail = document.querySelector("#stateDetail");
+    const stateProgress = document.querySelector("#stateProgress");
+    const stateAction = document.querySelector("#stateAction");
+    const sampleBadge = document.querySelector("#sampleBadge");
+    let initState = "ready";
+
+    function formatNumber(value) {
+      if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}B`;
+      if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+      if (value >= 1000) return `${(value / 1000).toFixed(value >= 100000 ? 0 : 1)}K`;
+      return value.toLocaleString("en-US");
+    }
+
+    function currentData() {
+      const competitorIndex = competitors.findIndex(item => item.id === currentCompetitor.id);
+      const competitorFactor = 1 - competitorIndex * 0.065;
+      const marketTrafficFactor = market.value === "us" ? 1 : market.value === "gb" ? 0.61 : 0.44;
+      const marketVolumeFactor = market.value === "us" ? 1 : market.value === "gb" ? 0.56 : 0.38;
+      const marketRankOffset = market.value === "us" ? 0 : market.value === "gb" ? 2 : 4;
+      const marketKdOffset = market.value === "us" ? 0 : market.value === "gb" ? -3 : -5;
+      const replacement = currentCompetitor.domain;
+      const seeds = baseData[currentTab];
+      const rows = Array.from({ length: tabConfig[currentTab].total }, (_, index) => {
+        if (index < seeds.length) return { ...seeds[index] };
+        if (currentTab === "pages") return { value: `https://semrush.com/blog/seo-guide-${index + 1}/`, traffic: Math.max(14200, 106000 - index * 4300) };
+        if (currentTab === "keywords") return { value: `seo workflow ${index + 1}`, rank: 8 + index % 43, volume: Math.max(320, 11800 - index * 115), kd: 42 + index % 49 };
+        return { value: `industry-source-${index + 1}.com`, traffic: Math.max(86000, 17400000 - index * 151000), rank: 48 + index % 49, references: 1 + index % 6 };
+      });
+      return rows.map((row, index) => {
+        const next = { ...row };
+        if (currentTab === "pages") next.value = row.value.replace("semrush.com", replacement);
+        if (currentTab === "keywords" && next.value === "semrush") next.value = currentCompetitor.name.toLowerCase();
+        if (typeof next.traffic === "number") next.traffic = Math.round(next.traffic * (currentTab === "backlinks" ? 1 : competitorFactor) * marketTrafficFactor);
+        if (typeof next.volume === "number") next.volume = Math.round(next.volume * marketVolumeFactor);
+        if (typeof next.rank === "number" && currentTab === "keywords") next.rank = Math.min(100, next.rank + competitorIndex + marketRankOffset);
+        if (typeof next.kd === "number") next.kd = Math.max(0, Math.min(100, next.kd + marketKdOffset));
+        return next;
+      });
+    }
+
+    function renderCompetitors() {
+      list.innerHTML = competitors.map(item => `
+        <button class="competitor ${item.id === currentCompetitor.id ? "active" : ""}" data-id="${item.id}" type="button" aria-label="查看 ${item.domain}">
+          <span class="logo" style="background:${item.color}">${item.mark}</span>
+          <span class="domain">${item.domain}</span>
+        </button>`).join("");
+      list.querySelectorAll(".competitor").forEach(button => button.onclick = () => switchCompetitor(button.dataset.id));
+    }
+
+    function renderHeader() {
+      document.querySelector("#productName").textContent = currentCompetitor.name;
+      const marketTrafficFactor = market.value === "us" ? 1 : market.value === "gb" ? 0.61 : 0.44;
+      const marketChangeOffset = market.value === "us" ? 0 : market.value === "gb" ? -1.4 : 0.8;
+      document.querySelector("#traffic").textContent = formatNumber(Math.round(currentCompetitor.traffic * marketTrafficFactor));
+      const change = document.querySelector("#change");
+      const marketChange = currentCompetitor.change + marketChangeOffset;
+      const positive = marketChange >= 0;
+      change.innerHTML = `<span class="trend-icon"><span>${positive ? "↑" : "↓"}</span></span>${Math.abs(marketChange).toFixed(1)}%`;
+      change.className = `traffic-change ${positive ? "positive" : "negative"}`;
+    }
+
+    function renderTools() {
+      const config = tabConfig[currentTab];
+      searchControl.hidden = currentTab === "backlinks";
+      search.placeholder = config.placeholder || "";
+      document.querySelector("#resultCount").textContent = `共 ${config.total} 条数据`;
+    }
+
+    function filteredData() {
+      const needle = currentTab === "backlinks" ? "" : search.value.trim().toLowerCase();
+      return currentData().filter(row => {
+        if (needle && !row.value.toLowerCase().includes(needle)) return false;
+        return true;
+      }).sort((a, b) => {
+        const aValue = a[sortKey];
+        const bValue = b[sortKey];
+        const direction = sortDirection === "asc" ? 1 : -1;
+        return typeof aValue === "string" ? aValue.localeCompare(bValue) * direction : (aValue - bValue) * direction;
+      });
+    }
+
+    function renderCell(row, key) {
+      if (key === "value") return `<span class="primary-cell ${currentTab === "keywords" ? "keyword" : ""}" title="${row.value}">${row.value}</span>`;
+      if (key === "traffic" || key === "volume") return formatNumber(row[key]);
+      if (key === "rank" && currentTab === "keywords") return `<span class="rank">${row.rank}</span>`;
+      if (key === "kd") {
+        const color = row.kd >= 80 ? "#e45669" : row.kd >= 60 ? "#f29a38" : "#2db45a";
+        return `<span class="kd"><span class="kd-bar"><i style="width:${row.kd}%;--kd-color:${color}"></i></span>${row.kd}</span>`;
+      }
+      return row[key];
+    }
+
+    function renderTable() {
+      const config = tabConfig[currentTab];
+      const data = filteredData();
+      document.querySelector("#resultCount").textContent = data.length === config.total ? `共 ${config.total} 条数据` : `${data.length} 条筛选结果 / 共 ${config.total} 条`;
+      const maxPage = Math.max(1, Math.ceil(data.length / pageSize));
+      currentPage = Math.min(currentPage, maxPage);
+      const start = (currentPage - 1) * pageSize;
+      const rows = data.slice(start, start + pageSize);
+      const widths = currentTab === "pages" ? ["72%", "28%"] : currentTab === "keywords" ? ["42%", "19%", "19%", "20%"] : ["44%", "34%", "22%"];
+      tableWrap.innerHTML = rows.length ? `
+        <table>
+          <colgroup>${widths.map(width => `<col style="width:${width}">`).join("")}</colgroup>
+          <thead><tr>${config.columns.map(([key, label]) => `<th><button type="button" data-sort="${key}" class="${sortKey === key ? "active" : ""}">${label}<span class="sort-arrow">${sortKey === key ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}</span></button></th>`).join("")}</tr></thead>
+          <tbody>${rows.map(row => `<tr>${config.columns.map(([key]) => `<td>${renderCell(row, key)}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>` : `<div class="empty">没有符合当前筛选条件的数据</div>`;
+      tableWrap.querySelectorAll("[data-sort]").forEach(button => button.onclick = () => {
+        const key = button.dataset.sort;
+        sortDirection = sortKey === key && sortDirection === "desc" ? "asc" : "desc";
+        sortKey = key;
+        currentPage = 1;
+        renderTable();
+      });
+      document.querySelector("#pageNumber").textContent = currentPage;
+      document.querySelector("#prevPage").disabled = currentPage === 1;
+      document.querySelector("#nextPage").disabled = currentPage === maxPage;
+      const totalCopy = data.length === config.total ? `共 ${config.total} 条` : `筛选结果 ${data.length} 条`;
+      document.querySelector("#pageCopy").textContent = data.length ? `第 ${start + 1}–${Math.min(start + pageSize, data.length)} 条，${totalCopy}` : `0 条筛选结果`;
+    }
+
+    function resetView() {
+      currentPage = 1;
+      sortKey = currentTab === "keywords" ? "volume" : "traffic";
+      sortDirection = "desc";
+      search.value = "";
+      renderTools();
+      renderTable();
+    }
+
+    function switchCompetitor(id) {
+      currentCompetitor = competitors.find(item => item.id === id);
+      renderCompetitors();
+      renderHeader();
+      resetView();
+      showToast(`已切换至 ${currentCompetitor.domain}，保留当前数据 Tab`);
+    }
+
+    document.querySelectorAll(".tab").forEach(tab => tab.onclick = () => {
+      currentTab = tab.dataset.tab;
+      document.querySelectorAll(".tab").forEach(item => {
+        const active = item === tab;
+        item.classList.toggle("active", active);
+        item.setAttribute("aria-selected", String(active));
+      });
+      resetView();
+    });
+
+    search.addEventListener("input", () => { currentPage = 1; renderTable(); });
+    market.addEventListener("change", () => { currentPage = 1; renderHeader(); renderTable(); showToast("已更新整个竞品研究模块的目标市场数据"); });
+    document.querySelector("#prevPage").onclick = () => { if (currentPage > 1) { currentPage -= 1; renderTable(); } };
+    document.querySelector("#nextPage").onclick = () => { currentPage += 1; renderTable(); };
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function updateStateUrl(state) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("state", state);
+      window.history.replaceState({}, "", url);
+    }
+
+    function beginInitialResearch() {
+      updateStateUrl("loading");
+      renderInitState("loading", "queued");
+      window.setTimeout(() => {
+        if (initState === "loading") renderInitState("loading", "running");
+      }, 900);
+    }
+
+    function renderInitState(state, phase = "running") {
+      initState = state;
+      const ready = state === "ready";
+      workspace.classList.toggle("sample-mode", !ready);
+      stateBanner.hidden = ready;
+      sampleBadge.hidden = ready;
+      if (ready) return;
+
+      stateBanner.className = `state-banner ${state}`;
+      stateProgress.hidden = true;
+      stateAction.onclick = null;
+
+      if (state === "idle") {
+        stateIcon.textContent = "i";
+        stateTitle.textContent = "当前为示例数据";
+        stateDetail.textContent = "尚未生成本项目的竞品研究结果，当前内容仅用于预览模块结构。";
+        stateAction.textContent = "获取竞品数据";
+        stateAction.onclick = beginInitialResearch;
+        return;
+      }
+
+      if (state === "failed") {
+        stateIcon.textContent = "!";
+        stateTitle.textContent = "竞品数据获取失败";
+        stateDetail.textContent = "初始化任务未完成，示例数据将继续保留。";
+        stateAction.textContent = "重新获取";
+        stateAction.onclick = beginInitialResearch;
+        return;
+      }
+
+      stateIcon.textContent = "";
+      stateTitle.textContent = "正在获取竞品数据";
+      stateProgress.hidden = false;
+      stateAction.textContent = "查看任务";
+      stateAction.onclick = () => showToast("打开 competitor_research 任务详情");
+      if (phase === "queued") {
+        stateDetail.textContent = "初始化任务已加入队列，系统不会重复创建任务。";
+        document.querySelector("#progressFill").style.width = "12%";
+        document.querySelector("#progressCopy").textContent = "等待执行 · 1/4";
+      } else {
+        stateDetail.textContent = "正在根据产品信息发现并补充直接竞品。";
+        document.querySelector("#progressFill").style.width = "48%";
+        document.querySelector("#progressCopy").textContent = "竞品识别与数据补充 · 2/4";
+      }
+    }
+
+    renderCompetitors();
+    renderHeader();
+    resetView();
+    const requestedState = new URLSearchParams(window.location.search).get("state") || "ready";
+    renderInitState(["idle", "loading", "failed", "ready"].includes(requestedState) ? requestedState : "ready");
+
+    window.addEventListener("wheel", event => {
+      if (window.parent === window || (!event.ctrlKey && !event.metaKey)) return;
+      event.preventDefault();
+      window.parent.postMessage({ type: "prototype-canvas:frame-zoom", deltaY: event.deltaY, clientX: event.clientX, clientY: event.clientY }, "*");
+    }, { passive: false });
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "id": "overview",
+  "name": "总览",
+  "published": true,
+  "device": "desktop",
+  "category": "数据看板",
+  "description": "展示 GSC 总体指标与趋势、数据分析入口、模块进度概要和进行中任务队列。"
+}
